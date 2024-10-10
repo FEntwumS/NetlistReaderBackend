@@ -3,7 +3,7 @@ package de.thkoeln.fentwums.netlist.backend.datatypes;
 public class SignalTree {
     private int sId;
     private char sValue;
-    private SignalTree root;
+    private SignalNode root;
 
     public SignalTree() {
         sId = 0;
@@ -11,7 +11,7 @@ public class SignalTree {
         root = null;
     }
 
-    public SignalTree(int sId, char sValue, SignalTree root) {
+    public SignalTree(int sId, char sValue, SignalNode root) {
         this.sId = sId;
         this.sValue = sValue;
         this.root = root;
@@ -33,11 +33,11 @@ public class SignalTree {
         this.sValue = sValue;
     }
 
-    public SignalTree getRoot() {
+    public SignalNode getRoot() {
         return root;
     }
 
-    public void setRoot(SignalTree root) {
+    public void setRoot(SignalNode root) {
         this.root = root;
     }
 }
