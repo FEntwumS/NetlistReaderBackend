@@ -17,12 +17,6 @@ import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
 
 
 public class PortHandler {
-    private enum portDirection {
-        IN,
-        OUT,
-        INOUT
-    };
-
     public PortHandler() {}
 
     public ArrayList<SignalTree> createPorts(HashMap<String, Object> ports, String modulename,
