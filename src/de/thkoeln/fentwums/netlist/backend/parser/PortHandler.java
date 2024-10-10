@@ -53,6 +53,15 @@ public class PortHandler {
 
                 // Add label to port
                 ElkLabel toplevelPortLabel = createLabel(portname + " [" + currentPortDriverIndex + "]", toplevelPort);
+                // HACK
+                // TODO find better solution
+                //
+                // Why is this necessary?
+                // This hack was introduced when no frontend for the backend existed and the live demo version of
+                // elkjs was used to display the generated graph. For whatever reason the labels would be crossed by
+                // edges (most likely because the labels weren't being layouted). THis essentially declares a worst
+                // case layout to make the port labels readable
+                toplevelPortLabel.setDimensions(100d,15d);
 
                 // If the port has a constant driver (or is a constant driver), a source (or sink) node needs to be
                 // created
