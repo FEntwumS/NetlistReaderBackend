@@ -38,7 +38,7 @@ public class GraphCreator {
             ElkNode toplevelNode = createNode(root);
             toplevelNode.setIdentifier("cell");
             createLabel(modulename,  toplevelNode);
-            toplevelNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_SIDE);
+            toplevelNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_ORDER);
             // toplevelNode.setProperty(CoreOptions.PORT_LABELS_PLACEMENT, PortLabelPlacement.OUTSIDE);
         }
 
