@@ -5,27 +5,32 @@ import org.eclipse.elk.graph.ElkNode;
 import java.util.HashMap;
 
 import static org.eclipse.elk.graph.util.ElkGraphUtil.createGraph;
+import static org.eclipse.elk.graph.util.ElkGraphUtil.createNode;
 
 public class GraphCreator {
     private ElkNode root;
 
     public GraphCreator() {
-        root = null;
+        root = createGraph();
+        root.setIdentifier("root");
     }
 
     public GraphCreator(ElkNode root) {
         this.root = root;
+
     }
 
-    public GraphCreator(String rootname) {
+    public GraphCreator(String toplevelName) {
         root = createGraph();
-        root.setIdentifier(rootname);
+        root.setIdentifier("root");
+        createNode(root);
+        root.getChildren().getFirst().setIdentifier(toplevelName);
     }
 
     public void createGraphFromNetlist(HashMap<String, Object> module, String modulename) {
-        if (root == null) {
-            root = createGraph();
-            root.setIdentifier(modulename);
+        if (root.getChildren().isEmpty()) {
+            createNode(root);
+            root.getChildren().getFirst().setIdentifier(modulename);
         }
 
         try {
