@@ -28,11 +28,11 @@ public class HierarchicalNode {
         this.vectors = vectors;
         this.possibleBundles = possibleBundles;
 
-        this.isLeaf = this.children == null || this.children.isEmpty();
+        this.isLeaf = children == null || children.isEmpty();
 
-        if(this.parent != null) {
-            this.lId = this.parent.children.size();
-            this.parent.children.add(this);
+        if(parent != null && parent.getChildren() != null) {
+            this.lId = parent.children.size();
+            parent.children.add(this);
         }
     }
 
