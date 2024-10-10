@@ -4,8 +4,7 @@ import org.eclipse.elk.graph.ElkNode;
 
 import java.util.HashMap;
 
-import static org.eclipse.elk.graph.util.ElkGraphUtil.createGraph;
-import static org.eclipse.elk.graph.util.ElkGraphUtil.createNode;
+import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
 
 public class GraphCreator {
     private ElkNode root;
@@ -23,14 +22,16 @@ public class GraphCreator {
     public GraphCreator(String toplevelName) {
         root = createGraph();
         root.setIdentifier("root");
-        createNode(root);
-        root.getChildren().getFirst().setIdentifier(toplevelName);
+        ElkNode toplevelNode = createNode(root);
+        toplevelNode.setIdentifier("cell");
+        createLabel(toplevelName,  toplevelNode);
     }
 
     public void createGraphFromNetlist(HashMap<String, Object> module, String modulename) {
         if (root.getChildren().isEmpty()) {
-            createNode(root);
-            root.getChildren().getFirst().setIdentifier(modulename);
+            ElkNode toplevelNode = createNode(root);
+            toplevelNode.setIdentifier("cell");
+            createLabel(modulename,  toplevelNode);
         }
 
         try {
