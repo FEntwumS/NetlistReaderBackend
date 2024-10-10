@@ -3,6 +3,7 @@ package de.thkoeln.fentwums.netlist.backend.parser;
 import org.eclipse.elk.alg.layered.graph.LGraph;
 import org.eclipse.elk.alg.layered.graph.LNode;
 import org.eclipse.elk.core.options.CoreOptions;
+import org.eclipse.elk.core.options.HierarchyHandling;
 import org.eclipse.elk.core.options.PortConstraints;
 import org.eclipse.elk.core.options.PortLabelPlacement;
 import org.eclipse.elk.graph.ElkNode;
@@ -39,6 +40,8 @@ public class GraphCreator {
             toplevelNode.setIdentifier("cell");
             createLabel(modulename,  toplevelNode);
             toplevelNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_ORDER);
+            toplevelNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
+            toplevelNode.setProperty(CoreOptions.ALGORITHM, "layered");
             // toplevelNode.setProperty(CoreOptions.PORT_LABELS_PLACEMENT, PortLabelPlacement.OUTSIDE);
         }
 
