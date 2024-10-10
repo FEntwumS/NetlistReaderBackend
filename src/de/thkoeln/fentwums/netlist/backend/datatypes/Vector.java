@@ -5,15 +5,15 @@ import java.util.ArrayList;
 public class Vector {
     private String vectorName;
     private ArrayList<Bundle> vectorSignalBundles;
-    private ArrayList<Integer> indexInVector;
+    private int indexInVector;
 
     public Vector() {
         vectorName = "";
         vectorSignalBundles = new ArrayList<>(32);
-        indexInVector = new ArrayList<>(32);
+        indexInVector = 0;
     }
 
-    public Vector(String vectorName, ArrayList<Bundle> vectorSignalBundles, ArrayList<Integer> indexInVector) {
+    public Vector(String vectorName, ArrayList<Bundle> vectorSignalBundles, int indexInVector) {
         this.vectorName = vectorName;
         this.vectorSignalBundles = vectorSignalBundles;
         this.indexInVector = indexInVector;
@@ -25,7 +25,11 @@ public class Vector {
         }
 
         this.vectorName = vector.vectorName;
-        this.vectorSignalBundles = vector.vectorSignalBundles;
+        this.vectorSignalBundles = new ArrayList<>(vector.getVectorSignalBundles().size());
+
+        for(Bundle bundle : vector.getVectorSignalBundles()) {
+            this.vectorSignalBundles.add(new Bundle(bundle));
+        }
         this.indexInVector = vector.indexInVector;
     }
 
@@ -45,11 +49,11 @@ public class Vector {
         this.vectorSignalBundles = vectorSignalBundles;
     }
 
-    public ArrayList<Integer> getIndexInVector() {
+    public int getIndexInVector() {
         return indexInVector;
     }
 
-    public void setIndexInVector(ArrayList<Integer> indexInVector) {
+    public void setIndexInVector(int indexInVector) {
         this.indexInVector = indexInVector;
     }
 }
