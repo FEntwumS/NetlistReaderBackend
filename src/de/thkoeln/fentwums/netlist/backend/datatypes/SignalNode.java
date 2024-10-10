@@ -56,6 +56,14 @@ public class SignalNode {
         this.sId = sId;
     }
 
+    public int getLId() {
+        return lId;
+    }
+
+    public void setLId(int lId) {
+        this.lId = lId;
+    }
+
     public SignalNode getHParent() {
         return hParent;
     }
