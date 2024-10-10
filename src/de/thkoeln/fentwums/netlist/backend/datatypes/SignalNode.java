@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 public class SignalNode {
     private String sName;
-    private int sId;
     private int lId;
     private SignalNode hParent;
     private ArrayList<SignalNode> hChildren;
@@ -15,7 +14,6 @@ public class SignalNode {
 
     public SignalNode() {
         sName = "";
-        sId = 0;
         hParent = null;
         hChildren = new ArrayList<SignalNode>(8);
         sParent = null;
@@ -46,14 +44,6 @@ public class SignalNode {
 
     public void setSName(String sName) {
         this.sName = sName;
-    }
-
-    public int getSId() {
-        return sId;
-    }
-
-    public void setSId(int sId) {
-        this.sId = sId;
     }
 
     public int getLId() {
