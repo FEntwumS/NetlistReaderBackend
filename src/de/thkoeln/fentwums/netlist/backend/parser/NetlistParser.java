@@ -8,7 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 
-public class netlistParser {
+public class NetlistParser {
     private File netlistFile;
     private ObjectMapper mapper;
     private TypeReference<HashMap<String, Object>> typeRef;
@@ -17,7 +17,7 @@ public class netlistParser {
     private HashMap<String, Object> moduleToParse;
     private String toplevelName;
 
-    public netlistParser() {
+    public NetlistParser() {
         netlistFile = null;
         mapper = new ObjectMapper();
         typeRef = new TypeReference<HashMap<String, Object>>() {};
@@ -27,7 +27,7 @@ public class netlistParser {
         toplevelName = null;
     }
 
-    public netlistParser(File netlistFile) {
+    public NetlistParser(File netlistFile) {
         this.netlistFile = netlistFile;
         mapper = new ObjectMapper();
         typeRef = new TypeReference<HashMap<String, Object>>() {};
@@ -37,7 +37,7 @@ public class netlistParser {
         toplevelName = null;
     }
 
-    public netlistParser(String netlistFilePath) {
+    public NetlistParser(String netlistFilePath) {
         netlistFile = new File(netlistFilePath);
         mapper = new ObjectMapper();
         typeRef = new TypeReference<HashMap<String, Object>>() {};
