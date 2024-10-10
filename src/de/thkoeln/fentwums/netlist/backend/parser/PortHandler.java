@@ -6,6 +6,7 @@ import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.PortLabelPlacement;
 import org.eclipse.elk.core.options.PortSide;
 import org.eclipse.elk.graph.ElkEdge;
+import org.eclipse.elk.graph.ElkLabel;
 import org.eclipse.elk.graph.ElkNode;
 import org.eclipse.elk.graph.ElkPort;
 
@@ -42,57 +43,51 @@ public class PortHandler {
                 String portDirection = (String) currentPort.get("direction");
                 PortSide side = PortSide.EAST;
 
-                if (driver instanceof Integer) {
-                    treeList.add(createSignalTree(currentPort, portname, modulename));
+                // Create port for toplevel entity
 
-
-
-                    if (portDirection.equals("input")) {
-                        side = PortSide.WEST;
-                    }
-
-                    ElkPort p = createPort(toplevel);
-                    p.setProperty(CoreOptions.PORT_SIDE, side);
-                    createLabel(portname + currentPortDriverIndex, p);
-                    p.setDimensions(10d, 10d);
-                    p.setParent(toplevel);
-
-                    System.out.println("Created port " + portname + "-" + currentPortDriverIndex);
-
-                    currentPortDriverIndex++;
-
-                } else {
-                    // constant driver
-
-                    //TODO:
-                    // Create driver node
-                    // Connect node to Port
-
-                    ElkNode constDriverNode = createNode(toplevel.getParent());
-                    createLabel((String) driver, constDriverNode);
-
-                    if (!portDirection.equals("input")) {
-                        side = PortSide.WEST;
-                    }
-
-                    ElkPort cDriverOutputPort = createPort(constDriverNode);
-                    cDriverOutputPort.setProperty(CoreOptions.PORT_SIDE, side);
-                    cDriverOutputPort.setDimensions(10d, 10d);
-                    cDriverOutputPort.setParent(constDriverNode);
-
-                    if (portDirection.equals("input")) {
-                        side = PortSide.WEST;
-                    }
-
-                    ElkPort constInputPort = createPort(toplevel);
-                    constInputPort.setProperty(CoreOptions.PORT_SIDE, side);
-                    createLabel(portname + currentPortDriverIndex, constInputPort);
-                    constInputPort.setDimensions(10d, 10d);
-                    constInputPort.setParent(toplevel);
-
-                    ElkEdge constDriverEdge = createSimpleEdge(cDriverOutputPort, constInputPort);
-                    createLabel((String) driver, constDriverEdge);
+                /*
+                 * Input ports on the left side (WEST), output ports on the right side (EAST)
+                 * Buffer ports (inout) are treated as outputs
+                 */
+                if (portDirection.equals("input")) {
+                    side = PortSide.WEST;
                 }
+
+                ElkPort toplevelPort = createPort(toplevel);
+                toplevelPort.setProperty(CoreOptions.PORT_SIDE, side);
+                toplevelPort.setDimensions(10d, 10d);
+
+                // Add label to port
+                ElkLabel toplevelPortLabel = createLabel(portname + " [" + currentPortDriverIndex + "]", toplevelPort);
+
+                // If the port has a constant driver (or is a constant driver), a source (or sink) node needs to be
+                // created
+
+                if (!(driver instanceof Integer)) {
+                    ElkNode outsideNode = createNode(toplevel.getParent());
+                    outsideNode.setDimensions(20d, 20d);
+
+                    side = side == PortSide.WEST ? PortSide.EAST : PortSide.WEST;
+
+                    ElkPort outsideNodePort = createPort(outsideNode);
+                    outsideNodePort.setProperty(CoreOptions.PORT_SIDE, side);
+                    outsideNodePort.setDimensions(10d, 10d);
+
+                    ElkPort source, sink;
+
+                    if (portDirection.equals("input")) {
+                        source = outsideNodePort;
+                        sink = toplevelPort;
+                    } else {
+                        source = toplevelPort;
+                        sink = outsideNodePort;
+                    }
+
+                    ElkEdge constantEdge = createSimpleEdge(source, sink);
+                    createLabel((String) driver, constantEdge);
+                }
+
+                currentPortDriverIndex++;
             }
         }
         return treeList;
