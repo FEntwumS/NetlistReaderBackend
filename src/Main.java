@@ -4,18 +4,27 @@ import jdk.jshell.spi.ExecutionControl;
 import org.eclipse.elk.graph.json.ElkGraphJson;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 
 public class Main {
     public static void main(String[] args) throws IOException, ExecutionControl.NotImplementedException {
         GraphCreator graphCreator = new GraphCreator();
-        NetlistParser parser = new NetlistParser("C:\\Users\\flori\\Documents\\Semester\\7\\Praxisphase" +
-                "\\NetlistReaderBackend\\src\\optimal-info.json");
+        NetlistParser parser = new NetlistParser("src/optimal-info.json");
 
+        Instant start = Instant.now();
         parser.readNetlist();
         parser.checkReadNetlist();
+        Instant end = Instant.now();
 
+        System.out.println("Read time: " + Duration.between(start, end).toMillis() + "ms");
+
+        start = Instant.now();
         System.out.println(parser.getToplevelName());
         graphCreator.createGraphFromNetlist(parser.getModuleToParse(), parser.getToplevelName());
+        end = Instant.now();
+
+        System.out.println("Graph creation time: " + Duration.between(start, end).toMillis() + "ms");
 
         System.out.println(graphCreator.getGraph());
         System.out.println(graphCreator.getGraph().getChildren());
