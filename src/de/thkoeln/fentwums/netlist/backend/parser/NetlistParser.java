@@ -122,7 +122,7 @@ public class NetlistParser {
             throw new RuntimeException("modules is null");
         }
 
-        readModules = (HashMap<String, Object>) readNetlist.get(readNetlist.get("modules"));
+        readModules = (HashMap<String, Object>) readNetlist.get("modules");
 
         // Check the number of modules
         if (readModules.keySet().size() > 1) {
