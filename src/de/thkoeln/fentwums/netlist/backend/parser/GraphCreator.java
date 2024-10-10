@@ -1,25 +1,23 @@
 package de.thkoeln.fentwums.netlist.backend.parser;
 
-import org.eclipse.elk.alg.layered.graph.LNode;
 import org.eclipse.elk.graph.ElkNode;
 
 import java.util.HashMap;
 
 import static org.eclipse.elk.graph.util.ElkGraphUtil.createGraph;
-import static org.eclipse.elk.graph.util.ElkGraphUtil.createNode;
 
-public class graphCreator {
+public class GraphCreator {
     private ElkNode root;
 
-    public graphCreator() {
+    public GraphCreator() {
         root = null;
     }
 
-    public graphCreator(ElkNode root) {
+    public GraphCreator(ElkNode root) {
         this.root = root;
     }
 
-    public graphCreator(String rootname) {
+    public GraphCreator(String rootname) {
         root = createGraph();
         root.setIdentifier(rootname);
     }
