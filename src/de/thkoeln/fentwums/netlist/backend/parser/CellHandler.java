@@ -12,7 +12,7 @@ public class CellHandler {
 
     public ArrayList<HierarchyTree> createCells(HashMap<String, Object> cells, String modulename, ElkNode toplevel,
                                                 ArrayList<SignalTree> signalTreeList) {
-        ArrayList<HierarchyTree> hierarchyTreeList;
+        ArrayList<HierarchyTree> hierarchyTreeList = new ArrayList<>(cells.keySet().size());
 
         return hierarchyTreeList;
     }
