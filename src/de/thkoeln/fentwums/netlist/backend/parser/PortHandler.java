@@ -1,8 +1,6 @@
 package de.thkoeln.fentwums.netlist.backend.parser;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
-import org.checkerframework.checker.units.qual.N;
-import org.eclipse.elk.core.math.KVector;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.EdgeLabelPlacement;
 import org.eclipse.elk.core.options.NodeLabelPlacement;
@@ -22,16 +20,17 @@ import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
 public class PortHandler {
     public PortHandler() {}
 
+    @SuppressWarnings("unchecked")
     public ArrayList<SignalTree> createPorts(HashMap<String, Object> ports, String modulename,
                                              ElkNode toplevel) {
         ArrayList<SignalTree> treeList = new ArrayList<>(ports.keySet().size());
         HashMap<String, Object> currentPort;
-        ArrayList currentPortDrivers;
+        ArrayList<Object> currentPortDrivers;
         int currentPortDriverIndex;
 
         for(String portname : ports.keySet()) {
             currentPort = (HashMap<String, Object>) ports.get(portname);
-            currentPortDrivers = (ArrayList) currentPort.get("bits");
+            currentPortDrivers = (ArrayList<Object>) currentPort.get("bits");
 
             // Not always accurate, look at offset and MSB attributes
             currentPortDriverIndex = 1;
@@ -96,6 +95,8 @@ public class PortHandler {
                     ElkEdge constantEdge = createSimpleEdge(source, sink);
                     ElkLabel constantLabel =  createLabel((String) driver, constantEdge);
                     constantLabel.setProperty(CoreOptions.EDGE_LABELS_PLACEMENT, EdgeLabelPlacement.TAIL);
+                } else {
+                    treeList.add(createSignalTree((int) driver, portname, modulename));
                 }
 
                 currentPortDriverIndex++;
@@ -104,15 +105,16 @@ public class PortHandler {
         return treeList;
     }
 
-    public SignalTree createSignalTree(HashMap<String, Object> port, String portname, String modulename) {
+    public SignalTree createSignalTree(int port, String portname, String modulename) {
         SignalTree tree = new SignalTree();
+        tree.setSId(port);
 
-        ArrayList portDrivers = (ArrayList) port.get("bits");
+        //ArrayList<Object> portDrivers = (ArrayList<Object>) port.get("bits");
 
-        tree.setSId((Integer) portDrivers.getFirst());
+        //tree.setSId((Integer) portDrivers.getFirst());
 
         // TODO Implement function lol
 
-        return null;
+        return tree;
     }
 }
