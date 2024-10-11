@@ -70,7 +70,7 @@ public class PortHandler {
                 // elkjs was used to display the generated graph. For whatever reason the labels would be crossed by
                 // edges (most likely because the labels weren't being layouted). THis essentially declares a worst
                 // case layout to make the port labels readable
-                toplevelPortLabel.setDimensions(toplevelPortLabel.getText().length() * 7, 15);
+                toplevelPortLabel.setDimensions(toplevelPortLabel.getText().length() * 7, 10);
 
                 // If the port has a constant driver (or is a constant driver), a source (or sink) node needs to be
                 // created
@@ -89,7 +89,7 @@ public class PortHandler {
                                 EnumSet.of(NodeLabelPlacement.H_CENTER, NodeLabelPlacement.V_CENTER, NodeLabelPlacement.INSIDE));
 
                         ElkLabel constTargetLabel = createLabel((String) driver, constTarget);
-                        constTargetLabel.setDimensions(constTargetLabel.getText().length() * 7, 15);
+                        constTargetLabel.setDimensions(constTargetLabel.getText().length() * 7, 10);
 
                         ElkPort constTargetPort = createPort(constTarget);
                         constTargetPort.setProperty(CoreOptions.PORT_SIDE, side);

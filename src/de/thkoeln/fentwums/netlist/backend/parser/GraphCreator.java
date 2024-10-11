@@ -56,8 +56,7 @@ public class GraphCreator {
                     NodeLabelPlacement.V_TOP, NodeLabelPlacement.OUTSIDE));
             toplevelNode.setProperty(CoreOptions.PORT_LABELS_PLACEMENT, EnumSet.of(PortLabelPlacement.INSIDE));
 
-            toplevelLabel.setDimensions(toplevelLabel.getText().length() * 7, 15);
-            toplevelNode.setProperty(CoreOptions.NODE_SIZE_MINIMUM, new KVector(toplevelLabel.getWidth(), 0));
+            toplevelLabel.setDimensions(toplevelLabel.getText().length() * 7, 10);
         }
 
         try {
