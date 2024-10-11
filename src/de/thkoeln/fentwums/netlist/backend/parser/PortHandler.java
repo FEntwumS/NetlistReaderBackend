@@ -1,5 +1,6 @@
 package de.thkoeln.fentwums.netlist.backend.parser;
 
+import de.thkoeln.fentwums.netlist.backend.datatypes.SignalNode;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.EdgeLabelPlacement;
@@ -94,6 +95,7 @@ public class PortHandler {
 
                     ElkEdge constantEdge = createSimpleEdge(source, sink);
                     ElkLabel constantLabel =  createLabel((String) driver, constantEdge);
+
                     constantLabel.setProperty(CoreOptions.EDGE_LABELS_PLACEMENT, EdgeLabelPlacement.TAIL);
                 } else {
                     treeList.add(createSignalTree((int) driver, portname, modulename));
@@ -108,12 +110,14 @@ public class PortHandler {
     public SignalTree createSignalTree(int port, String portname, String modulename) {
         SignalTree tree = new SignalTree();
         tree.setSId(port);
+        SignalNode rootNode = new SignalNode("root", null, new ArrayList<SignalNode>(), null, new ArrayList<SignalNode>()
+                , new ArrayList<SignalNode>());
 
-        //ArrayList<Object> portDrivers = (ArrayList<Object>) port.get("bits");
+        tree.setRoot(rootNode);
+        rootNode.setSVisited(true);
 
-        //tree.setSId((Integer) portDrivers.getFirst());
-
-        // TODO Implement function lol
+        SignalNode toplevelNode = new SignalNode(modulename, rootNode, new ArrayList<SignalNode>(), null,
+                new ArrayList<SignalNode>(), new ArrayList<SignalNode>());
 
         return tree;
     }
