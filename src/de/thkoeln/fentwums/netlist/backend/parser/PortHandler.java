@@ -29,6 +29,10 @@ public class PortHandler {
         ArrayList<Object> currentPortDrivers;
         int currentPortDriverIndex;
 
+        HashMap<String, ElkNode> constantNodes = new HashMap<>();
+        ElkNode constTarget;
+        ElkPort source, sink;
+
         for(String portname : ports.keySet()) {
             currentPort = (HashMap<String, Object>) ports.get(portname);
             currentPortDrivers = (ArrayList<Object>) currentPort.get("bits");
@@ -48,6 +52,8 @@ public class PortHandler {
                  */
                 if (portDirection.equals("input")) {
                     side = PortSide.WEST;
+                } else {
+                    portDirection = "output";
                 }
 
                 ElkPort toplevelPort = createPort(toplevel);
@@ -69,36 +75,41 @@ public class PortHandler {
                 // If the port has a constant driver (or is a constant driver), a source (or sink) node needs to be
                 // created
 
-                if (!(driver instanceof Integer)) {
-                    ElkNode outsideNode = createNode(toplevel.getParent());
-                    outsideNode.setDimensions(20d, 20d);
-                    ElkLabel outsideNodeLabel = createLabel((String) driver, outsideNode);
-                    outsideNode.setProperty(CoreOptions.NODE_LABELS_PLACEMENT,
-                            EnumSet.of(NodeLabelPlacement.H_CENTER, NodeLabelPlacement.V_CENTER, NodeLabelPlacement.INSIDE));
-                    outsideNodeLabel.setDimensions(7,15);
+                if (driver instanceof Integer) {
+                    treeList.add(createSignalTree((int) driver, portname, modulename));
+                } else {
+                    if(constantNodes.containsKey(driver + portDirection)) {
+                        constTarget = constantNodes.get(driver + portDirection);
+                    } else {
+                        side = side == PortSide.WEST ? PortSide.EAST : PortSide.WEST;
 
-                    side = side == PortSide.WEST ? PortSide.EAST : PortSide.WEST;
+                        constTarget = createNode(toplevel.getParent());
+                        constTarget.setDimensions(20d, 20d);
+                        constTarget.setProperty(CoreOptions.NODE_LABELS_PLACEMENT,
+                                EnumSet.of(NodeLabelPlacement.H_CENTER, NodeLabelPlacement.V_CENTER, NodeLabelPlacement.INSIDE));
 
-                    ElkPort outsideNodePort = createPort(outsideNode);
-                    outsideNodePort.setProperty(CoreOptions.PORT_SIDE, side);
-                    outsideNodePort.setDimensions(10d, 10d);
+                        ElkLabel constTargetLabel = createLabel((String) driver, constTarget);
+                        constTargetLabel.setDimensions(constTargetLabel.getText().length() * 7, 15);
 
-                    ElkPort source, sink;
+                        ElkPort constTargetPort = createPort(constTarget);
+                        constTargetPort.setProperty(CoreOptions.PORT_SIDE, side);
+                        constTargetPort.setDimensions(10d, 10d);
+
+                        constantNodes.put(driver + portDirection, constTarget);
+                    }
 
                     if (portDirection.equals("input")) {
-                        source = outsideNodePort;
+                        source = constTarget.getPorts().getFirst();
                         sink = toplevelPort;
                     } else {
                         source = toplevelPort;
-                        sink = outsideNodePort;
+                        sink = constTarget.getPorts().getFirst();
                     }
 
                     ElkEdge constantEdge = createSimpleEdge(source, sink);
                     ElkLabel constantLabel =  createLabel((String) driver, constantEdge);
 
                     constantLabel.setProperty(CoreOptions.EDGE_LABELS_PLACEMENT, EdgeLabelPlacement.TAIL);
-                } else {
-                    treeList.add(createSignalTree((int) driver, portname, modulename));
                 }
 
                 currentPortDriverIndex++;
