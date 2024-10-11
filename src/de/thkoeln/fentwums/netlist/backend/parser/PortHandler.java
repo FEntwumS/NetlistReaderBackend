@@ -1,9 +1,8 @@
 package de.thkoeln.fentwums.netlist.backend.parser;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
-import org.eclipse.elk.alg.layered.options.PortType;
+import org.eclipse.elk.core.math.KVector;
 import org.eclipse.elk.core.options.CoreOptions;
-import org.eclipse.elk.core.options.PortLabelPlacement;
 import org.eclipse.elk.core.options.PortSide;
 import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkLabel;
@@ -61,7 +60,7 @@ public class PortHandler {
                 // elkjs was used to display the generated graph. For whatever reason the labels would be crossed by
                 // edges (most likely because the labels weren't being layouted). THis essentially declares a worst
                 // case layout to make the port labels readable
-                toplevelPortLabel.setDimensions(100d,15d);
+                toplevelPortLabel.setDimensions(toplevelPortLabel.getText().length() * 7, 15);
 
                 // If the port has a constant driver (or is a constant driver), a source (or sink) node needs to be
                 // created
