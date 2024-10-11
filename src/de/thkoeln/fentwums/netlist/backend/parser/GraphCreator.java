@@ -4,6 +4,7 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchyTree;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
 import org.eclipse.elk.alg.layered.graph.LGraph;
 import org.eclipse.elk.alg.layered.graph.LNode;
+import org.eclipse.elk.alg.layered.options.LayeredOptions;
 import org.eclipse.elk.core.math.KVector;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.graph.ElkLabel;
@@ -37,8 +38,11 @@ public class GraphCreator {
         return root;
     }
 
+    @SuppressWarnings("unchecked")
     public void createGraphFromNetlist(HashMap<String, Object> module, String modulename) {
+        root.setIdentifier("root");
         root.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
+        root.setProperty(LayeredOptions.SPACING_BASE_VALUE, 35d);   // TODO Look for better spacing solution
 
         if (root.getChildren().isEmpty()) {
             ElkNode toplevelNode = createNode(root);

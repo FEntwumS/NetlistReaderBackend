@@ -108,7 +108,6 @@ public class PortHandler {
 
                     ElkEdge constantEdge = createSimpleEdge(source, sink);
                     ElkLabel constantLabel =  createLabel((String) driver, constantEdge);
-
                     constantLabel.setProperty(CoreOptions.EDGE_LABELS_PLACEMENT, EdgeLabelPlacement.TAIL);
                 }
 
