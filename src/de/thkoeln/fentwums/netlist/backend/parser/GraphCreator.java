@@ -46,7 +46,7 @@ public class GraphCreator {
             toplevelNode.setProperty(CoreOptions.ALGORITHM, "layered");
             toplevelNode.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.allOf(SizeConstraint.class));
             toplevelNode.setProperty(CoreOptions.NODE_LABELS_PLACEMENT, EnumSet.of(NodeLabelPlacement.H_CENTER,
-                    NodeLabelPlacement.V_TOP, NodeLabelPlacement.INSIDE));
+                    NodeLabelPlacement.V_TOP, NodeLabelPlacement.OUTSIDE));
             toplevelNode.setProperty(CoreOptions.PORT_LABELS_PLACEMENT, EnumSet.of(PortLabelPlacement.INSIDE));
 
             toplevelLabel.setDimensions(toplevelLabel.getText().length() * 7, 15);
