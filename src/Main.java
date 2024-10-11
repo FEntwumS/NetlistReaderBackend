@@ -1,6 +1,8 @@
 import de.thkoeln.fentwums.netlist.backend.parser.GraphCreator;
 import de.thkoeln.fentwums.netlist.backend.parser.NetlistParser;
 import jdk.jshell.spi.ExecutionControl;
+import org.eclipse.elk.core.RecursiveGraphLayoutEngine;
+import org.eclipse.elk.core.util.BasicProgressMonitor;
 import org.eclipse.elk.graph.json.ElkGraphJson;
 
 import java.io.IOException;
@@ -26,11 +28,17 @@ public class Main {
 
         System.out.println("Graph creation time: " + Duration.between(start, end).toMillis() + "ms");
 
-        System.out.println(graphCreator.getGraph());
-        System.out.println(graphCreator.getGraph().getChildren());
+        RecursiveGraphLayoutEngine layouter = new RecursiveGraphLayoutEngine();
+        BasicProgressMonitor monitor = new BasicProgressMonitor();
+
+        start = Instant.now();
+        layouter.layout(graphCreator.getGraph(), monitor);
+        end = Instant.now();
+
+        System.out.println("Graph layouting time: " + Duration.between(start, end).toMillis() + "ms");
 
         String jsongraph =
-                ElkGraphJson.forGraph(graphCreator.getGraph()).omitLayout(true).omitZeroDimension(true)
+                ElkGraphJson.forGraph(graphCreator.getGraph()).omitLayout(false).omitZeroDimension(true)
                         .omitZeroPositions(true).shortLayoutOptionKeys(false).prettyPrint(true).toJson();
 
         System.out.println(jsongraph);
