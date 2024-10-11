@@ -3,6 +3,7 @@ package de.thkoeln.fentwums.netlist.backend.parser;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
 import org.eclipse.elk.core.math.KVector;
 import org.eclipse.elk.core.options.CoreOptions;
+import org.eclipse.elk.core.options.EdgeLabelPlacement;
 import org.eclipse.elk.core.options.PortSide;
 import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkLabel;
@@ -86,7 +87,8 @@ public class PortHandler {
                     }
 
                     ElkEdge constantEdge = createSimpleEdge(source, sink);
-                    createLabel((String) driver, constantEdge);
+                    ElkLabel constantLabel =  createLabel((String) driver, constantEdge);
+                    constantLabel.setProperty(CoreOptions.EDGE_LABELS_PLACEMENT, EdgeLabelPlacement.TAIL);
                 }
 
                 currentPortDriverIndex++;
