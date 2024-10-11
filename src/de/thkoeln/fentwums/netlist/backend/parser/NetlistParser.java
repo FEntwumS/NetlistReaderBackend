@@ -103,14 +103,11 @@ public class NetlistParser {
         try {
             readNetlist = mapper.readValue(netlistFile, typeRef);
         } catch (IOException e) {
-            /*
-             * Needs handling in the future
-             */
-
-            throw e;
+            throw new RuntimeException("Error parsing netlist", e);
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void checkReadNetlist() throws ExecutionControl.NotImplementedException {
         if (readNetlist == null) {
             throw new RuntimeException("readNetlist is null");
@@ -136,6 +133,7 @@ public class NetlistParser {
     }
 
     // TODO rework this naive implementation
+    @SuppressWarnings("unchecked")
     private HashMap<String, Object> findTopLevel(HashMap<String, Object> modules) {
         HashMap<String, Object> currentModule;
         HashMap<String, Object> currentModuleAttrs;
@@ -148,7 +146,7 @@ public class NetlistParser {
                 throw new RuntimeException("module " + modulename + " is null");
             }
 
-            if (currentModuleAttrs.keySet().contains("top")) {
+            if (currentModuleAttrs.containsKey("top")) {
                 currentModule.put("name", modulename);
                 return currentModule;
             }
