@@ -1,5 +1,6 @@
 package de.thkoeln.fentwums.netlist.backend.parser;
 
+import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchyTree;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
 import org.eclipse.elk.alg.layered.graph.LGraph;
 import org.eclipse.elk.alg.layered.graph.LNode;
@@ -66,10 +67,17 @@ public class GraphCreator {
         HashMap<String, Object> netnames = (HashMap<String, Object>) module.get("netnames");
 
         ArrayList<SignalTree> signalTreeList;
+        ArrayList<HierarchyTree> hierarchyTreeList;
+
+        ElkNode toplevel = root.getChildren().getFirst();
 
         PortHandler portHandler = new PortHandler();
 
-        signalTreeList = portHandler.createPorts(ports, modulename, root.getChildren().getFirst());
+        signalTreeList = portHandler.createPorts(ports, modulename, toplevel);
+
+        CellHandler cellHandler = new CellHandler();
+
+        hierarchyTreeList = cellHandler.createCells(cells, modulename, toplevel, signalTreeList);
     }
 
     public void checkModuleCompleteness(HashMap<String, Object> module) {
