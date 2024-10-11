@@ -124,17 +124,37 @@ public class NetlistParser {
 
         readModules = (HashMap<String, Object>) readNetlist.get("modules");
 
-        // Check the number of modules
+        // Check the number of modules and find the toplevel, if necessary
         if (readModules.keySet().size() > 1) {
-            throw new ExecutionControl.NotImplementedException("Checking for not instantiated blackbox modules has " +
-                    "not been implemented yet");
+            moduleToParse = (HashMap<String, Object>) findTopLevel(readModules);
+            toplevelName = (String) moduleToParse.get("name");
+        } else {
+            toplevelName = readModules.keySet().iterator().next();
+            moduleToParse = (HashMap<String, Object>) readModules.get(toplevelName);
         }
 
-        // For now, we can assume that the first (and only) element in readModules is the module that should be
-        // displayed
-        toplevelName = readModules.keySet().iterator().next();
-        moduleToParse = (HashMap<String, Object>) readModules.get(toplevelName);
+    }
 
+    // TODO rework this naive implementation
+    private HashMap<String, Object> findTopLevel(HashMap<String, Object> modules) {
+        HashMap<String, Object> currentModule;
+        HashMap<String, Object> currentModuleAttrs;
+        for (String modulename: modules.keySet()) {
+            currentModule = (HashMap<String, Object>) modules.get(modulename);
+
+            currentModuleAttrs = (HashMap<String, Object>) currentModule.get("attributes");
+
+            if (currentModuleAttrs == null) {
+                throw new RuntimeException("module " + modulename + " is null");
+            }
+
+            if (currentModuleAttrs.keySet().contains("top")) {
+                currentModule.put("name", modulename);
+                return currentModule;
+            }
+        }
+
+        throw new RuntimeException("no toplevel module found");
     }
 
 }
