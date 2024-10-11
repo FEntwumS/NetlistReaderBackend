@@ -1,9 +1,11 @@
 package de.thkoeln.fentwums.netlist.backend.parser;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
+import org.checkerframework.checker.units.qual.N;
 import org.eclipse.elk.core.math.KVector;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.EdgeLabelPlacement;
+import org.eclipse.elk.core.options.NodeLabelPlacement;
 import org.eclipse.elk.core.options.PortSide;
 import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkLabel;
@@ -11,6 +13,7 @@ import org.eclipse.elk.graph.ElkNode;
 import org.eclipse.elk.graph.ElkPort;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 
 import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
@@ -69,6 +72,10 @@ public class PortHandler {
                 if (!(driver instanceof Integer)) {
                     ElkNode outsideNode = createNode(toplevel.getParent());
                     outsideNode.setDimensions(20d, 20d);
+                    ElkLabel outsideNodeLabel = createLabel((String) driver, outsideNode);
+                    outsideNode.setProperty(CoreOptions.NODE_LABELS_PLACEMENT,
+                            EnumSet.of(NodeLabelPlacement.H_CENTER, NodeLabelPlacement.V_CENTER, NodeLabelPlacement.INSIDE));
+                    outsideNodeLabel.setDimensions(7,15);
 
                     side = side == PortSide.WEST ? PortSide.EAST : PortSide.WEST;
 
