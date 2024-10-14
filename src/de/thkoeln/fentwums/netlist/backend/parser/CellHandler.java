@@ -6,13 +6,13 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.graph.ElkLabel;
 import org.eclipse.elk.graph.ElkNode;
+import org.eclipse.elk.graph.ElkPort;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 
-import static org.eclipse.elk.graph.util.ElkGraphUtil.createLabel;
-import static org.eclipse.elk.graph.util.ElkGraphUtil.createNode;
+import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
 
 public class CellHandler {
     public CellHandler() {}
@@ -26,9 +26,17 @@ public class CellHandler {
         String[] currentCellPathSplit;
         HierarchicalNode currentHierarchyPosition;
         String pathFragement;
+        HashMap<String, Object> currentCellPortDirections;
+        HashMap<String, Object> currentCellConnections;
+        ArrayList<Object> currentCellConnectionDrivers;
+        PortSide side;
+        int currentPortDriverIndex;
+
         for (String cellname : cells.keySet()) {
+            side = PortSide.EAST;
             currentCell = (HashMap<String, Object>) cells.get(cellname);
             currentCellAttributes = (HashMap<String, Object>) currentCell.get("attributes");
+            currentPortDriverIndex = 0;
 
             currentHierarchyPosition = hierarchyTree.getRoot();
 
@@ -69,6 +77,52 @@ public class CellHandler {
 
                         currentHierarchyPosition = newHierarchyNode;
                     }
+                }
+            }
+
+            // now that the hierarchy has been created, the actual cells can be constructed
+
+            ElkNode newCellNode = createNode(currentHierarchyPosition.getNode());
+            newCellNode.setIdentifier(currentCellPathSplit[currentCellPathSplit.length - 1]);
+            newCellNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_ORDER);
+            newCellNode.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.allOf(SizeConstraint.class));
+            newCellNode.setProperty(CoreOptions.NODE_LABELS_PLACEMENT, EnumSet.of(NodeLabelPlacement.H_CENTER,
+                    NodeLabelPlacement.V_TOP, NodeLabelPlacement.OUTSIDE));
+            newCellNode.setProperty(CoreOptions.PORT_LABELS_PLACEMENT, EnumSet.of(PortLabelPlacement.INSIDE));
+
+            ElkLabel newCellNodeLabel = createLabel(((String) currentCell.get("type")).replaceAll("\\$", ""),
+                    newCellNode);
+            newCellNodeLabel.setDimensions(newCellNodeLabel.getText().length() * 7, 10);
+
+            // Create node ports
+
+            currentCellPortDirections = (HashMap<String, Object>) currentCell.get("port_directions");
+            currentCellConnections = (HashMap<String, Object>) currentCell.get("connections");
+
+            for (String portname: currentCellPortDirections.keySet()) {
+                if (!currentCellConnections.containsKey(portname)) {
+                    throw new RuntimeException("Mismatch between number of ports in port_directions and connections");
+                }
+
+                if (currentCellPortDirections.get(portname).equals("input")) {
+                    side = PortSide.WEST;
+                }
+
+                currentCellConnectionDrivers = (ArrayList<Object>) currentCellConnections.get(portname);
+
+                for(Object driver: currentCellConnectionDrivers) {
+
+                    ElkPort cellPort = createPort(newCellNode);
+                    cellPort.setProperty(CoreOptions.PORT_SIDE, side);
+                    cellPort.setDimensions(10, 10);
+
+                    ElkLabel cellPortLabel = createLabel(portname + (currentCellConnectionDrivers.size() == 1 ? "" :
+                                    " [" + currentPortDriverIndex + "]"), cellPort);
+                    cellPortLabel.setDimensions(cellPortLabel.getText().length() * 7, 10);
+
+                    // Reuse (or create, if necessary) a cell for constant drivers
+
+                    currentPortDriverIndex++;
                 }
             }
         }

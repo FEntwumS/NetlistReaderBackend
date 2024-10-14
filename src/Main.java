@@ -46,7 +46,7 @@ public class Main {
 
         try {
             jsongraph = jsongraph.replace("\"org.eclipse.elk.resolvedAlgorithm\": \"Layout Algorithm: org.eclipse.elk" +
-                    ".layered\",\n", "");
+                    ".layered\",", "");
 
             Path outputFile = Paths.get("graph.json");
 
