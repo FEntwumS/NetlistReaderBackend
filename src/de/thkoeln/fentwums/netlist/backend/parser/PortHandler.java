@@ -37,8 +37,9 @@ public class PortHandler {
             currentPort = (HashMap<String, Object>) ports.get(portname);
             currentPortDrivers = (ArrayList<Object>) currentPort.get("bits");
 
+            // TODO: Update
             // Not always accurate, look at offset and MSB attributes
-            currentPortDriverIndex = 1;
+            currentPortDriverIndex = 0;
 
             for(Object driver: currentPortDrivers) {
                 String portDirection = (String) currentPort.get("direction");
@@ -61,7 +62,9 @@ public class PortHandler {
                 toplevelPort.setDimensions(10d, 10d);
 
                 // Add label to port
-                ElkLabel toplevelPortLabel = createLabel(portname + " [" + currentPortDriverIndex + "]", toplevelPort);
+                ElkLabel toplevelPortLabel =
+                        createLabel(portname + (currentPortDrivers.size() == 1 ? "" : " [" + currentPortDriverIndex +
+                                        "]"), toplevelPort);
                 // HACK
                 // TODO find better solution
                 //
@@ -77,6 +80,8 @@ public class PortHandler {
 
                 if (driver instanceof Integer) {
                     treeList.add(createSignalTree((int) driver, portname, modulename));
+
+                    toplevelPort.setIdentifier(driver.toString());
                 } else {
                     if(constantNodes.containsKey(driver + portDirection)) {
                         constTarget = constantNodes.get(driver + portDirection);
