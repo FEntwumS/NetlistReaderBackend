@@ -6,6 +6,9 @@ import org.eclipse.elk.core.util.BasicProgressMonitor;
 import org.eclipse.elk.graph.json.ElkGraphJson;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -41,7 +44,16 @@ public class Main {
                 ElkGraphJson.forGraph(graphCreator.getGraph()).omitLayout(false).omitZeroDimension(true)
                         .omitZeroPositions(true).shortLayoutOptionKeys(false).prettyPrint(true).toJson();
 
-        System.out.println(jsongraph);
+        try {
+            jsongraph = jsongraph.replace("\"org.eclipse.elk.resolvedAlgorithm\": \"Layout Algorithm: org.eclipse.elk" +
+                    ".layered\",\n", "");
+
+            Path outputFile = Paths.get("graph.json");
+
+            Files.writeString(outputFile, jsongraph);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         System.out.println("done");
     }
