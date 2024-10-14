@@ -1,11 +1,9 @@
 package de.thkoeln.fentwums.netlist.backend.parser;
 
+import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchicalNode;
 import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchyTree;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
-import org.eclipse.elk.alg.layered.graph.LGraph;
-import org.eclipse.elk.alg.layered.graph.LNode;
 import org.eclipse.elk.alg.layered.options.LayeredOptions;
-import org.eclipse.elk.core.math.KVector;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.graph.ElkLabel;
 import org.eclipse.elk.graph.ElkNode;
@@ -46,7 +44,7 @@ public class GraphCreator {
 
         if (root.getChildren().isEmpty()) {
             ElkNode toplevelNode = createNode(root);
-            toplevelNode.setIdentifier("cell");
+            toplevelNode.setIdentifier(modulename);
             ElkLabel toplevelLabel = createLabel(modulename,  toplevelNode);
             toplevelNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_ORDER);
             toplevelNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
@@ -70,9 +68,11 @@ public class GraphCreator {
         HashMap<String, Object> netnames = (HashMap<String, Object>) module.get("netnames");
 
         ArrayList<SignalTree> signalTreeList;
-        ArrayList<HierarchyTree> hierarchyTreeList;
 
         ElkNode toplevel = root.getChildren().getFirst();
+        HierarchyTree hierarchyTree = new HierarchyTree(new HierarchicalNode(toplevel.getIdentifier(), null,
+                new HashMap<>(), new ArrayList<>(), new ArrayList<>(), toplevel));
+
 
         PortHandler portHandler = new PortHandler();
 
@@ -80,7 +80,7 @@ public class GraphCreator {
 
         CellHandler cellHandler = new CellHandler();
 
-        hierarchyTreeList = cellHandler.createCells(cells, modulename, toplevel, signalTreeList);
+        cellHandler.createCells(cells, modulename, toplevel, signalTreeList, hierarchyTree);
     }
 
     public void checkModuleCompleteness(HashMap<String, Object> module) {

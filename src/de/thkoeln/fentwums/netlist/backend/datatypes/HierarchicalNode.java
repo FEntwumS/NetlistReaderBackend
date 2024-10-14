@@ -1,38 +1,44 @@
 package de.thkoeln.fentwums.netlist.backend.datatypes;
 
+import org.eclipse.elk.graph.ElkNode;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class HierarchicalNode {
     private String hName;
     private int lId;
     private HierarchicalNode parent;
-    private ArrayList<HierarchicalNode> children;
+    private HashMap<String, HierarchicalNode> children;
     private boolean isLeaf;
     private ArrayList<Vector> vectors;
     private ArrayList<Bundle> possibleBundles;
+    private ElkNode node;
 
     public HierarchicalNode() {
         hName = "";
         lId = 0;
         parent = null;
-        children = new ArrayList<HierarchicalNode>(8);
+        children = new HashMap<String, HierarchicalNode>(8);
         isLeaf = true;
         vectors = new ArrayList<>(8);
         possibleBundles = new ArrayList<>(8);
+        node = null;
     }
 
-    public HierarchicalNode(String hName, HierarchicalNode parent, ArrayList<HierarchicalNode> children, ArrayList<Vector> vectors, ArrayList<Bundle> possibleBundles) {
+    public HierarchicalNode(String hName, HierarchicalNode parent, HashMap<String, HierarchicalNode> children,
+                            ArrayList<Vector> vectors, ArrayList<Bundle> possibleBundles, ElkNode node) {
         this.hName = hName;
         this.parent = parent;
         this.children = children;
         this.vectors = vectors;
         this.possibleBundles = possibleBundles;
+        this.node = node;
 
         this.isLeaf = children == null || children.isEmpty();
 
-        if(parent != null && parent.getChildren() != null) {
-            this.lId = parent.children.size();
-            parent.children.add(this);
+        if(parent != null) {
+            parent.getChildren().put(hName, this);
         }
     }
 
@@ -68,11 +74,11 @@ public class HierarchicalNode {
         this.parent = parent;
     }
 
-    public ArrayList<HierarchicalNode> getChildren() {
+    public HashMap<String, HierarchicalNode> getChildren() {
         return children;
     }
 
-    public void setChildren(ArrayList<HierarchicalNode> children) {
+    public void setChildren(HashMap<String, HierarchicalNode> children) {
         this.children = children;
     }
 
@@ -90,5 +96,13 @@ public class HierarchicalNode {
 
     public void setPossibleBundles(ArrayList<Bundle> possibleBundles) {
         this.possibleBundles = possibleBundles;
+    }
+
+    public ElkNode getNode() {
+        return node;
+    }
+
+    public void setNode(ElkNode node) {
+        this.node = node;
     }
 }
