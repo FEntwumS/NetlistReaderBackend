@@ -4,6 +4,7 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchicalNode;
 import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchyTree;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
 import org.eclipse.elk.core.options.*;
+import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkLabel;
 import org.eclipse.elk.graph.ElkNode;
 import org.eclipse.elk.graph.ElkPort;
@@ -31,6 +32,11 @@ public class CellHandler {
         ArrayList<Object> currentCellConnectionDrivers;
         PortSide side;
         int currentPortDriverIndex;
+        String currentPortDirection;
+        ElkNode constTarget;
+        ElkPort sink ,source;
+
+        HashMap<String, ElkNode> currentConstantNodes;
 
         for (String cellname : cells.keySet()) {
             side = PortSide.EAST;
@@ -80,6 +86,8 @@ public class CellHandler {
                 }
             }
 
+            currentConstantNodes = currentHierarchyPosition.getConstantDrivers();
+
             // now that the hierarchy has been created, the actual cells can be constructed
 
             ElkNode newCellNode = createNode(currentHierarchyPosition.getNode());
@@ -100,12 +108,16 @@ public class CellHandler {
             currentCellConnections = (HashMap<String, Object>) currentCell.get("connections");
 
             for (String portname: currentCellPortDirections.keySet()) {
-                if (!currentCellConnections.containsKey(portname)) {
+                if (currentCellConnections.keySet().size() != currentCellPortDirections.keySet().size() || !currentCellConnections.containsKey(portname)) {
                     throw new RuntimeException("Mismatch between number of ports in port_directions and connections");
                 }
 
-                if (currentCellPortDirections.get(portname).equals("input")) {
+                currentPortDirection = (String) currentCellPortDirections.get(portname);
+
+                if (currentPortDirection.equals("input")) {
                     side = PortSide.WEST;
+                } else {
+                    currentPortDirection = "output";
                 }
 
                 currentCellConnectionDrivers = (ArrayList<Object>) currentCellConnections.get(portname);
@@ -121,6 +133,42 @@ public class CellHandler {
                     cellPortLabel.setDimensions(cellPortLabel.getText().length() * 7, 10);
 
                     // Reuse (or create, if necessary) a cell for constant drivers
+                    if(driver instanceof Integer) {
+                        // TODO handle later :3
+                    } else {
+                        if (currentConstantNodes.containsKey(driver + currentPortDirection)) {
+                            constTarget = currentConstantNodes.get(driver + currentPortDirection);
+                        } else {
+                            side = side == PortSide.WEST ? PortSide.EAST : PortSide.WEST;
+
+                            constTarget = createNode(currentHierarchyPosition.getNode());
+                            constTarget.setDimensions(20, 20);
+                            constTarget.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_ORDER);
+                            constTarget.setProperty(CoreOptions.NODE_LABELS_PLACEMENT,
+                                    EnumSet.of(NodeLabelPlacement.H_CENTER, NodeLabelPlacement.V_CENTER, NodeLabelPlacement.INSIDE));
+
+                            ElkLabel constTargetLabel = createLabel((String) driver, constTarget);
+                            constTargetLabel.setDimensions(constTargetLabel.getText().length() * 7, 10);
+
+                            ElkPort constTargetPort = createPort(constTarget);
+                            constTargetPort.setProperty(CoreOptions.PORT_SIDE, side);
+                            constTargetPort.setDimensions(10, 10);
+
+                            currentConstantNodes.put(driver + currentPortDirection, constTarget);
+                        }
+
+                        if (currentPortDirection.equals("input")) {
+                            source = constTarget.getPorts().getFirst();
+                            sink = cellPort;
+                        } else {
+                            source = cellPort;
+                            sink = constTarget.getPorts().getFirst();
+                        }
+
+                        ElkEdge constantEdge = createSimpleEdge(source, sink);
+                        ElkLabel constantLabel = createLabel((String) driver, constantEdge);
+                        constantLabel.setDimensions(constantLabel.getText().length() * 7, 10);
+                    }
 
                     currentPortDriverIndex++;
                 }

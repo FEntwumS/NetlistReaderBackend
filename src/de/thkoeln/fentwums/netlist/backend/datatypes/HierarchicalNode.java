@@ -14,6 +14,7 @@ public class HierarchicalNode {
     private ArrayList<Vector> vectors;
     private ArrayList<Bundle> possibleBundles;
     private ElkNode node;
+    private HashMap<String, ElkNode> constantDrivers;
 
     public HierarchicalNode() {
         hName = "";
@@ -24,6 +25,7 @@ public class HierarchicalNode {
         vectors = new ArrayList<>(8);
         possibleBundles = new ArrayList<>(8);
         node = null;
+        constantDrivers = new HashMap<>();
     }
 
     public HierarchicalNode(String hName, HierarchicalNode parent, HashMap<String, HierarchicalNode> children,
@@ -34,6 +36,7 @@ public class HierarchicalNode {
         this.vectors = vectors;
         this.possibleBundles = possibleBundles;
         this.node = node;
+        constantDrivers = new HashMap<>();
 
         this.isLeaf = children == null || children.isEmpty();
 
@@ -104,5 +107,13 @@ public class HierarchicalNode {
 
     public void setNode(ElkNode node) {
         this.node = node;
+    }
+
+    public HashMap<String, ElkNode> getConstantDrivers() {
+        return constantDrivers;
+    }
+
+    public void setConstantDrivers(HashMap<String, ElkNode> constantDrivers) {
+        this.constantDrivers = constantDrivers;
     }
 }
