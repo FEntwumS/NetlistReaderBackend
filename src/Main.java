@@ -3,6 +3,7 @@ import de.thkoeln.fentwums.netlist.backend.parser.NetlistParser;
 import jdk.jshell.spi.ExecutionControl;
 import org.eclipse.elk.core.RecursiveGraphLayoutEngine;
 import org.eclipse.elk.core.util.BasicProgressMonitor;
+import org.eclipse.elk.core.util.LoggedGraph;
 import org.eclipse.elk.graph.json.ElkGraphJson;
 
 import java.io.IOException;
@@ -15,7 +16,7 @@ import java.time.Instant;
 public class Main {
     public static void main(String[] args) throws IOException, ExecutionControl.NotImplementedException {
         GraphCreator graphCreator = new GraphCreator();
-        NetlistParser parser = new NetlistParser("src/optimal-info.json");
+        NetlistParser parser = new NetlistParser("src/addressing-pre_synth.json");
 
         Instant start = Instant.now();
         parser.readNetlist();
@@ -42,11 +43,13 @@ public class Main {
 
         String jsongraph =
                 ElkGraphJson.forGraph(graphCreator.getGraph()).omitLayout(false).omitZeroDimension(true)
-                        .omitZeroPositions(true).shortLayoutOptionKeys(false).prettyPrint(true).toJson();
+                        .omitZeroPositions(true).shortLayoutOptionKeys(true).prettyPrint(true).toJson();
 
         try {
             jsongraph = jsongraph.replace("\"org.eclipse.elk.resolvedAlgorithm\": \"Layout Algorithm: org.eclipse.elk" +
                     ".layered\",", "");
+            jsongraph = jsongraph.replace("\"org.eclipse.elk.resolvedAlgorithm\": \"Layout Algorithm: org.eclipse.elk" +
+                    ".layered\",\n", "");
 
             Path outputFile = Paths.get("graph.json");
 

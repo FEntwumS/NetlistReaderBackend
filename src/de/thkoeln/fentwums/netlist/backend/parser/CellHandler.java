@@ -132,10 +132,13 @@ public class CellHandler {
                                     " [" + currentPortDriverIndex + "]"), cellPort);
                     cellPortLabel.setDimensions(cellPortLabel.getText().length() * 7, 10);
 
-                    // Reuse (or create, if necessary) a cell for constant drivers
+
                     if(driver instanceof Integer) {
+                        updateSignalTree(null, currentCellPathSplit);
                         // TODO handle later :3
                     } else {
+                        // Reuse (or create, if necessary) a cell for constant drivers
+
                         if (currentConstantNodes.containsKey(driver + currentPortDirection)) {
                             constTarget = currentConstantNodes.get(driver + currentPortDirection);
                         } else {
@@ -174,5 +177,8 @@ public class CellHandler {
                 }
             }
         }
+    }
+    public void updateSignalTree(SignalTree signalTree, String[] hierarchyPath) {
+
     }
 }
