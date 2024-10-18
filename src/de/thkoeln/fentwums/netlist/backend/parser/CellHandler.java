@@ -108,6 +108,8 @@ public class CellHandler {
             currentCellConnections = (HashMap<String, Object>) currentCell.get("connections");
 
             for (String portname: currentCellPortDirections.keySet()) {
+                currentPortDriverIndex = 0;
+
                 if (currentCellConnections.keySet().size() != currentCellPortDirections.keySet().size() || !currentCellConnections.containsKey(portname)) {
                     throw new RuntimeException("Mismatch between number of ports in port_directions and connections");
                 }
@@ -118,6 +120,7 @@ public class CellHandler {
                     side = PortSide.WEST;
                 } else {
                     currentPortDirection = "output";
+                    side = PortSide.EAST;
                 }
 
                 currentCellConnectionDrivers = (ArrayList<Object>) currentCellConnections.get(portname);
@@ -142,6 +145,7 @@ public class CellHandler {
                         if (currentConstantNodes.containsKey(driver + currentPortDirection)) {
                             constTarget = currentConstantNodes.get(driver + currentPortDirection);
                         } else {
+                            // invert port side
                             side = side == PortSide.WEST ? PortSide.EAST : PortSide.WEST;
 
                             constTarget = createNode(currentHierarchyPosition.getNode());
@@ -158,6 +162,9 @@ public class CellHandler {
                             constTargetPort.setDimensions(10, 10);
 
                             currentConstantNodes.put(driver + currentPortDirection, constTarget);
+
+                            // reinvert port side
+                            side = side == PortSide.WEST ? PortSide.EAST : PortSide.WEST;
                         }
 
                         if (currentPortDirection.equals("input")) {

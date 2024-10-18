@@ -43,7 +43,7 @@ public class Main {
 
         String jsongraph =
                 ElkGraphJson.forGraph(graphCreator.getGraph()).omitLayout(false).omitZeroDimension(true)
-                        .omitZeroPositions(true).shortLayoutOptionKeys(true).prettyPrint(true).toJson();
+                        .omitZeroPositions(false).shortLayoutOptionKeys(true).prettyPrint(true).toJson();
 
         try {
             jsongraph = jsongraph.replace("\"org.eclipse.elk.resolvedAlgorithm\": \"Layout Algorithm: org.eclipse.elk" +
