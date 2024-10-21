@@ -53,7 +53,9 @@ public class CellHandler {
             if (currentCellAttributes.containsKey("hdlname")) {
                 currentCellPath = (String) currentCellAttributes.get("hdlname");
             } else {
-                currentCellPath = cellname.replaceFirst("\\$flatten", "").replaceAll("\\\\", "").replaceAll("\\.", " ");
+                currentCellPath = cellname.replaceFirst("\\$flatten", "").replaceAll("\\$auto\\$ghdl\\.cc","ghdl" +
+                                "")
+                .replaceAll("\\\\", "").replaceAll("\\.", " ");
             }
 
             currentCellPathSplit = currentCellPath.split(" ");
@@ -139,6 +141,8 @@ public class CellHandler {
 
 
                     if(driver instanceof Integer) {
+                        cellPort.setIdentifier(currentCellPathSplit[currentCellPathSplit.length - 1] + (int) driver);
+
                         if (signalMap.containsKey((int) driver)) {
                             currentSignalTree = signalMap.get((int) driver);
                         } else {
@@ -146,16 +150,18 @@ public class CellHandler {
                             currentSignalTree.setSId((int) driver);
 
                             SignalNode rootNode = new SignalNode("root", null, new HashMap<String, SignalNode>(), null,
-                                    new HashMap<String, SignalNode>(), new HashMap<String, SignalNode>());
+                                    new HashMap<String, SignalNode>(), new HashMap<String, SignalNode>(), false, null);
 
-                            currentSignalTree.setRoot(rootNode);
+                            currentSignalTree.setHRoot(rootNode);
 
                             SignalNode toplevelNode = new SignalNode(modulename, rootNode, new HashMap<String, SignalNode>(), null,
-                                    new HashMap<String, SignalNode>(), new HashMap<String, SignalNode>());
+                                    new HashMap<String, SignalNode>(), new HashMap<String, SignalNode>(), false, null);
 
                             signalMap.put((int) driver, currentSignalTree);
                         }
-                        updateSignalTree(currentSignalTree, currentCellPathSplit, modulename);
+                        updateSignalTree(currentSignalTree, currentCellPathSplit, modulename,
+                                cellPort.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST,
+                                cellPort);
                     } else {
                         // Reuse (or create, if necessary) a cell for constant drivers
 
@@ -203,21 +209,28 @@ public class CellHandler {
         }
     }
 
-    public void updateSignalTree(SignalTree signalTree, String[] hierarchyPath, String modulename) {
-        SignalNode currentNode = signalTree.getRoot().getHChildren().get(modulename);
+    public void updateSignalTree(SignalTree signalTree, String[] hierarchyPath, String modulename, boolean isSource,
+                                 ElkPort sPort) {
+        SignalNode currentNode = signalTree.getHRoot().getHChildren().get(modulename);
 
         for (String fragment: hierarchyPath) {
             if (currentNode.getHChildren().containsKey(fragment)) {
                 currentNode = currentNode.getHChildren().get(fragment);
             } else {
-                currentNode = insertMissingHNode(currentNode, fragment);
+                currentNode = insertMissingHNode(currentNode, fragment, null);
             }
         }
 
         currentNode.setSVisited(true);
+        currentNode.setIsSource(isSource);
+        currentNode.setSPort(sPort);
+
+        if (isSource) {
+            signalTree.setSRoot(currentNode);
+        }
     }
 
-    private SignalNode insertMissingHNode(SignalNode parent, String nodename) {
-        return new SignalNode(nodename, parent, new HashMap(), null, new HashMap(), new HashMap());
+    private SignalNode insertMissingHNode(SignalNode parent, String nodename, ElkPort sPort) {
+        return new SignalNode(nodename, parent, new HashMap(), null, new HashMap(), new HashMap(), false, sPort);
     }
 }

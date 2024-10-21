@@ -24,7 +24,7 @@ public class PortHandler {
     @SuppressWarnings("unchecked")
     public HashMap<Integer, SignalTree> createPorts(HashMap<String, Object> ports, String modulename,
                                              ElkNode toplevel) {
-        HashMap<Integer, SignalTree> treeList = new HashMap<>(ports.keySet().size());
+        HashMap<Integer, SignalTree> signalMap = new HashMap<>(ports.keySet().size());
         HashMap<String, Object> currentPort;
         ArrayList<Object> currentPortDrivers;
         int currentPortDriverIndex;
@@ -60,6 +60,7 @@ public class PortHandler {
                 ElkPort toplevelPort = createPort(toplevel);
                 toplevelPort.setProperty(CoreOptions.PORT_SIDE, side);
                 toplevelPort.setDimensions(10d, 10d);
+                toplevelPort.setIdentifier(modulename + driver);
 
                 // Add label to port
                 ElkLabel toplevelPortLabel =
@@ -79,7 +80,7 @@ public class PortHandler {
                 // created
 
                 if (driver instanceof Integer) {
-                    treeList.put((int) driver, createSignalTree((int) driver, portname, modulename));
+                    signalMap.put((int) driver, createSignalTree((int) driver, portname, modulename, toplevelPort));
 
                     toplevelPort.setIdentifier(driver.toString());
                 } else {
@@ -120,20 +121,27 @@ public class PortHandler {
                 currentPortDriverIndex++;
             }
         }
-        return treeList;
+        return signalMap;
     }
 
-    public SignalTree createSignalTree(int port, String portname, String modulename) {
+    public SignalTree createSignalTree(int port, String portname, String modulename, ElkPort sPort) {
         SignalTree tree = new SignalTree();
         tree.setSId(port);
         SignalNode rootNode = new SignalNode("root", null, new HashMap<String, SignalNode>(), null,
-                new HashMap<String, SignalNode>(), new HashMap<String, SignalNode>());
+                new HashMap<String, SignalNode>(), new HashMap<String, SignalNode>(), false, null);
 
-        tree.setRoot(rootNode);
-        rootNode.setSVisited(true);
+        tree.setHRoot(rootNode);
+        rootNode.setSVisited(false);
 
         SignalNode toplevelNode = new SignalNode(modulename, rootNode, new HashMap<String, SignalNode>(), null,
-                new HashMap<String, SignalNode>(), new HashMap<String, SignalNode>());
+                new HashMap<String, SignalNode>(), new HashMap<String, SignalNode>(), false, sPort);
+
+        toplevelNode.setSVisited(true);
+
+        if (sPort.getProperty(CoreOptions.PORT_SIDE) == PortSide.WEST) {
+            toplevelNode.setIsSource(true);
+            tree.setSRoot(toplevelNode);
+        }
 
         return tree;
     }

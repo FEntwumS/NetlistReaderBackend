@@ -3,18 +3,19 @@ package de.thkoeln.fentwums.netlist.backend.datatypes;
 public class SignalTree {
     private int sId;
     private char sValue;
-    private SignalNode root;
+    private SignalNode hRoot;
+    private SignalNode sRoot;   // ASSUMPTION: Every signal only has ONE source
 
     public SignalTree() {
         sId = 0;
         sValue = 'x';
-        root = null;
+        hRoot = null;
     }
 
-    public SignalTree(int sId, char sValue, SignalNode root) {
+    public SignalTree(int sId, char sValue, SignalNode hRoot) {
         this.sId = sId;
         this.sValue = sValue;
-        this.root = root;
+        this.hRoot = hRoot;
     }
 
     public int getSId() {
@@ -33,11 +34,19 @@ public class SignalTree {
         this.sValue = sValue;
     }
 
-    public SignalNode getRoot() {
-        return root;
+    public SignalNode getHRoot() {
+        return hRoot;
     }
 
-    public void setRoot(SignalNode root) {
-        this.root = root;
+    public void setHRoot(SignalNode hRoot) {
+        this.hRoot = hRoot;
+    }
+
+    public SignalNode getSRoot() {
+        return sRoot;
+    }
+
+    public void setSRoot(SignalNode sRoot) {
+        this.sRoot = sRoot;
     }
 }

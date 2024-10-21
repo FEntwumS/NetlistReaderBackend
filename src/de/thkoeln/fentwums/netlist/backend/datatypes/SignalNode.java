@@ -1,6 +1,7 @@
 package de.thkoeln.fentwums.netlist.backend.datatypes;
 
-import java.util.ArrayList;
+import org.eclipse.elk.graph.ElkPort;
+
 import java.util.HashMap;
 
 public class SignalNode {
@@ -11,6 +12,8 @@ public class SignalNode {
     private HashMap<String, SignalNode> sChildren;
     private HashMap<String, SignalNode> sLateralConnections;
     private boolean sVisited;
+    private boolean isSource;
+    private ElkPort sPort;
 
     public SignalNode() {
         sName = "";
@@ -22,17 +25,22 @@ public class SignalNode {
         sVisited = false;
     }
 
-    public SignalNode(String sName, SignalNode hParent, HashMap<String, SignalNode> hChildren, SignalNode sParent, HashMap<String, SignalNode> sChildren, HashMap<String, SignalNode> sLateralConnections) {
+    public SignalNode(String sName, SignalNode hParent, HashMap<String, SignalNode> hChildren, SignalNode sParent,
+                      HashMap<String, SignalNode> sChildren, HashMap<String, SignalNode> sLateralConnections,
+                      boolean isSource, ElkPort sPort) {
         this.sName = sName;
         this.hParent = hParent;
         this.hChildren = hChildren;
         this.sParent = sParent;
         this.sChildren = sChildren;
         this.sLateralConnections = sLateralConnections;
+        this.sPort = sPort;
 
         if(hParent != null && hParent.getHChildren() != null) {
             hParent.getHChildren().put(this.sName, this);
         }
+
+        this.isSource = isSource;
 
         this.sVisited = false;
     }
@@ -91,5 +99,21 @@ public class SignalNode {
 
     public void setSVisited(boolean sVisited) {
         this.sVisited = sVisited;
+    }
+
+    public boolean getIsSource() {
+        return isSource;
+    }
+
+    public void setIsSource(boolean isSource) {
+        this.isSource = isSource;
+    }
+
+    public ElkPort getSPort() {
+        return sPort;
+    }
+
+    public void setSPort (ElkPort sPort) {
+        this.sPort = sPort;
     }
 }

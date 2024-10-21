@@ -85,6 +85,7 @@ public class GraphCreator {
         NetnameHandler netHandler = new NetnameHandler();
 
         netHandler.handleNetnames(netnames, modulename, signalMap);
+        netHandler.recreateHierarchy(signalMap, modulename);
     }
 
     public void checkModuleCompleteness(HashMap<String, Object> module) {
