@@ -1,28 +1,28 @@
 package de.thkoeln.fentwums.netlist.backend.datatypes;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class SignalNode {
     private String sName;
-    private int lId;
     private SignalNode hParent;
-    private ArrayList<SignalNode> hChildren;
+    private HashMap<String, SignalNode> hChildren;
     private SignalNode sParent;
-    private ArrayList<SignalNode> sChildren;
-    private ArrayList<SignalNode> sLateralConnections;
+    private HashMap<String, SignalNode> sChildren;
+    private HashMap<String, SignalNode> sLateralConnections;
     private boolean sVisited;
 
     public SignalNode() {
         sName = "";
         hParent = null;
-        hChildren = new ArrayList<SignalNode>(8);
+        hChildren = new HashMap<String, SignalNode>(8);
         sParent = null;
-        sChildren = new ArrayList<SignalNode>(8);
-        sLateralConnections = new ArrayList<SignalNode>(4);
+        sChildren = new HashMap<String, SignalNode>(8);
+        sLateralConnections = new HashMap<String, SignalNode>(4);
         sVisited = false;
     }
 
-    public SignalNode(String sName, SignalNode hParent, ArrayList<SignalNode> hChildren, SignalNode sParent, ArrayList<SignalNode> sChildren, ArrayList<SignalNode> sLateralConnections) {
+    public SignalNode(String sName, SignalNode hParent, HashMap<String, SignalNode> hChildren, SignalNode sParent, HashMap<String, SignalNode> sChildren, HashMap<String, SignalNode> sLateralConnections) {
         this.sName = sName;
         this.hParent = hParent;
         this.hChildren = hChildren;
@@ -31,8 +31,7 @@ public class SignalNode {
         this.sLateralConnections = sLateralConnections;
 
         if(hParent != null && hParent.getHChildren() != null) {
-            this.lId = hParent.getHChildren().size();
-            hParent.getHChildren().add(this);
+            hParent.getHChildren().put(this.sName, this);
         }
 
         this.sVisited = false;
@@ -46,14 +45,6 @@ public class SignalNode {
         this.sName = sName;
     }
 
-    public int getLId() {
-        return lId;
-    }
-
-    public void setLId(int lId) {
-        this.lId = lId;
-    }
-
     public SignalNode getHParent() {
         return hParent;
     }
@@ -62,11 +53,11 @@ public class SignalNode {
         this.hParent = hParent;
     }
 
-    public ArrayList<SignalNode> getHChildren() {
+    public HashMap<String, SignalNode> getHChildren() {
         return hChildren;
     }
 
-    public void setHChildren(ArrayList<SignalNode> hChildren) {
+    public void setHChildren(HashMap<String, SignalNode> hChildren) {
         this.hChildren = hChildren;
     }
 
@@ -78,19 +69,19 @@ public class SignalNode {
         this.sParent = sParent;
     }
 
-    public ArrayList<SignalNode> getSChildren() {
+    public HashMap<String, SignalNode> getSChildren() {
         return sChildren;
     }
 
-    public void setSChildren(ArrayList<SignalNode> sChildren) {
+    public void setSChildren(HashMap<String, SignalNode> sChildren) {
         this.sChildren = sChildren;
     }
 
-    public ArrayList<SignalNode> getSLateralConnections() {
+    public HashMap<String, SignalNode> getSLateralConnections() {
         return sLateralConnections;
     }
 
-    public void setSLateralConnections(ArrayList<SignalNode> sLateralConnections) {
+    public void setSLateralConnections(HashMap<String, SignalNode> sLateralConnections) {
         this.sLateralConnections = sLateralConnections;
     }
 

@@ -2,6 +2,7 @@ package de.thkoeln.fentwums.netlist.backend.parser;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchicalNode;
 import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchyTree;
+import de.thkoeln.fentwums.netlist.backend.datatypes.SignalNode;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.graph.ElkEdge;
@@ -20,7 +21,7 @@ public class CellHandler {
 
     @SuppressWarnings("unchecked")
     public void createCells(HashMap<String, Object> cells, String modulename, ElkNode toplevel,
-                            ArrayList<SignalTree> signalTreeList, HierarchyTree hierarchyTree) {
+                            HashMap<Integer, SignalTree> signalMap, HierarchyTree hierarchyTree) {
         HashMap<String, Object> currentCell;
         HashMap<String, Object> currentCellAttributes;
         String currentCellPath;
@@ -34,7 +35,8 @@ public class CellHandler {
         int currentPortDriverIndex;
         String currentPortDirection;
         ElkNode constTarget;
-        ElkPort sink ,source;
+        ElkPort sink, source;
+        SignalTree currentSignalTree;
 
         HashMap<String, ElkNode> currentConstantNodes;
 
@@ -137,8 +139,23 @@ public class CellHandler {
 
 
                     if(driver instanceof Integer) {
-                        updateSignalTree(null, currentCellPathSplit);
-                        // TODO handle later :3
+                        if (signalMap.containsKey((int) driver)) {
+                            currentSignalTree = signalMap.get((int) driver);
+                        } else {
+                            currentSignalTree = new SignalTree();
+                            currentSignalTree.setSId((int) driver);
+
+                            SignalNode rootNode = new SignalNode("root", null, new HashMap<String, SignalNode>(), null,
+                                    new HashMap<String, SignalNode>(), new HashMap<String, SignalNode>());
+
+                            currentSignalTree.setRoot(rootNode);
+
+                            SignalNode toplevelNode = new SignalNode(modulename, rootNode, new HashMap<String, SignalNode>(), null,
+                                    new HashMap<String, SignalNode>(), new HashMap<String, SignalNode>());
+
+                            signalMap.put((int) driver, currentSignalTree);
+                        }
+                        updateSignalTree(currentSignalTree, currentCellPathSplit, modulename);
                     } else {
                         // Reuse (or create, if necessary) a cell for constant drivers
 
@@ -185,7 +202,22 @@ public class CellHandler {
             }
         }
     }
-    public void updateSignalTree(SignalTree signalTree, String[] hierarchyPath) {
 
+    public void updateSignalTree(SignalTree signalTree, String[] hierarchyPath, String modulename) {
+        SignalNode currentNode = signalTree.getRoot().getHChildren().get(modulename);
+
+        for (String fragment: hierarchyPath) {
+            if (currentNode.getHChildren().containsKey(fragment)) {
+                currentNode = currentNode.getHChildren().get(fragment);
+            } else {
+                currentNode = insertMissingHNode(currentNode, fragment);
+            }
+        }
+
+        currentNode.setSVisited(true);
+    }
+
+    private SignalNode insertMissingHNode(SignalNode parent, String nodename) {
+        return new SignalNode(nodename, parent, new HashMap(), null, new HashMap(), new HashMap());
     }
 }

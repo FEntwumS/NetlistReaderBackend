@@ -67,7 +67,7 @@ public class GraphCreator {
         HashMap<String, Object> cells = (HashMap<String, Object>) module.get("cells");
         HashMap<String, Object> netnames = (HashMap<String, Object>) module.get("netnames");
 
-        ArrayList<SignalTree> signalTreeList;
+        HashMap<Integer, SignalTree> signalMap;
 
         ElkNode toplevel = root.getChildren().getFirst();
         HierarchyTree hierarchyTree = new HierarchyTree(new HierarchicalNode(toplevel.getIdentifier(), null,
@@ -76,11 +76,15 @@ public class GraphCreator {
 
         PortHandler portHandler = new PortHandler();
 
-        signalTreeList = portHandler.createPorts(ports, modulename, toplevel);
+        signalMap = portHandler.createPorts(ports, modulename, toplevel);
 
         CellHandler cellHandler = new CellHandler();
 
-        cellHandler.createCells(cells, modulename, toplevel, signalTreeList, hierarchyTree);
+        cellHandler.createCells(cells, modulename, toplevel, signalMap, hierarchyTree);
+
+        NetnameHandler netHandler = new NetnameHandler();
+
+        netHandler.handleNetnames(netnames, modulename, signalMap);
     }
 
     public void checkModuleCompleteness(HashMap<String, Object> module) {

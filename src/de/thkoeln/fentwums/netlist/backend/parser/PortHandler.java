@@ -22,9 +22,9 @@ public class PortHandler {
     public PortHandler() {}
 
     @SuppressWarnings("unchecked")
-    public ArrayList<SignalTree> createPorts(HashMap<String, Object> ports, String modulename,
+    public HashMap<Integer, SignalTree> createPorts(HashMap<String, Object> ports, String modulename,
                                              ElkNode toplevel) {
-        ArrayList<SignalTree> treeList = new ArrayList<>(ports.keySet().size());
+        HashMap<Integer, SignalTree> treeList = new HashMap<>(ports.keySet().size());
         HashMap<String, Object> currentPort;
         ArrayList<Object> currentPortDrivers;
         int currentPortDriverIndex;
@@ -79,7 +79,7 @@ public class PortHandler {
                 // created
 
                 if (driver instanceof Integer) {
-                    treeList.add(createSignalTree((int) driver, portname, modulename));
+                    treeList.put((int) driver, createSignalTree((int) driver, portname, modulename));
 
                     toplevelPort.setIdentifier(driver.toString());
                 } else {
@@ -126,14 +126,14 @@ public class PortHandler {
     public SignalTree createSignalTree(int port, String portname, String modulename) {
         SignalTree tree = new SignalTree();
         tree.setSId(port);
-        SignalNode rootNode = new SignalNode("root", null, new ArrayList<SignalNode>(), null, new ArrayList<SignalNode>()
-                , new ArrayList<SignalNode>());
+        SignalNode rootNode = new SignalNode("root", null, new HashMap<String, SignalNode>(), null,
+                new HashMap<String, SignalNode>(), new HashMap<String, SignalNode>());
 
         tree.setRoot(rootNode);
         rootNode.setSVisited(true);
 
-        SignalNode toplevelNode = new SignalNode(modulename, rootNode, new ArrayList<SignalNode>(), null,
-                new ArrayList<SignalNode>(), new ArrayList<SignalNode>());
+        SignalNode toplevelNode = new SignalNode(modulename, rootNode, new HashMap<String, SignalNode>(), null,
+                new HashMap<String, SignalNode>(), new HashMap<String, SignalNode>());
 
         return tree;
     }
