@@ -82,6 +82,8 @@ public class NetnameHandler {
                 }
 
                 if (currentSignalNode == null) {
+                    // TODO check if this is true when a nonsensical user construct exists
+
                     System.out.println("Unknown cell; Bit " + (int) bit);
 
                     continue;
@@ -114,13 +116,9 @@ public class NetnameHandler {
                 routeSource(currentSignalTree, currentSignalNode);
             }
 
+            // TODO fixme
+            // Sink routing creates circular edges for outgoing signals
             findSinks(currentSignalTree, null);
-
-            // find all sinks
-
-            //currentGraphNode = currentSignalNode.getSPort().getParent();
-
-            //checkParent(currentSignalTree, currentSignalNode, modulename, currentGraphNode);
         }
     }
 
@@ -190,15 +188,14 @@ public class NetnameHandler {
             currentSignalNode = currentSignalTree.getHRoot();
         }
 
-        if (currentSignalTree.getSId() == 183)
-        {
-            System.out.println("183");
+        if (currentSignalTree.getSId() == 2) {
+            System.out.println("2");
         }
 
         for (String candidate : currentSignalNode.getHChildren().keySet()) {
             nextNode = currentSignalNode.getHChildren().get(candidate);
 
-            if (nextNode.getIsSource()) {
+            if (nextNode.getIsSource() && !currentSignalNode.getSName().equals("root")) {
                 continue;
             }
 
@@ -216,11 +213,11 @@ public class NetnameHandler {
         SignalNode sourceNode;
         boolean cont = false;
 
-        sink = currentSignalNode.getSPort();
-
-        if (currentSignalTree.getSId() == 183) {
-            System.out.println();
+        if (currentSignalTree.getSId() == 126) {
+            System.out.println("126");
         }
+
+        sink = currentSignalNode.getSPort();
 
         // check if signal came from parent, construct port as necessary
         if (precursor.getHParent().getSVisited()) {
@@ -242,21 +239,24 @@ public class NetnameHandler {
                 precursor.setSPort(source);
                 cont = true;
             } else {
+                //source = sink;
                 source = precursor.getSPort();
                 cont = true;
             }
 
-            ElkEdge newEdge = createSimpleEdge(source, sink);
+            if (!source.getParent().getChildren().contains(sink.getParent())
+                    || (source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)
+                        && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST))) {
+                ElkEdge newEdge = createSimpleEdge(source, sink);
+            }
         } else {
-            System.out.println("a");
-
             // else source is in same layer; search there for signal source (check port side)
             for (String candidate : precursor.getHChildren().keySet()) {
                 sourceNode = precursor.getHChildren().get(candidate);
 
                 source = sourceNode.getSPort();
 
-                if (source != null && source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
+                if (source != null && source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
                     ElkEdge newEdge = createSimpleEdge(source, sink);
 
                     return;
