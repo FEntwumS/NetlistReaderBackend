@@ -131,7 +131,7 @@ public class PortHandler {
                 new HashMap<String, SignalNode>(), new HashMap<String, SignalNode>(), false, null);
 
         tree.setHRoot(rootNode);
-        rootNode.setSVisited(false);
+        rootNode.setSVisited(true);
 
         SignalNode toplevelNode = new SignalNode(modulename, rootNode, new HashMap<String, SignalNode>(), null,
                 new HashMap<String, SignalNode>(), new HashMap<String, SignalNode>(), false, sPort);

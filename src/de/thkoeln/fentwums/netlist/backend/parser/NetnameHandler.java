@@ -110,9 +110,153 @@ public class NetnameHandler {
 
             currentSignalNode = currentSignalTree.getSRoot();
 
-            currentGraphNode = currentSignalNode.getSPort().getParent();
+            if (currentSignalNode.getHChildren().isEmpty()) {
+                routeSource(currentSignalTree, currentSignalNode);
+            }
 
-            checkParent(currentSignalTree, currentSignalNode, modulename, currentGraphNode);
+            findSinks(currentSignalTree, currentSignalNode);
+
+            // find all sinks
+
+            //currentGraphNode = currentSignalNode.getSPort().getParent();
+
+            //checkParent(currentSignalTree, currentSignalNode, modulename, currentGraphNode);
+        }
+    }
+
+    // Two cases exist:
+    // 1. sRoot is leaf
+    // 2. sRoot is not leaf
+    //
+    // if case 1:
+    // start at sroot, create signal up to common ancestor
+    // then join up all other leaves
+    // then check if hierarchy extends even higher (output signal)
+    //
+    // if case 2:
+    // just join up leaves
+    //
+    // TODO check for loops or other nonsensical user-generated constructs
+
+    private void routeSource(SignalTree currentTree, SignalNode precursor) {
+        SignalNode currentNode = precursor.getHParent();
+        ElkNode currentGraphNode;
+        ElkPort sink, source;
+
+        // dont create port, if currentnode is toplevel and no port exists
+        if (currentTree.getHRoot().getHChildren().containsValue(currentNode) && currentNode.getSPort() == null) {
+            return;
+        }
+
+        if (currentNode.getSVisited()) {
+            if (currentNode.getHParent() == null || currentNode.getHParent().getSVisited() == false) {
+                return;
+            }
+            source = precursor.getSPort();
+            // create port (if doesnt exist yet)
+            // should be the default (except for output signals)
+            if (currentNode.getSPort() == null) {
+                currentGraphNode = source.getParent().getParent();
+
+                if (currentGraphNode.getIdentifier().equals("root")) {
+                    System.out.println("wtf! that wasnt supposed to happen :(");
+                }
+
+                sink = createPort(currentGraphNode);
+                sink.setDimensions(10, 10);
+                sink.setProperty(CoreOptions.PORT_SIDE, PortSide.EAST);
+
+                currentNode.setSPort(sink);
+
+                ElkLabel sinkLabel = createLabel(currentNode.getSName(), sink);
+                sinkLabel.setDimensions(sinkLabel.getText().length() * 7 + 1, 10);
+            } else {
+                sink = currentNode.getSPort();
+            }
+
+            // create connecting edge
+            ElkEdge newEdge = createSimpleEdge(source, sink);
+
+            // go up one layer
+            routeSource(currentTree, currentNode);
+        } else {
+            return;
+        }
+    }
+
+    private void findSinks(SignalTree currentSignalTree, SignalNode currentSignalNode) {
+        SignalNode nextNode;
+        if (currentSignalNode == null) {
+            currentSignalNode = currentSignalTree.getHRoot();
+        }
+
+        for (String candidate : currentSignalNode.getHChildren().keySet()) {
+            nextNode = currentSignalNode.getHChildren().get(candidate);
+
+            if (nextNode.getIsSource()) {
+                return;
+            }
+
+            if (nextNode.getHChildren().isEmpty()) {
+                routeSink(currentSignalTree, nextNode);
+            } else {
+                findSinks(currentSignalTree, nextNode);
+            }
+        }
+    }
+
+    private void routeSink(SignalTree currentSignalTree, SignalNode currentSignalNode) {
+        SignalNode precursor = currentSignalNode.getHParent();
+        ElkPort source = null, sink;
+        SignalNode sourceNode;
+        boolean cont = false;
+
+        sink = currentSignalNode.getSPort();
+
+        // check if signal came from parent, construct port as necessary
+        if (precursor.getSVisited()) {
+            // check if precursor source port exists
+            if (precursor.getSPort() == null) {
+                if (sink.getParent().getParent().getIdentifier().equals("root")) {
+                    // TODO fixme
+                    System.out.println("wtf! that wasnt supposed to happen :/");
+
+                    return;
+                }
+                source = createPort(sink.getParent().getParent());
+                source.setDimensions(10, 10);
+                source.setProperty(CoreOptions.PORT_SIDE, PortSide.WEST);
+
+                ElkLabel sourceLabel = createLabel(precursor.getSName(), source);
+                sourceLabel.setDimensions(sourceLabel.getText().length() * 7 + 1, 10);
+
+                precursor.setSPort(source);
+                cont = true;
+            } else {
+                source = precursor.getSPort();
+                cont = true;
+            }
+
+            ElkEdge newEdge = createSimpleEdge(source, sink);
+        } else {
+            System.out.println("a");
+
+            // else source is in same layer; search there for signal source (check port side)
+            for (String candidate : precursor.getHChildren().keySet()) {
+                sourceNode = precursor.getHChildren().get(candidate);
+
+                source = sourceNode.getSPort();
+
+                if (source != null && source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
+                    ElkEdge newEdge = createSimpleEdge(source, sink);
+
+                    return;
+                }
+            }
+        }
+
+        if (!precursor.getSName().equals("root")) {
+            routeSink(currentSignalTree, precursor);
         }
     }
 
