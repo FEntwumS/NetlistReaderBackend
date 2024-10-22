@@ -114,7 +114,9 @@ public class NetnameHandler {
                 routeSource(currentSignalTree, currentSignalNode);
             }
 
-            findSinks(currentSignalTree, currentSignalNode);
+            findSinks(currentSignalTree, null);
+
+            System.out.println(signalIndex);
 
             // find all sinks
 
@@ -213,8 +215,12 @@ public class NetnameHandler {
 
         sink = currentSignalNode.getSPort();
 
+        if (currentSignalTree.getSId() > 1) {
+            System.out.println();
+        }
+
         // check if signal came from parent, construct port as necessary
-        if (precursor.getSVisited()) {
+        if (precursor.getHParent().getSVisited()) {
             // check if precursor source port exists
             if (precursor.getSPort() == null) {
                 if (sink.getParent().getParent().getIdentifier().equals("root")) {
@@ -255,7 +261,7 @@ public class NetnameHandler {
             }
         }
 
-        if (!precursor.getSName().equals("root")) {
+        if (!precursor.getHParent().getSName().equals("root")) {
             routeSink(currentSignalTree, precursor);
         }
     }
