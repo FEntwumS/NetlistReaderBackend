@@ -116,8 +116,6 @@ public class NetnameHandler {
 
             findSinks(currentSignalTree, null);
 
-            System.out.println(signalIndex);
-
             // find all sinks
 
             //currentGraphNode = currentSignalNode.getSPort().getParent();
@@ -192,11 +190,16 @@ public class NetnameHandler {
             currentSignalNode = currentSignalTree.getHRoot();
         }
 
+        if (currentSignalTree.getSId() == 183)
+        {
+            System.out.println("183");
+        }
+
         for (String candidate : currentSignalNode.getHChildren().keySet()) {
             nextNode = currentSignalNode.getHChildren().get(candidate);
 
             if (nextNode.getIsSource()) {
-                return;
+                continue;
             }
 
             if (nextNode.getHChildren().isEmpty()) {
@@ -215,7 +218,7 @@ public class NetnameHandler {
 
         sink = currentSignalNode.getSPort();
 
-        if (currentSignalTree.getSId() > 1) {
+        if (currentSignalTree.getSId() == 183) {
             System.out.println();
         }
 
