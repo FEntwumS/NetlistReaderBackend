@@ -66,6 +66,8 @@ public class NetnameHandler {
 
                 int finalCurrentBitIndex = currentBitIndex;
                 if (Arrays.stream(unusedBitsSplit).anyMatch(x -> x.equals(String.valueOf(finalCurrentBitIndex)))) {
+                    currentBitIndex++;
+
                     continue;
                 }
 
@@ -94,6 +96,12 @@ public class NetnameHandler {
 
                 currentSignalNode.setSVisited(true);
                 currentSignalNode.setSName(currentNetPathSplit[currentNetPathSplit.length - 1]);
+
+                if (bitList.size() > 1) {
+                    currentSignalNode.setIndexInSignal(currentBitIndex - 1);
+                } else {
+                    currentSignalNode.setIndexInSignal(-1);
+                }
 
                 // Check if the signal originates outside the netlist (e.g. clock, ...)
                 if (currentSignalTree.getSRoot() == null) {
@@ -143,6 +151,7 @@ public class NetnameHandler {
         SignalNode currentNode = precursor.getHParent();
         ElkNode currentGraphNode;
         ElkPort sink, source;
+        int currentSignalIndex;
 
         // dont create port, if currentnode is toplevel and no port exists
         if (currentTree.getHRoot().getHChildren().containsValue(currentNode) && currentNode.getSPort() == null) {
@@ -169,7 +178,10 @@ public class NetnameHandler {
 
                 currentNode.setSPort(sink);
 
-                ElkLabel sinkLabel = createLabel(currentNode.getSName(), sink);
+                currentSignalIndex = currentNode.getIndexInSignal();
+
+                ElkLabel sinkLabel = createLabel(currentNode.getSName() + (currentSignalIndex != -1 ? " [" + currentSignalIndex + "]" : ""),
+                        sink);
                 sinkLabel.setDimensions(sinkLabel.getText().length() * 7 + 1, 10);
             } else {
                 sink = currentNode.getSPort();
@@ -210,6 +222,7 @@ public class NetnameHandler {
         SignalNode precursor = currentSignalNode.getHParent();
         ElkPort source = null, sink;
         SignalNode sourceNode;
+        int currentSignalIndex;
         boolean cont = false;
 
         sink = currentSignalNode.getSPort();
@@ -232,7 +245,10 @@ public class NetnameHandler {
                 source.setDimensions(10, 10);
                 source.setProperty(CoreOptions.PORT_SIDE, PortSide.WEST);
 
-                ElkLabel sourceLabel = createLabel(precursor.getSName(), source);
+                currentSignalIndex = precursor.getIndexInSignal();
+
+                ElkLabel sourceLabel = createLabel(precursor.getSName() + (currentSignalIndex != -1 ?
+                        " [" + currentSignalIndex + "]" : ""), source);
                 sourceLabel.setDimensions(sourceLabel.getText().length() * 7 + 1, 10);
 
                 precursor.setSPort(source);

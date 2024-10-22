@@ -14,6 +14,7 @@ public class SignalNode {
     private boolean sVisited;
     private boolean isSource;
     private ElkPort sPort;
+    private int indexInSignal;
 
     public SignalNode() {
         sName = "";
@@ -115,5 +116,13 @@ public class SignalNode {
 
     public void setSPort (ElkPort sPort) {
         this.sPort = sPort;
+    }
+
+    public int getIndexInSignal() {
+        return indexInSignal;
+    }
+
+    public void setIndexInSignal(int indexInSignal) {
+        this.indexInSignal = indexInSignal;
     }
 }
