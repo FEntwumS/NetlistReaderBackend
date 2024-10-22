@@ -4,6 +4,7 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchicalNode;
 import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchyTree;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalNode;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
+import de.thkoeln.fentwums.netlist.backend.helpers.CellPathFormatter;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkLabel;
@@ -37,6 +38,7 @@ public class CellHandler {
         ElkNode constTarget;
         ElkPort sink, source;
         SignalTree currentSignalTree;
+        CellPathFormatter formatter = new CellPathFormatter();
 
         HashMap<String, ElkNode> currentConstantNodes;
 
@@ -48,14 +50,13 @@ public class CellHandler {
 
             currentHierarchyPosition = hierarchyTree.getRoot();
 
+            // TODO check for other possible split syntaxes
             // get cell location in hierarchy
             // Check for hdlname attribute first, otherwise extract location path from cell name
             if (currentCellAttributes.containsKey("hdlname")) {
                 currentCellPath = (String) currentCellAttributes.get("hdlname");
             } else {
-                currentCellPath = cellname.replaceFirst("\\$flatten", "").replaceAll("\\$auto\\$ghdl\\.cc","ghdl" +
-                                "")
-                .replaceAll("\\\\", "").replaceAll("\\.", " ");
+                currentCellPath = formatter.format(cellname);
             }
 
             currentCellPathSplit = currentCellPath.split(" ");

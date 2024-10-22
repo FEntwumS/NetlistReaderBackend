@@ -16,7 +16,7 @@ import java.time.Instant;
 public class Main {
     public static void main(String[] args) throws IOException, ExecutionControl.NotImplementedException {
         GraphCreator graphCreator = new GraphCreator();
-        NetlistParser parser = new NetlistParser("src/addressing-pre_synth.json");
+        NetlistParser parser = new NetlistParser("src/optimal-info.json");
 
         Instant start = Instant.now();
         parser.readNetlist();
@@ -36,7 +36,12 @@ public class Main {
         BasicProgressMonitor monitor = new BasicProgressMonitor();
 
         start = Instant.now();
-        layouter.layout(graphCreator.getGraph(), monitor);
+        try {
+            layouter.layout(graphCreator.getGraph(), monitor);
+        } catch (StackOverflowError e) {
+            System.out.println("Stack overflow; Graph too big :(");
+            e.printStackTrace();
+        }
         end = Instant.now();
 
         System.out.println("Graph layouting time: " + Duration.between(start, end).toMillis() + "ms");
