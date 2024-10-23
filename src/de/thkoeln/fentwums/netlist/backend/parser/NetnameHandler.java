@@ -172,14 +172,14 @@ public class NetnameHandler {
     //
     // TODO check for loops or other nonsensical user-generated constructs
 
-    private void routeSource(SignalTree currentTree, SignalNode precursor) {
+    private void routeSource(SignalTree currentSignalTree, SignalNode precursor) {
         SignalNode currentNode = precursor.getHParent();
         ElkNode currentGraphNode;
         ElkPort sink, source;
         int currentSignalIndex;
 
         // dont create port, if currentnode is toplevel and no port exists
-        if (currentTree.getHRoot().getHChildren().containsValue(currentNode) && currentNode.getSPort() == null) {
+        if (currentSignalTree.getHRoot().getHChildren().containsValue(currentNode) && currentNode.getSPort() == null) {
             return;
         }
 
@@ -214,9 +214,10 @@ public class NetnameHandler {
 
             // create connecting edge
             ElkEdge newEdge = createSimpleEdge(source, sink);
+            newEdge.setIdentifier(String.valueOf(currentSignalTree.getSId()));
 
             // go up one layer
-            routeSource(currentTree, currentNode);
+            routeSource(currentSignalTree, currentNode);
         } else {
             return;
         }
@@ -284,6 +285,7 @@ public class NetnameHandler {
                     || (source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)
                         && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST))) {
                 ElkEdge newEdge = createSimpleEdge(source, sink);
+                newEdge.setIdentifier(String.valueOf(currentSignalTree.getSId()));
             }
         } else {
             // else source is in same layer; search there for signal source (check port side)
@@ -294,6 +296,7 @@ public class NetnameHandler {
 
                 if (source != null && source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
                     ElkEdge newEdge = createSimpleEdge(source, sink);
+                    newEdge.setIdentifier(String.valueOf(currentSignalTree.getSId()));
 
                     return;
                 }
