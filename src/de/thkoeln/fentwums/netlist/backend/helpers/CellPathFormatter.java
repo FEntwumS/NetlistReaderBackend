@@ -15,6 +15,6 @@ public class CellPathFormatter {
             output = input.replaceAll("\\.", " ");
         }
 
-        return output;
+        return output.replaceAll("\\\\", "");
     }
 }
