@@ -1,6 +1,8 @@
 package de.thkoeln.fentwums.netlist.backend.datatypes;
 
+import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkNode;
+import org.eclipse.emf.common.util.EList;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,6 +17,8 @@ public class HierarchicalNode {
     private ArrayList<Bundle> possibleBundles;
     private ElkNode node;
     private HashMap<String, ElkNode> constantDrivers;
+    private ArrayList<ElkNode> childList;
+    private ArrayList<ElkEdge> edgeList;
 
     public HierarchicalNode() {
         hName = "";
@@ -115,5 +119,21 @@ public class HierarchicalNode {
 
     public void setConstantDrivers(HashMap<String, ElkNode> constantDrivers) {
         this.constantDrivers = constantDrivers;
+    }
+
+    public ArrayList<ElkNode> getChildList() {
+        return childList;
+    }
+
+    public void setChildList(ArrayList<ElkNode> childList) {
+        this.childList = childList;
+    }
+
+    public ArrayList<ElkEdge> getEdgeList() {
+        return edgeList;
+    }
+
+    public void setEdgeList(ArrayList<ElkEdge> edgeList) {
+        this.edgeList = edgeList;
     }
 }
