@@ -5,7 +5,6 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchyTree;
 import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkNode;
 import org.eclipse.emf.common.util.EList;
-import org.eclipse.emf.ecore.util.EObjectContainmentWithInverseEList;
 
 import java.util.*;
 
@@ -13,7 +12,8 @@ public class CellCollapser {
     private HierarchyTree hierarchy;
     private ElkNode groundTruth;
 
-    public CellCollapser() {}
+    public CellCollapser() {
+    }
 
     public void setHierarchy(HierarchyTree hierarchy) {
         this.hierarchy = hierarchy;
@@ -31,8 +31,8 @@ public class CellCollapser {
         return groundTruth;
     }
 
-    public void collapseCell(String cellPath) {
-        String[] cellPathSplit = cellPath.split(" ");
+    public void collapseCellAt(String cellPath) {
+        collapseCell(findNode(cellPath));
 
         // path should contain modulename as first parameter, but we can ignore it here
         // paths longer than 1 point to nodes below the toplevel, paths with length 1 point to the toplevel
@@ -53,6 +53,14 @@ public class CellCollapser {
     }
 
     public void collapseRecursively(HierarchicalNode hNode) {
+        collapseCell(hNode);
+
+        for (String hChild : hNode.getChildren().keySet()) {
+            collapseRecursively(hNode.getChildren().get(hChild));
+        }
+    }
+
+    public void collapseCell(HierarchicalNode hNode) {
         ElkNode currentGraphNode = hNode.getNode();
 
         if (hNode.getChildList() == null) {
@@ -74,14 +82,55 @@ public class CellCollapser {
         }
 
         currentGraphNode.getContainedEdges().clear();
+    }
+
+    public void expandAllCells() {
+        expandRecursively(hierarchy.getRoot());
+    }
+
+    public void expandRecursively(HierarchicalNode hNode) {
+        expandCell(hNode);
 
         for (String hChild : hNode.getChildren().keySet()) {
-            collapseRecursively(hNode.getChildren().get(hChild));
+            expandRecursively(hNode.getChildren().get(hChild));
         }
     }
 
-    public void expandCell(String cellPath) {
+    public void expandCellAt(String cellPath) {
+        expandCell(findNode(cellPath));
         // find layer in hierarchy, then restore children and edges from hierarchyTree
         // allows of storing state of collapsed nodes inside the node pointed to by cellPath without additional code
+    }
+
+    public void expandCell(HierarchicalNode hNode) {
+        ElkNode currentGraphNode = hNode.getNode();
+        EList<ElkNode> graphChildren = currentGraphNode.getChildren();
+        EList<ElkEdge> graphContainedEdges = currentGraphNode.getContainedEdges();
+
+        ArrayList<ElkNode> storedChildren = hNode.getChildList();
+        ArrayList<ElkEdge> storedEdges = hNode.getEdgeList();
+
+        graphChildren.addAll(storedChildren);
+
+        graphContainedEdges.addAll(storedEdges);
+    }
+
+    private HierarchicalNode findNode(String cellPath) {
+        String[] cellPathSplit = cellPath.split(" ");
+
+        HierarchicalNode currentNode = hierarchy.getRoot();
+        HierarchicalNode nextNode;
+
+        for (String fragment : cellPathSplit) {
+            currentNode = currentNode.getChildren().get(fragment);
+
+            if(currentNode == null) {
+                System.out.println("Could not find cell \"" + fragment + "\" from cellpath \"" + cellPath + "\"");
+
+                return null;
+            }
+        }
+
+        return currentNode;
     }
 }

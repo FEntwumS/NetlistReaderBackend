@@ -252,10 +252,6 @@ public class NetnameHandler {
 
         sink = currentSignalNode.getSPort();
 
-        if (currentSignalTree.getSId() == 2  && currentSignalNode.getSName().equals("reg_file")) {
-            System.out.println("2");
-        }
-
         // check if signal came from parent, construct port as necessary
         if (precursor.getHParent().getSVisited()) {
             // check if precursor source port exists

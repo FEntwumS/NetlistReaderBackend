@@ -39,6 +39,7 @@ public class CellHandler {
         ElkPort sink, source;
         SignalTree currentSignalTree;
         CellPathFormatter formatter = new CellPathFormatter();
+        StringBuilder intermediateCellPath;
 
         HashMap<String, ElkNode> currentConstantNodes;
 
@@ -70,8 +71,16 @@ public class CellHandler {
                     if (currentHierarchyPosition.getChildren().containsKey(pathFragement)) {
                         currentHierarchyPosition = currentHierarchyPosition.getChildren().get(pathFragement);
                     } else {
+                        intermediateCellPath = new StringBuilder();
+
+                        intermediateCellPath.append(currentCellPathSplit[0]);
+
+                        for (int j = 1; j <= i; j++) {
+                            intermediateCellPath.append(" ").append(currentCellPathSplit[j]);
+                        }
+
                         ElkNode newElkNode = createNode(currentHierarchyPosition.getNode());
-                        newElkNode.setIdentifier(pathFragement);
+                        newElkNode.setIdentifier(intermediateCellPath.toString());
                         newElkNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_ORDER);
                         newElkNode.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.allOf(SizeConstraint.class));
                         newElkNode.setProperty(CoreOptions.NODE_LABELS_PLACEMENT, EnumSet.of(NodeLabelPlacement.H_CENTER,
@@ -95,7 +104,7 @@ public class CellHandler {
             // now that the hierarchy has been created, the actual cells can be constructed
 
             ElkNode newCellNode = createNode(currentHierarchyPosition.getNode());
-            newCellNode.setIdentifier(currentCellPathSplit[currentCellPathSplit.length - 1]);
+            newCellNode.setIdentifier(currentCellPath);
             newCellNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_ORDER);
             newCellNode.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.allOf(SizeConstraint.class));
             newCellNode.setProperty(CoreOptions.NODE_LABELS_PLACEMENT, EnumSet.of(NodeLabelPlacement.H_CENTER,

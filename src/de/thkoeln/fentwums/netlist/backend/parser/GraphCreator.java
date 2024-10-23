@@ -93,6 +93,16 @@ public class GraphCreator {
         collapser.setHierarchy(hierarchyTree);
 
         collapser.collapseAllCells();
+        collapser.expandAllCells();
+
+        for (String child : hierarchyTree.getRoot().getChildren().keySet()) {
+            collapser.collapseRecursively(hierarchyTree.getRoot().getChildren().get(child));
+        }
+
+        collapser.expandCellAt("ws2812_inst");
+        collapser.expandCellAt("ws2812_inst rtw");
+        collapser.expandCellAt("ws2812_inst rtw as");
+        //collapser.expandCellAt("ws2812_inst rtw as 9512");
     }
 
     public void checkModuleCompleteness(HashMap<String, Object> module) {
