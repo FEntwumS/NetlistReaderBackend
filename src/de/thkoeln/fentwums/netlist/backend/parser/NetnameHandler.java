@@ -61,6 +61,7 @@ public class NetnameHandler {
 
             for (Object bit : bitList) {
                 if (bit instanceof String) {
+                    currentBitIndex++;
                     continue;   // Constant drivers cant be routed using the signal tree
                 }
 
@@ -90,6 +91,7 @@ public class NetnameHandler {
                     // TODO check if this is true when a nonsensical user construct exists
 
                     System.out.println("Unknown cell; Bit " + (int) bit);
+                    System.out.println("This error may be caused by unused signals left in the netlist file");
 
                     continue;
                 }

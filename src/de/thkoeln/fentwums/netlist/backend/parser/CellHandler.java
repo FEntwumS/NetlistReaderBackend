@@ -46,7 +46,6 @@ public class CellHandler {
             side = PortSide.EAST;
             currentCell = (HashMap<String, Object>) cells.get(cellname);
             currentCellAttributes = (HashMap<String, Object>) currentCell.get("attributes");
-            currentPortDriverIndex = 0;
 
             currentHierarchyPosition = hierarchyTree.getRoot();
 
