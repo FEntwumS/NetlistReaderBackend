@@ -84,7 +84,7 @@ public class GraphCreator {
 
         NetnameHandler netHandler = new NetnameHandler();
 
-        netHandler.handleNetnames(netnames, modulename, signalMap);
+        netHandler.handleNetnames(netnames, modulename, signalMap, hierarchyTree);
         netHandler.recreateHierarchy(signalMap, modulename);
     }
 

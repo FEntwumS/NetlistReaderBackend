@@ -1,6 +1,6 @@
 package de.thkoeln.fentwums.netlist.backend.datatypes;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Bundle {
     /**
@@ -11,21 +11,21 @@ public class Bundle {
     /**
      * List of all the signal indices contained in this bundle.
      */
-    private ArrayList<Integer> bundleSignalList;
+    private HashMap<Integer, Integer> bundleSignalMap;
 
     public Bundle() {
         bundleSignalIndex = 0;
-        bundleSignalList = new ArrayList<>(32);
+        bundleSignalMap = new HashMap<Integer, Integer>(32);
     }
 
     public Bundle(int bundleSignalIndex) {
         this.bundleSignalIndex = bundleSignalIndex;
-        bundleSignalList = new ArrayList<>(32);
+        bundleSignalMap = new HashMap<Integer, Integer>(32);
     }
 
-    public Bundle(int bundleSignalIndex, ArrayList<Integer> bundleSignalList) {
+    public Bundle(int bundleSignalIndex, HashMap<Integer, Integer> bundleSignalMap) {
         this.bundleSignalIndex = bundleSignalIndex;
-        this.bundleSignalList = bundleSignalList;
+        this.bundleSignalMap = bundleSignalMap;
     }
 
     public Bundle(Bundle bundle) {
@@ -34,7 +34,7 @@ public class Bundle {
         }
 
         this.bundleSignalIndex = bundle.getBundleSignalIndex();
-        this.bundleSignalList = new ArrayList<>(bundle.getBundleSignalList());
+        this.bundleSignalMap = new HashMap<Integer, Integer>(bundle.getBundleSignalMap());
     }
 
     public int getBundleSignalIndex() {
@@ -45,11 +45,11 @@ public class Bundle {
         this.bundleSignalIndex = bundleSignalIndex;
     }
 
-    public ArrayList<Integer> getBundleSignalList() {
-        return bundleSignalList;
+    public HashMap<Integer, Integer> getBundleSignalMap() {
+        return bundleSignalMap;
     }
 
-    public void setBundleSignalList(ArrayList<Integer> bundleSignalList) {
-        this.bundleSignalList = bundleSignalList;
+    public void setBundleSignalMap(HashMap<Integer, Integer> bundleSignalMap) {
+        this.bundleSignalMap = bundleSignalMap;
     }
 }

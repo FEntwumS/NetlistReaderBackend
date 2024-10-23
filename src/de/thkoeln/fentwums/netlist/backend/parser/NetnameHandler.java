@@ -1,7 +1,6 @@
 package de.thkoeln.fentwums.netlist.backend.parser;
 
-import de.thkoeln.fentwums.netlist.backend.datatypes.SignalNode;
-import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
+import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import de.thkoeln.fentwums.netlist.backend.helpers.CellPathFormatter;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.PortSide;
@@ -20,7 +19,7 @@ public class NetnameHandler {
     public NetnameHandler() {}
 
     public void handleNetnames (HashMap<String, Object> netnames, String modulename,
-                                HashMap<Integer, SignalTree> signalMap) {
+                                HashMap<Integer, SignalTree> signalMap, HierarchyTree hierarchyTree) {
         HashMap<String, Object> currentNet;
         HashMap<String, Object> currentNetAttributes;
         String currentNetPath;
@@ -33,6 +32,9 @@ public class NetnameHandler {
 
         SignalTree currentSignalTree;
         SignalNode currentSignalNode;
+        HierarchicalNode currentHNode;
+        Bundle newBundle;
+        HashMap<Integer, Integer> cleanedBitMap;
 
         for (String currentNetName : netnames.keySet()) {
             currentNet = (HashMap<String, Object>) netnames.get(currentNetName);
@@ -59,6 +61,8 @@ public class NetnameHandler {
 
             bitList = (ArrayList<Object>) currentNet.get("bits");
 
+            cleanedBitMap = new HashMap<Integer, Integer>(bitList.size());
+
             for (Object bit : bitList) {
                 if (bit instanceof String) {
                     currentBitIndex++;
@@ -72,17 +76,20 @@ public class NetnameHandler {
                     continue;
                 }
 
-                currentBitIndex++;
+                cleanedBitMap.put((int) bit, currentBitIndex);
 
+                currentBitIndex++;
 
                 currentSignalTree = signalMap.get((Integer) bit);
 
                 currentSignalNode = currentSignalTree.getHRoot().getHChildren().get(modulename);
+                currentHNode = hierarchyTree.getRoot();
 
                 for(int i = 0; i < currentNetPathSplit.length - 1; i++) {
                     currentSignalNode = currentSignalNode.getHChildren().get(currentNetPathSplit[i]);
+                    currentHNode = currentHNode.getChildren().get(currentNetPathSplit[i]);
 
-                    if (currentSignalNode == null) {
+                    if (currentSignalNode == null || currentHNode == null) {
                         break;
                     }
                 }
@@ -96,8 +103,24 @@ public class NetnameHandler {
                     continue;
                 }
 
+                if (currentHNode == null) {
+                    System.out.print("Missing layer in hierarchy: ");
+                    for (String s : currentNetPathSplit) {
+                        System.out.print(s + " ");
+                    }
+
+                    System.out.println();
+                    continue;
+                }
+
                 currentSignalNode.setSVisited(true);
                 currentSignalNode.setSName(currentNetPathSplit[currentNetPathSplit.length - 1]);
+
+                if (bitList.size() - unusedBitsSplit.length > 1) {
+                    newBundle = new Bundle((int) bit, cleanedBitMap);
+
+                    currentHNode.getPossibleBundles().add(newBundle);
+                }
 
                 if (bitList.size() > 1) {
                     currentSignalNode.setIndexInSignal(currentBitIndex - 1);
