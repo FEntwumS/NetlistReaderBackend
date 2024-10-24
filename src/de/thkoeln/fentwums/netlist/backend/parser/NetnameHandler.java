@@ -184,6 +184,7 @@ public class NetnameHandler {
         }
 
         if (currentNode.getSVisited()) {
+            currentNode.setIsSource(true);
             if (currentNode.getHParent() == null || currentNode.getHParent().getSVisited() == false) {
                 return;
             }
@@ -250,6 +251,10 @@ public class NetnameHandler {
         int currentSignalIndex;
         boolean cont = false;
 
+        if (currentSignalNode.getSName().equals("9289") && currentSignalTree.getSId() == 50) {
+            System.out.println("jetzt wirds haarig");
+        }
+
         sink = currentSignalNode.getSPort();
 
         // check if signal came from parent, construct port as necessary
@@ -290,6 +295,10 @@ public class NetnameHandler {
             for (String candidate : precursor.getHChildren().keySet()) {
                 sourceNode = precursor.getHChildren().get(candidate);
 
+                if (sourceNode.getIsSource() == false) {
+                    continue;
+                }
+
                 source = sourceNode.getSPort();
 
                 if (source != null && source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
@@ -298,6 +307,25 @@ public class NetnameHandler {
                     return;
                 }
             }
+
+            // Source is somewhere in an unmarked parent
+            // So continue upwards
+
+            // Create new port on western side of precursor (input)
+            source = createPort(sink.getParent().getParent());
+            source.setDimensions(10, 10);
+            source.setProperty(CoreOptions.PORT_SIDE, PortSide.WEST);
+
+            currentSignalIndex = precursor.getIndexInSignal();
+
+            ElkLabel sourceLabel = createLabel(precursor.getSName() + (currentSignalIndex != -1 ?
+                    " [" + currentSignalIndex + "]" : ""), source);
+            sourceLabel.setDimensions(sourceLabel.getText().length() * 7 + 1, 10);
+
+            precursor.setSPort(source);
+
+            ElkEdge newEdge = createSimpleEdge(source, sink);
+
         }
 
         if (!precursor.getHParent().getSName().equals("root")) {
