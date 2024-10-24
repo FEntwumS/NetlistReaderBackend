@@ -248,6 +248,7 @@ public class NetnameHandler {
         SignalNode precursor = currentSignalNode.getHParent();
         ElkPort source = null, sink;
         SignalNode sourceNode;
+        SignalNode possibleInLayerSource;
         int currentSignalIndex;
         boolean cont = false;
 
@@ -256,6 +257,25 @@ public class NetnameHandler {
         }
 
         sink = currentSignalNode.getSPort();
+
+        // check if source is in current layer
+        for (String candidate : currentSignalNode.getHParent().getHChildren().keySet()) {
+            possibleInLayerSource = currentSignalNode.getHParent().getHChildren().get(candidate);
+
+            if (possibleInLayerSource.getIsSource()) {
+                // Port should exist ... right?
+                source = possibleInLayerSource.getSPort();
+
+                if (source == null) {
+                    // create source port
+                    System.out.println("wie soll ich hier den port finden");
+                    continue;
+                }
+
+                ElkEdge newEdge = createSimpleEdge(source, sink);
+                return;
+            }
+        }
 
         // check if signal came from parent, construct port as necessary
         if (precursor.getHParent().getSVisited()) {
