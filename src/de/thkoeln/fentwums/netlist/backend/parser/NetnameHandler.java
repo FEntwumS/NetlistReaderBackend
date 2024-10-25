@@ -267,12 +267,12 @@ public class NetnameHandler {
                 source.setDimensions(10, 10);
                 source.setProperty(CoreOptions.PORT_SIDE, PortSide.WEST);
 
-                ElkLabel sourceLabel = createLabel(String.valueOf(currentSignalTree.getSId()), source);
+//                ElkLabel sourceLabel = createLabel(String.valueOf(currentSignalTree.getSId()), source);
+                ElkLabel sourceLabel = createLabel(precursor.getSName(), source);
                 sourceLabel.setDimensions(sourceLabel.getText().length() * 7 + 1, 10);
 
                 precursor.setSPort(source);
             } else {
-                //source = sink;
                 source = precursor.getSPort();
             }
 
@@ -281,8 +281,6 @@ public class NetnameHandler {
                     && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)))
                 && sink.getIncomingEdges().isEmpty()) {
                 ElkEdge newEdge = createSimpleEdge(source, sink);
-
-                //return;
             }
         }
 
@@ -294,8 +292,6 @@ public class NetnameHandler {
 
             if (source != null && source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && sink.getIncomingEdges().isEmpty()) {
                 ElkEdge newEdge = createSimpleEdge(source, sink);
-
-                //return;
             }
         }
 
@@ -310,13 +306,21 @@ public class NetnameHandler {
             return;
         }
 
+        // only do this, if source is actually above
+        // but how? XD :thinking:
         if (!sink.getParent().getParent().getParent().getIdentifier().equals("root") && sink.getIncomingEdges().isEmpty()) {
             // Create new port on western side of precursor (input)
             source = createPort(sink.getParent().getParent());
             source.setDimensions(10, 10);
             source.setProperty(CoreOptions.PORT_SIDE, PortSide.WEST);
 
-            ElkLabel sourceLabel = createLabel(String.valueOf(currentSignalTree.getSId()), source);
+            ElkLabel sourceLabel;
+
+            if (precursor.getSVisited()) {
+                sourceLabel = createLabel(precursor.getSName(), source);
+            } else {
+                sourceLabel = createLabel(String.valueOf(currentSignalTree.getSId()), source);
+            }
             sourceLabel.setDimensions(sourceLabel.getText().length() * 7 + 1, 10);
 
             precursor.setSPort(source);
