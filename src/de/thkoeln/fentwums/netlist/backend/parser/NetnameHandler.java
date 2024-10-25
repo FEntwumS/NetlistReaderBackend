@@ -153,8 +153,6 @@ public class NetnameHandler {
                 routeSource(currentSignalTree, currentSignalNode);
             }
 
-            // TODO fixme
-            // Sink routing creates circular edges for outgoing signals
             findSinks(currentSignalTree, null);
         }
     }
@@ -250,6 +248,7 @@ public class NetnameHandler {
         SignalNode precursor = currentSignalNode.getHParent();
         ElkPort source, sink;
         SignalNode sourceNode;
+        int currentSignalIndex;
 
         sink = currentSignalNode.getSPort();
 
@@ -267,8 +266,11 @@ public class NetnameHandler {
                 source.setDimensions(10, 10);
                 source.setProperty(CoreOptions.PORT_SIDE, PortSide.WEST);
 
-//                ElkLabel sourceLabel = createLabel(String.valueOf(currentSignalTree.getSId()), source);
-                ElkLabel sourceLabel = createLabel(precursor.getSName(), source);
+                currentSignalIndex = precursor.getIndexInSignal();
+
+                ElkLabel sourceLabel =
+                        createLabel(precursor.getSName() + (currentSignalIndex != -1 ? " [" + currentSignalIndex +
+                                "]" : ""), source);
                 sourceLabel.setDimensions(sourceLabel.getText().length() * 7 + 1, 10);
 
                 precursor.setSPort(source);
@@ -306,24 +308,26 @@ public class NetnameHandler {
             return;
         }
 
-        // only do this, if source is actually above
-        // but how? XD :thinking:
         if (!sink.getParent().getParent().getParent().getIdentifier().equals("root") && sink.getIncomingEdges().isEmpty()) {
             // Create new port on western side of precursor (input)
-            source = createPort(sink.getParent().getParent());
-            source.setDimensions(10, 10);
-            source.setProperty(CoreOptions.PORT_SIDE, PortSide.WEST);
+            source = precursor.getSPort();
 
-            ElkLabel sourceLabel;
+            if (source == null) {
+                source = createPort(sink.getParent().getParent());
+                source.setDimensions(10, 10);
+                source.setProperty(CoreOptions.PORT_SIDE, PortSide.WEST);
 
-            if (precursor.getSVisited()) {
-                sourceLabel = createLabel(precursor.getSName(), source);
-            } else {
-                sourceLabel = createLabel(String.valueOf(currentSignalTree.getSId()), source);
+                ElkLabel sourceLabel;
+
+                if (precursor.getSVisited()) {
+                    sourceLabel = createLabel(precursor.getSName(), source);
+                } else {
+                    sourceLabel = createLabel(String.valueOf(currentSignalTree.getSId()), source);
+                }
+                sourceLabel.setDimensions(sourceLabel.getText().length() * 7 + 1, 10);
+
+                precursor.setSPort(source);
             }
-            sourceLabel.setDimensions(sourceLabel.getText().length() * 7 + 1, 10);
-
-            precursor.setSPort(source);
 
             ElkEdge newEdge = createSimpleEdge(source, sink);
         }
