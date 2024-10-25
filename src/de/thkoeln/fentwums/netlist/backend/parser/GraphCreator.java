@@ -4,6 +4,7 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchicalNode;
 import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchyTree;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
 import de.thkoeln.fentwums.netlist.backend.helpers.CellCollapser;
+import de.thkoeln.fentwums.netlist.backend.helpers.OutputReverser;
 import org.eclipse.elk.alg.layered.options.LayeredOptions;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.graph.ElkLabel;
@@ -87,6 +88,10 @@ public class GraphCreator {
 
         netHandler.handleNetnames(netnames, modulename, signalMap, hierarchyTree);
         netHandler.recreateHierarchy(signalMap, modulename);
+
+        OutputReverser reverser = new OutputReverser();
+
+        reverser.reversePorts(toplevel);
 
         CellCollapser collapser = new CellCollapser();
         collapser.setGroundTruth(toplevel);
