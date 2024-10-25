@@ -4,10 +4,7 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import de.thkoeln.fentwums.netlist.backend.helpers.CellPathFormatter;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.PortSide;
-import org.eclipse.elk.graph.ElkEdge;
-import org.eclipse.elk.graph.ElkLabel;
-import org.eclipse.elk.graph.ElkNode;
-import org.eclipse.elk.graph.ElkPort;
+import org.eclipse.elk.graph.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -176,6 +173,7 @@ public class NetnameHandler {
         ElkNode currentGraphNode;
         ElkPort sink, source;
         int currentSignalIndex;
+        boolean needEdge = true;
 
         // dont create port, if currentnode is toplevel and no port exists
         if (currentTree.getHRoot().getHChildren().containsValue(currentNode) && currentNode.getSPort() == null) {
@@ -213,8 +211,8 @@ public class NetnameHandler {
                 sink = currentNode.getSPort();
             }
 
-            // create connecting edge
-            ElkEdge newEdge = createSimpleEdge(source, sink);
+            // create the connecting edge
+            createEdgeIfNotExists(source, sink);
 
             // go up one layer
             routeSource(currentTree, currentNode);
@@ -278,11 +276,9 @@ public class NetnameHandler {
                 source = precursor.getSPort();
             }
 
-            if ((!source.getParent().getChildren().contains(sink.getParent())
-                    || (source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)
-                    && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)))
-                && sink.getIncomingEdges().isEmpty()) {
-                ElkEdge newEdge = createSimpleEdge(source, sink);
+            if (source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)
+                    && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
+                createEdgeIfNotExists(source, sink);
             }
         }
 
@@ -293,7 +289,7 @@ public class NetnameHandler {
             source = sourceNode.getSPort();
 
             if (source != null && source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && sink.getIncomingEdges().isEmpty()) {
-                ElkEdge newEdge = createSimpleEdge(source, sink);
+                createEdgeIfNotExists(source, sink);
             }
         }
 
@@ -329,7 +325,7 @@ public class NetnameHandler {
                 precursor.setSPort(source);
             }
 
-            ElkEdge newEdge = createSimpleEdge(source, sink);
+            createEdgeIfNotExists(source, sink);
         }
 
         // Check if source is located in unmarked child
@@ -343,7 +339,7 @@ public class NetnameHandler {
             source = precursor.getHChildren().get(possibleSourceBelowSplit[0]).getSPort();
 
             if (source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
-                ElkEdge newEdge = createSimpleEdge(source, sink);
+                createEdgeIfNotExists(source, sink);
             }
         }
 
@@ -378,7 +374,7 @@ public class NetnameHandler {
                 sinkLabel.setDimensions(sinkLabel.getText().length() * 7 + 1, 10);
             }
 
-            ElkEdge newEdge = createSimpleEdge(source, sink);
+            createEdgeIfNotExists(source, sink);
         }
     }
 
@@ -401,5 +397,23 @@ public class NetnameHandler {
         }
 
         return "";
+    }
+
+    private void createEdgeIfNotExists(ElkPort source, ElkPort sink) {
+        boolean needEdge = true;
+
+        for (ElkEdge edge : source.getOutgoingEdges()) {
+            for (ElkConnectableShape target : edge.getTargets()) {
+                if (target.equals(sink)) {
+                    needEdge = false;
+                    break;
+                }
+            }
+        }
+
+        if (needEdge) {
+            // create connecting edge
+            ElkEdge newEdge = createSimpleEdge(source, sink);
+        }
     }
 }
