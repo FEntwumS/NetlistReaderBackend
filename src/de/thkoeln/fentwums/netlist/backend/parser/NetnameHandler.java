@@ -184,7 +184,8 @@ public class NetnameHandler {
         }
 
         if (currentNode.getSVisited()) {
-            currentNode.setIsSource(true);
+            // TODO remove if necessary
+            // currentNode.setIsSource(true);
             if (currentNode.getHParent() == null || currentNode.getHParent().getSVisited() == false) {
                 return;
             }
@@ -251,10 +252,6 @@ public class NetnameHandler {
         SignalNode possibleInLayerSource;
         int currentSignalIndex;
         boolean cont = false;
-
-        if (currentSignalNode.getSName().equals("9289") && currentSignalTree.getSId() == 50) {
-            System.out.println("jetzt wirds haarig");
-        }
 
         sink = currentSignalNode.getSPort();
 
