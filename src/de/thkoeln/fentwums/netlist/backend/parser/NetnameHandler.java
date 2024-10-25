@@ -16,10 +16,11 @@ import java.util.HashMap;
 import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
 
 public class NetnameHandler {
-    public NetnameHandler() {}
+    public NetnameHandler() {
+    }
 
-    public void handleNetnames (HashMap<String, Object> netnames, String modulename,
-                                HashMap<Integer, SignalTree> signalMap, HierarchyTree hierarchyTree) {
+    public void handleNetnames(HashMap<String, Object> netnames, String modulename,
+                               HashMap<Integer, SignalTree> signalMap, HierarchyTree hierarchyTree) {
         HashMap<String, Object> currentNet;
         HashMap<String, Object> currentNetAttributes;
         String currentNetPath;
@@ -85,7 +86,7 @@ public class NetnameHandler {
                 currentSignalNode = currentSignalTree.getHRoot().getHChildren().get(modulename);
                 currentHNode = hierarchyTree.getRoot();
 
-                for(int i = 0; i < currentNetPathSplit.length - 1; i++) {
+                for (int i = 0; i < currentNetPathSplit.length - 1; i++) {
                     currentSignalNode = currentSignalNode.getHChildren().get(currentNetPathSplit[i]);
                     currentHNode = currentHNode.getChildren().get(currentNetPathSplit[i]);
 
@@ -255,25 +256,6 @@ public class NetnameHandler {
 
         sink = currentSignalNode.getSPort();
 
-        // check if source is in current layer
-        for (String candidate : currentSignalNode.getHParent().getHChildren().keySet()) {
-            possibleInLayerSource = currentSignalNode.getHParent().getHChildren().get(candidate);
-
-            if (possibleInLayerSource.getIsSource()) {
-                // Port should exist ... right?
-                source = possibleInLayerSource.getSPort();
-
-                if (source == null) {
-                    // create source port
-                    System.out.println("wie soll ich hier den port finden");
-                    continue;
-                }
-
-                ElkEdge newEdge = createSimpleEdge(source, sink);
-                return;
-            }
-        }
-
         // check if signal came from parent, construct port as necessary
         if (precursor.getHParent().getSVisited()) {
             // check if precursor source port exists
@@ -304,29 +286,48 @@ public class NetnameHandler {
 
             if (!source.getParent().getChildren().contains(sink.getParent())
                     || (source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)
-                        && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST))) {
+                    && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST))) {
                 ElkEdge newEdge = createSimpleEdge(source, sink);
             }
-        } else {
-            // else source is in same layer; search there for signal source (check port side)
-            for (String candidate : precursor.getHChildren().keySet()) {
-                sourceNode = precursor.getHChildren().get(candidate);
+        }
+        // check if source is in current layer
+        for (String candidate : precursor.getHChildren().keySet()) {
+            possibleInLayerSource = precursor.getHChildren().get(candidate);
 
-                if (sourceNode.getIsSource() == false) {
-                    continue;
-                }
+            // Port should exist ... right?
+            source = possibleInLayerSource.getSPort();
 
-                source = sourceNode.getSPort();
+            if (source != null && source.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST) {
 
-                if (source != null && source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
-                    ElkEdge newEdge = createSimpleEdge(source, sink);
-
-                    return;
-                }
+                ElkEdge newEdge = createSimpleEdge(source, sink);
+                return;
+            } else if (source == null) {
+                // create source port
+                System.out.println("missing port in " + possibleInLayerSource.getSName() + " for signal " + currentSignalTree.getSId());
             }
+        }
 
-            // Source is somewhere in an unmarked parent
-            // So continue upwards
+        // else source should be in same layer; search there for signal source (check port side)
+        for (String candidate : precursor.getHChildren().keySet()) {
+            sourceNode = precursor.getHChildren().get(candidate);
+
+            source = sourceNode.getSPort();
+
+            if (source != null && source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
+                ElkEdge newEdge = createSimpleEdge(source, sink);
+
+                return;
+            }
+        }
+
+        // Source is somewhere in an unmarked parent
+        // So continue upwards
+        //
+        // TODO find better names for these signals
+        // as they are not named, maybe use the portname in conjunction with the port descriptor from the netlist?
+        // Then add each layer as the signals traverses boundaries?
+
+        if (!sink.getParent().getParent().getParent().getIdentifier().equals("root") && sink.getIncomingEdges().isEmpty()) {
 
             // Create new port on western side of precursor (input)
             source = createPort(sink.getParent().getParent());
@@ -342,6 +343,7 @@ public class NetnameHandler {
             precursor.setSPort(source);
 
             ElkEdge newEdge = createSimpleEdge(source, sink);
+
 
         }
 
