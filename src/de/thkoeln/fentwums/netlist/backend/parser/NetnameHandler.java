@@ -39,12 +39,16 @@ public class NetnameHandler {
             currentNetAttributes = (HashMap<String, Object>) currentNet.get("attributes");
             currentBitIndex = 0;
 
-            if (currentNetAttributes.containsKey("hdlname")) {
-                // perhaps bug in yosys?
-                currentNetPath = (String) currentNetAttributes.get("hdlname");
-            } else {
-                currentNetPath = formatter.format(currentNetName);
-            }
+//            if (currentNetAttributes.containsKey("hdlname")) {
+//                currentNetPath = (String) currentNetAttributes.get("hdlname");
+//            } else {
+//                currentNetPath = formatter.format(currentNetName);
+//            }
+
+            // TODO find better solution
+            //
+            // Ignore hdlname attribute for now until better mechanism to distiguish its validity is found
+            currentNetPath = formatter.format(currentNetName);
 
             currentNetPathSplit = currentNetPath.split(" ");
 
@@ -304,7 +308,8 @@ public class NetnameHandler {
             return;
         }
 
-        if (!sink.getParent().getParent().getParent().getIdentifier().equals("root") && sink.getIncomingEdges().isEmpty()) {
+        // TODO remove commented part of condition
+        if (!sink.getParent().getParent().getParent().getIdentifier().equals("root")/* && sink.getIncomingEdges().isEmpty()*/) {
             // Create new port on western side of precursor (input)
             source = precursor.getSPort();
 
