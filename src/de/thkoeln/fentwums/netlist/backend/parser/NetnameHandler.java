@@ -4,10 +4,7 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import de.thkoeln.fentwums.netlist.backend.helpers.CellPathFormatter;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.PortSide;
-import org.eclipse.elk.graph.ElkEdge;
-import org.eclipse.elk.graph.ElkLabel;
-import org.eclipse.elk.graph.ElkNode;
-import org.eclipse.elk.graph.ElkPort;
+import org.eclipse.elk.graph.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,10 +13,11 @@ import java.util.HashMap;
 import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
 
 public class NetnameHandler {
-    public NetnameHandler() {}
+    public NetnameHandler() {
+    }
 
-    public void handleNetnames (HashMap<String, Object> netnames, String modulename,
-                                HashMap<Integer, SignalTree> signalMap, HierarchyTree hierarchyTree) {
+    public void handleNetnames(HashMap<String, Object> netnames, String modulename,
+                               HashMap<Integer, SignalTree> signalMap, HierarchyTree hierarchyTree) {
         HashMap<String, Object> currentNet;
         HashMap<String, Object> currentNetAttributes;
         String currentNetPath;
@@ -41,12 +39,16 @@ public class NetnameHandler {
             currentNetAttributes = (HashMap<String, Object>) currentNet.get("attributes");
             currentBitIndex = 0;
 
-            if (currentNetAttributes.containsKey("hdlname")) {
-                // perhaps bug in yosys?
-                currentNetPath = (String) currentNetAttributes.get("hdlname");
-            } else {
-                currentNetPath = formatter.format(currentNetName);
-            }
+//            if (currentNetAttributes.containsKey("hdlname")) {
+//                currentNetPath = (String) currentNetAttributes.get("hdlname");
+//            } else {
+//                currentNetPath = formatter.format(currentNetName);
+//            }
+
+            // TODO find better solution
+            //
+            // Ignore hdlname attribute for now until better mechanism to distiguish its validity is found
+            currentNetPath = formatter.format(currentNetName);
 
             currentNetPathSplit = currentNetPath.split(" ");
 
@@ -85,7 +87,7 @@ public class NetnameHandler {
                 currentSignalNode = currentSignalTree.getHRoot().getHChildren().get(modulename);
                 currentHNode = hierarchyTree.getRoot();
 
-                for(int i = 0; i < currentNetPathSplit.length - 1; i++) {
+                for (int i = 0; i < currentNetPathSplit.length - 1; i++) {
                     currentSignalNode = currentSignalNode.getHChildren().get(currentNetPathSplit[i]);
                     currentHNode = currentHNode.getChildren().get(currentNetPathSplit[i]);
 
@@ -152,8 +154,6 @@ public class NetnameHandler {
                 routeSource(currentSignalTree, currentSignalNode);
             }
 
-            // TODO fixme
-            // Sink routing creates circular edges for outgoing signals
             findSinks(currentSignalTree, null);
         }
     }
@@ -177,6 +177,7 @@ public class NetnameHandler {
         ElkNode currentGraphNode;
         ElkPort sink, source;
         int currentSignalIndex;
+        boolean needEdge = true;
 
         // dont create port, if currentnode is toplevel and no port exists
         if (currentSignalTree.getHRoot().getHChildren().containsValue(currentNode) && currentNode.getSPort() == null) {
@@ -184,6 +185,8 @@ public class NetnameHandler {
         }
 
         if (currentNode.getSVisited()) {
+            // TODO remove if necessary
+            // currentNode.setIsSource(true);
             if (currentNode.getHParent() == null || currentNode.getHParent().getSVisited() == false) {
                 return;
             }
@@ -212,9 +215,8 @@ public class NetnameHandler {
                 sink = currentNode.getSPort();
             }
 
-            // create connecting edge
-            ElkEdge newEdge = createSimpleEdge(source, sink);
-            newEdge.setIdentifier(String.valueOf(currentSignalTree.getSId()));
+            // create the connecting edge
+            createEdgeIfNotExists(source, sink);
 
             // go up one layer
             routeSource(currentSignalTree, currentNode);
@@ -246,10 +248,9 @@ public class NetnameHandler {
 
     private void routeSink(SignalTree currentSignalTree, SignalNode currentSignalNode) {
         SignalNode precursor = currentSignalNode.getHParent();
-        ElkPort source = null, sink;
+        ElkPort source, sink;
         SignalNode sourceNode;
         int currentSignalIndex;
-        boolean cont = false;
 
         sink = currentSignalNode.getSPort();
 
@@ -269,42 +270,165 @@ public class NetnameHandler {
 
                 currentSignalIndex = precursor.getIndexInSignal();
 
-                ElkLabel sourceLabel = createLabel(precursor.getSName() + (currentSignalIndex != -1 ?
-                        " [" + currentSignalIndex + "]" : ""), source);
+                ElkLabel sourceLabel =
+                        createLabel(precursor.getSName() + (currentSignalIndex != -1 ? " [" + currentSignalIndex +
+                                "]" : ""), source);
                 sourceLabel.setDimensions(sourceLabel.getText().length() * 7 + 1, 10);
 
                 precursor.setSPort(source);
-                cont = true;
             } else {
-                //source = sink;
                 source = precursor.getSPort();
-                cont = true;
             }
 
-            if (!source.getParent().getChildren().contains(sink.getParent())
-                    || (source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)
-                        && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST))) {
-                ElkEdge newEdge = createSimpleEdge(source, sink);
-                newEdge.setIdentifier(String.valueOf(currentSignalTree.getSId()));
+            if (source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)
+                    && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
+                createEdgeIfNotExists(source, sink);
             }
-        } else {
-            // else source is in same layer; search there for signal source (check port side)
-            for (String candidate : precursor.getHChildren().keySet()) {
-                sourceNode = precursor.getHChildren().get(candidate);
+        }
 
-                source = sourceNode.getSPort();
+        // else source should be in same layer; search there for signal source (check port side)
+        for (String candidate : precursor.getHChildren().keySet()) {
+            sourceNode = precursor.getHChildren().get(candidate);
 
-                if (source != null && source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
-                    ElkEdge newEdge = createSimpleEdge(source, sink);
-                    newEdge.setIdentifier(String.valueOf(currentSignalTree.getSId()));
+            source = sourceNode.getSPort();
 
-                    return;
+            if (source != null && source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && sink.getIncomingEdges().isEmpty()) {
+                createEdgeIfNotExists(source, sink);
+            }
+        }
+
+        // Source could be somewhere in an unmarked parent
+        // So continue upwards
+        //
+        // TODO find better names for these signals
+        // as they are not named, maybe use the portname in conjunction with the port descriptor from the netlist?
+        // Then add each layer as the signals traverses boundaries?
+
+        if (sink == null) {
+            return;
+        }
+
+        // TODO remove commented part of condition
+        if (!sink.getParent().getParent().getParent().getIdentifier().equals("root")/* && sink.getIncomingEdges().isEmpty()*/) {
+            // Create new port on western side of precursor (input)
+            source = precursor.getSPort();
+
+            if (source == null) {
+                source = createPort(sink.getParent().getParent());
+                source.setDimensions(10, 10);
+                source.setProperty(CoreOptions.PORT_SIDE, PortSide.WEST);
+
+                currentSignalIndex = precursor.getIndexInSignal();
+
+                ElkLabel sourceLabel;
+
+                if (precursor.getSVisited()) {
+                    sourceLabel = createLabel(precursor.getSName() + (currentSignalIndex != -1 ? " [" + currentSignalIndex +
+                            "]" : ""), source);
+                } else {
+                    sourceLabel = createLabel(String.valueOf(currentSignalTree.getSId()), source);
                 }
+                sourceLabel.setDimensions(sourceLabel.getText().length() * 7 + 1, 10);
+
+                precursor.setSPort(source);
+            }
+
+            if (sink.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST) {
+                return;
+            }
+
+            createEdgeIfNotExists(source, sink);
+        }
+
+        // Check if source is located in unmarked child
+        String possibleSourceBelow = getSourceBelow(precursor);
+        if (!possibleSourceBelow.isEmpty()) {
+            String[] possibleSourceBelowSplit = possibleSourceBelow.split(" ");
+            routeSourceBelow(currentSignalTree, precursor, possibleSourceBelowSplit, 0);
+
+            // Add final link
+
+            source = precursor.getHChildren().get(possibleSourceBelowSplit[0]).getSPort();
+
+            if (source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
+                createEdgeIfNotExists(source, sink);
             }
         }
 
         if (!precursor.getHParent().getSName().equals("root")) {
             routeSink(currentSignalTree, precursor);
+        }
+    }
+
+    private void routeSourceBelow(SignalTree currentSignalTree, SignalNode precursor, String[] pathSplit,
+                                  int depth) {
+        SignalNode child;
+        ElkPort source, sink;
+
+        child = precursor.getHChildren().get(pathSplit[depth]);
+
+        if (depth < pathSplit.length - 1) {
+            routeSourceBelow(currentSignalTree, child, pathSplit, depth + 1);
+        }
+
+        if (depth >= 1) {
+            source = child.getSPort();
+            sink = precursor.getSPort();
+
+            if (sink == null) {
+                sink = createPort(source.getParent().getParent());
+                sink.setDimensions(10, 10);
+                sink.setProperty(CoreOptions.PORT_SIDE, PortSide.EAST);
+
+                precursor.setSPort(sink);
+
+                ElkLabel sinkLabel = createLabel(String.valueOf(currentSignalTree.getSId()), sink);
+                sinkLabel.setDimensions(sinkLabel.getText().length() * 7 + 1, 10);
+            }
+
+            if (sink.getProperty(CoreOptions.PORT_SIDE) == PortSide.WEST) {
+                return;
+            }
+            createEdgeIfNotExists(source, sink);
+        }
+    }
+
+    private String getSourceBelow(SignalNode precursor) {
+        String ret = "";
+        SignalNode child;
+
+        for (String candidate : precursor.getHChildren().keySet()) {
+            child = precursor.getHChildren().get(candidate);
+
+            if (child.getIsSource()) {
+                return candidate;
+            } else {
+                ret = " " + getSourceBelow(child);
+            }
+
+            if (!ret.replaceAll(" ", "").isEmpty()) {
+                return candidate + ret;
+            }
+        }
+
+        return "";
+    }
+
+    private void createEdgeIfNotExists(ElkPort source, ElkPort sink) {
+        boolean needEdge = true;
+
+        for (ElkEdge edge : source.getOutgoingEdges()) {
+            for (ElkConnectableShape target : edge.getTargets()) {
+                if (target.equals(sink)) {
+                    needEdge = false;
+                    break;
+                }
+            }
+        }
+
+        if (needEdge) {
+            // create connecting edge
+            ElkEdge newEdge = createSimpleEdge(source, sink);
         }
     }
 }

@@ -53,11 +53,13 @@ public class CellHandler {
             // TODO check for other possible split syntaxes
             // get cell location in hierarchy
             // Check for hdlname attribute first, otherwise extract location path from cell name
-            if (currentCellAttributes.containsKey("hdlname")) {
-                currentCellPath = (String) currentCellAttributes.get("hdlname");
-            } else {
-                currentCellPath = formatter.format(cellname);
-            }
+//            if (currentCellAttributes.containsKey("hdlname")) {
+//                currentCellPath = (String) currentCellAttributes.get("hdlname");
+//            } else {
+//                currentCellPath = formatter.format(cellname);
+//            }
+
+            currentCellPath = formatter.format(cellname);
 
             currentCellPathSplit = currentCellPath.split(" ");
 
