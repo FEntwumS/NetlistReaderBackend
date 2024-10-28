@@ -318,16 +318,23 @@ public class NetnameHandler {
                 source.setDimensions(10, 10);
                 source.setProperty(CoreOptions.PORT_SIDE, PortSide.WEST);
 
+                currentSignalIndex = precursor.getIndexInSignal();
+
                 ElkLabel sourceLabel;
 
                 if (precursor.getSVisited()) {
-                    sourceLabel = createLabel(precursor.getSName(), source);
+                    sourceLabel = createLabel(precursor.getSName() + (currentSignalIndex != -1 ? " [" + currentSignalIndex +
+                            "]" : ""), source);
                 } else {
                     sourceLabel = createLabel(String.valueOf(currentSignalTree.getSId()), source);
                 }
                 sourceLabel.setDimensions(sourceLabel.getText().length() * 7 + 1, 10);
 
                 precursor.setSPort(source);
+            }
+
+            if (sink.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST) {
+                return;
             }
 
             createEdgeIfNotExists(source, sink);
@@ -379,6 +386,9 @@ public class NetnameHandler {
                 sinkLabel.setDimensions(sinkLabel.getText().length() * 7 + 1, 10);
             }
 
+            if (sink.getProperty(CoreOptions.PORT_SIDE) == PortSide.WEST) {
+                return;
+            }
             createEdgeIfNotExists(source, sink);
         }
     }
