@@ -121,7 +121,7 @@ public class NetnameHandler {
                 if (bitList.size() - unusedBitsSplit.length > 1) {
                     newBundle = new Bundle((int) bit, cleanedBitMap);
 
-                    currentHNode.getPossibleBundles().add(newBundle);
+                    currentHNode.getPossibleBundles().put((int) bit, newBundle);
                 }
 
                 if (bitList.size() > 1) {

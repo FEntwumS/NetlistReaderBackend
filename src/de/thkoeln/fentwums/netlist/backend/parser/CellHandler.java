@@ -92,7 +92,8 @@ public class CellHandler {
                         ElkLabel newElkNodeLabel = createLabel(pathFragement, newElkNode);
                         newElkNodeLabel.setDimensions(newElkNodeLabel.getText().length() * 7 + 1, 10);
                         HierarchicalNode newHierarchyNode = new HierarchicalNode(pathFragement,
-                                currentHierarchyPosition, new HashMap<String, HierarchicalNode>(), new ArrayList<>(), new ArrayList<>(), newElkNode);
+                                currentHierarchyPosition, new HashMap<String, HierarchicalNode>(), new ArrayList<>(),
+                                new HashMap<>(), newElkNode);
 
                         currentHierarchyPosition.getChildren().put(pathFragement, newHierarchyNode);
 
