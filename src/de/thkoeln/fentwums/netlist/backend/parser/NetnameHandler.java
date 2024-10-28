@@ -292,6 +292,11 @@ public class NetnameHandler {
 
             source = sourceNode.getSPort();
 
+            if (sink == null) {
+                System.out.println("oops");
+                return;
+            }
+
             if (source != null && source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && sink.getIncomingEdges().isEmpty()) {
                 createEdgeIfNotExists(source, sink);
             }
@@ -309,7 +314,7 @@ public class NetnameHandler {
         }
 
         // TODO remove commented part of condition
-        if (!sink.getParent().getParent().getParent().getIdentifier().equals("root")/* && sink.getIncomingEdges().isEmpty()*/) {
+        if (!sink.getParent().getParent().getParent().getIdentifier().equals("root") && highestUse(currentSignalNode) > 1) {
             // Create new port on western side of precursor (input)
             source = precursor.getSPort();
 
@@ -344,6 +349,7 @@ public class NetnameHandler {
         String possibleSourceBelow = getSourceBelow(precursor);
         if (!possibleSourceBelow.isEmpty()) {
             String[] possibleSourceBelowSplit = possibleSourceBelow.split(" ");
+
             routeSourceBelow(currentSignalTree, precursor, possibleSourceBelowSplit, 0);
 
             // Add final link
@@ -430,5 +436,23 @@ public class NetnameHandler {
             // create connecting edge
             ElkEdge newEdge = createSimpleEdge(source, sink);
         }
+    }
+
+    private int highestUse(SignalNode currentSignalNode) {
+        SignalNode nextNode = currentSignalNode.getHParent();
+
+        int layersAbove = 0;
+        int currentLayer = 0;
+
+        while (nextNode != null) {
+            currentLayer++;
+            if (nextNode.getSVisited()) {
+                layersAbove = currentLayer;
+            }
+
+            nextNode = nextNode.getHParent();
+        }
+
+        return layersAbove;
     }
 }
