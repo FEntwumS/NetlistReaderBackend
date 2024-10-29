@@ -100,6 +100,52 @@ public class SignalBundler {
         //
     }
 
+    private void bundlePorts(ArrayList<SignalNode> nodesToBundle) {
+        HashMap<ElkNode, ElkPort> bundlePortMap = new HashMap<>();
+        HashMap<ElkNode, ArrayList<Integer>> indexRangeMap = new HashMap<>();
+        ElkPort currentPort, bundlePort;
+        ElkNode containingNode;
+
+        for (SignalNode currentNode : nodesToBundle) {
+            currentPort = currentNode.getSPort();
+
+            // check if the node this port is attached to already has a bundle port
+            containingNode = currentPort.getParent();
+
+            if (bundlePortMap.containsKey(containingNode)) {
+                bundlePort = bundlePortMap.get(containingNode);
+
+                // transfer edges to the bundle port
+
+                for (ElkEdge incoming : currentPort.getIncomingEdges()) {
+                    if (!bundlePort.getIncomingEdges().contains(incoming)) {
+                        bundlePort.getIncomingEdges().add(incoming);
+
+                        incoming.getTargets().clear();
+                        incoming.getTargets().add(bundlePort);
+                    }
+                }
+
+                for (ElkEdge outgoing : currentPort.getOutgoingEdges()) {
+                    if (!bundlePort.getOutgoingEdges().contains(outgoing)) {
+                        bundlePort.getOutgoingEdges().add(outgoing);
+
+                        outgoing.getSources().clear();
+                        outgoing.getSources().add(bundlePort);
+                    }
+                }
+            } else {
+                // add new entry
+                bundlePortMap.put(containingNode, currentPort);
+
+                // TODO remove if not needed
+                bundlePort = currentPort;
+            }
+
+
+        }
+    }
+
     private void bundleLayer(ArrayList<SignalNode> nodesToBundle, boolean incomingEdges) {
         HashMap<ElkNode, ElkPort> sourcePortMap = new HashMap<>(), sinkPortMap = new HashMap<>();
         ElkPort currentPort, currentSink, currentSource, newSink, newSource;
@@ -116,7 +162,7 @@ public class SignalBundler {
 
                 for (ElkEdge edge : edgeList) {
                     newPortCreated = false;
-                    needNewEdge = false;
+                    needNewEdge = true;
 
                     currentSource = (ElkPort) edge.getSources().getFirst();
                     currentSink = (ElkPort) edge.getTargets().getFirst();
@@ -207,6 +253,22 @@ public class SignalBundler {
                     // What needs to be removed and when? BIG question
                     // Dont remove ports too early. Most ports have at least one incoming AND at least one outgoing
                     // edge. If a port is removed while it still contains edges, the layouter will crash
+
+                    // should instead try to reuse ports, especially sources
+                    // this in turn will enable continuous signal bundles
+                    // but how?
+                    // how to handle entry case? perhaps instead of combining edges, an approach based on combining
+                    // ports is better suited to the existing data structures
+                    // then on port combination, an edge obsolescence check can remove any no longer needed edges
+
+                    // port renaming is sticking point for good ui/ux
+                    // perhaps add signal index in vector to list during port removal
+                    // then sort the list
+                    // then step through the list to build ranges
+                    // e.g. [0:7] or [0:7, 16:23]
+                    // for multiple ranges alternative format could be [0:7; 16:23]
+                    // of course something like [0:7; 16] is possible as well
+                    // stupid stuff like [0] is of course neither intended nor allowed
                 }
             }
         }
