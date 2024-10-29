@@ -4,6 +4,7 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.PortSide;
 import org.eclipse.elk.graph.ElkEdge;
+import org.eclipse.elk.graph.ElkLabel;
 import org.eclipse.elk.graph.ElkNode;
 import org.eclipse.elk.graph.ElkPort;
 import org.eclipse.emf.common.util.EList;
@@ -20,7 +21,8 @@ public class SignalBundler {
     private HashMap<Integer, SignalTree> treeMap;
     private HierarchyTree hierarchy;
 
-    public SignalBundler() {}
+    public SignalBundler() {
+    }
 
     public void bundleSignalWithId(int sId, String path) {
         SignalNode root = treeMap.get(sId).getHRoot();
@@ -105,8 +107,15 @@ public class SignalBundler {
     private void bundlePorts(ArrayList<SignalNode> nodesToBundle) {
         HashMap<ElkNode, ElkPort> bundlePortMap = new HashMap<>();
         HashMap<ElkNode, ArrayList<Integer>> indexRangeMap = new HashMap<>();
+        HashMap<ElkNode, String> signalNameMap = new HashMap<>();
+        ArrayList<Integer> currentSignalRange;
         ElkPort currentPort, bundlePort;
         ElkNode containingNode;
+        int currentIndexInSignal;
+        String signalName;
+        StringBuilder signalRange;
+        final char separator = ';';
+        ElkLabel currentPortLabel;
 
         for (SignalNode currentNode : nodesToBundle) {
             currentPort = currentNode.getSPort();
@@ -115,8 +124,28 @@ public class SignalBundler {
                 continue;
             }
 
+            currentIndexInSignal = currentNode.getIndexInSignal();
+            signalName = currentNode.getSName();
+
             // check if the node this port is attached to already has a bundle port
             containingNode = currentPort.getParent();
+
+            // add in-vector index
+            if (indexRangeMap.containsKey(containingNode)) {
+                currentSignalRange = indexRangeMap.get(containingNode);
+
+                currentSignalRange.add(currentIndexInSignal);
+            } else {
+                currentSignalRange = new ArrayList<>();
+
+                currentSignalRange.add(currentIndexInSignal);
+
+                indexRangeMap.put(containingNode, currentSignalRange);
+            }
+
+            if (!signalNameMap.containsKey(containingNode)) {
+                signalNameMap.put(containingNode, signalName);
+            }
 
             if (bundlePortMap.containsKey(containingNode)) {
                 bundlePort = bundlePortMap.get(containingNode);
@@ -126,9 +155,6 @@ public class SignalBundler {
                 for (ElkEdge incoming : currentPort.getIncomingEdges()) {
                     if (!bundlePort.getIncomingEdges().contains(incoming)) {
                         bundlePort.getIncomingEdges().add(incoming);
-
-                        //incoming.getTargets().clear();
-                        //incoming.getTargets().add(bundlePort);
                     }
                 }
 
@@ -137,9 +163,6 @@ public class SignalBundler {
                 for (ElkEdge outgoing : currentPort.getOutgoingEdges()) {
                     if (!bundlePort.getOutgoingEdges().contains(outgoing)) {
                         bundlePort.getOutgoingEdges().add(outgoing);
-
-                        //outgoing.getSources().clear();
-                        //outgoing.getSources().add(bundlePort);
                     }
                 }
 
@@ -150,10 +173,51 @@ public class SignalBundler {
             } else {
                 // add new entry
                 bundlePortMap.put(containingNode, currentPort);
-
-                // TODO remove if not needed
-                //bundlePort = currentPort;
             }
+        }
+
+        // now update labels
+        for (ElkNode key : indexRangeMap.keySet()) {
+            currentPort = bundlePortMap.get(key);
+            currentSignalRange = indexRangeMap.get(key);
+            signalName = signalNameMap.get(key);
+            signalRange = new StringBuilder("[");
+
+            currentSignalRange.sort(Integer::compareTo);    // Very important
+
+            int cRangeStart = currentSignalRange.getFirst(), cRangeEnd = currentSignalRange.getFirst(), cVal = 0;
+
+            for (int value : currentSignalRange) {
+                if (value - cRangeEnd > 1) {
+                    // skip, therefore start new range
+
+                    signalRange.append(cRangeStart);
+
+                    if(cRangeStart != cRangeEnd) {
+                        signalRange.append(":").append(cRangeEnd);
+                    }
+
+                    signalRange.append(separator + " ");
+                    cRangeStart = value;
+                }
+                cRangeEnd = value;
+            }
+
+            // add last part of range
+            signalRange.append(cRangeStart);
+
+            if (cRangeStart != cRangeEnd) {
+                signalRange.append(':').append(cRangeEnd);
+            }
+
+            signalRange.append(']');
+
+            signalName += " " + signalRange;
+
+            currentPortLabel = currentPort.getLabels().getFirst();
+
+            currentPortLabel.setText(signalName);
+            currentPortLabel.setDimensions(signalName.length() * 7 + 1, 10);
         }
     }
 
@@ -167,7 +231,7 @@ public class SignalBundler {
         for (SignalNode node : nodesToBundle) {
             currentPort = node.getSPort();
 
-            if(currentPort != null) {
+            if (currentPort != null) {
                 edgeList = new ArrayList<ElkEdge>(incomingEdges ? currentPort.getIncomingEdges() :
                         currentPort.getOutgoingEdges());
 
@@ -285,13 +349,19 @@ public class SignalBundler {
         }
     }
 
-    public void debundleSignalAt(String path) {}
+    public void debundleSignalAt(String path) {
+    }
 
-    public void debundleSignalRecursively(SignalNode sNode, HierarchicalNode hNode) {}
+    public void debundleSignalRecursively(SignalNode sNode, HierarchicalNode hNode) {
+    }
 
-    private SignalNode findSNode(String path) { return null;}
+    private SignalNode findSNode(String path) {
+        return null;
+    }
 
-    private HierarchicalNode findHNode(String path) { return null; }
+    private HierarchicalNode findHNode(String path) {
+        return null;
+    }
 
     public HashMap<Integer, SignalTree> getTreeMap() {
         return treeMap;

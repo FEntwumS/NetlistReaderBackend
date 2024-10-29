@@ -173,7 +173,7 @@ public class CellHandler {
                         }
                         updateSignalTree(currentSignalTree, currentCellPathSplit, modulename,
                                 cellPort.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST,
-                                cellPort);
+                                cellPort, portname, currentPortDriverIndex);
                     } else {
                         // Reuse (or create, if necessary) a cell for constant drivers
 
@@ -222,7 +222,7 @@ public class CellHandler {
     }
 
     public void updateSignalTree(SignalTree signalTree, String[] hierarchyPath, String modulename, boolean isSource,
-                                 ElkPort sPort) {
+                                 ElkPort sPort, String portname, int index) {
         SignalNode currentNode = signalTree.getHRoot().getHChildren().get(modulename);
 
         for (String fragment: hierarchyPath) {
@@ -232,6 +232,9 @@ public class CellHandler {
                 currentNode = insertMissingHNode(currentNode, fragment, null);
             }
         }
+
+        currentNode.setSName(portname);
+        currentNode.setIndexInSignal(index);
 
         currentNode.setSVisited(true);
         currentNode.setIsSource(isSource);
