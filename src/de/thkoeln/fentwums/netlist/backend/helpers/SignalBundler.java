@@ -45,10 +45,12 @@ public class SignalBundler {
 //        ArrayList<ElkPort> currentSinkList = new ArrayList<>(), currentSourceList = new ArrayList<>();
 
         // First bundle the incoming edges
-        bundleLayer(nodesToBundle, true);
+//        bundleLayer(nodesToBundle, true);
 
         // Then the outgoing edges
-        bundleLayer(nodesToBundle, false);
+//        bundleLayer(nodesToBundle, false);
+
+        bundlePorts(nodesToBundle);
 
         // Then move the whole list through each of the child nodes
 
@@ -109,6 +111,10 @@ public class SignalBundler {
         for (SignalNode currentNode : nodesToBundle) {
             currentPort = currentNode.getSPort();
 
+            if (currentPort == null) {
+                continue;
+            }
+
             // check if the node this port is attached to already has a bundle port
             containingNode = currentPort.getParent();
 
@@ -121,28 +127,33 @@ public class SignalBundler {
                     if (!bundlePort.getIncomingEdges().contains(incoming)) {
                         bundlePort.getIncomingEdges().add(incoming);
 
-                        incoming.getTargets().clear();
-                        incoming.getTargets().add(bundlePort);
+                        //incoming.getTargets().clear();
+                        //incoming.getTargets().add(bundlePort);
                     }
                 }
+
+                currentPort.getIncomingEdges().clear();
 
                 for (ElkEdge outgoing : currentPort.getOutgoingEdges()) {
                     if (!bundlePort.getOutgoingEdges().contains(outgoing)) {
                         bundlePort.getOutgoingEdges().add(outgoing);
 
-                        outgoing.getSources().clear();
-                        outgoing.getSources().add(bundlePort);
+                        //outgoing.getSources().clear();
+                        //outgoing.getSources().add(bundlePort);
                     }
                 }
+
+                currentPort.getOutgoingEdges().clear();
+
+                // Now remove the evaluated port from its parent element
+                currentPort.getParent().getPorts().remove(currentPort);
             } else {
                 // add new entry
                 bundlePortMap.put(containingNode, currentPort);
 
                 // TODO remove if not needed
-                bundlePort = currentPort;
+                //bundlePort = currentPort;
             }
-
-
         }
     }
 
