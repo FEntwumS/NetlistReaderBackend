@@ -6,6 +6,7 @@ import org.eclipse.elk.core.options.PortSide;
 import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkNode;
 import org.eclipse.elk.graph.ElkPort;
+import org.eclipse.emf.common.util.EList;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -104,12 +105,19 @@ public class SignalBundler {
         ElkPort currentPort, currentSink, currentSource, newSink, newSource;
         ElkNode currentSourceNode, currentSinkNode;
         boolean newPortCreated = false, needNewEdge = true;
+        ArrayList<ElkEdge> edgeList;
 
         for (SignalNode node : nodesToBundle) {
             currentPort = node.getSPort();
 
             if(currentPort != null) {
-                for (ElkEdge edge : (incomingEdges ? currentPort.getIncomingEdges() : currentPort.getOutgoingEdges())) {
+                edgeList = new ArrayList<ElkEdge>(incomingEdges ? currentPort.getIncomingEdges() :
+                        currentPort.getOutgoingEdges());
+
+                for (ElkEdge edge : edgeList) {
+                    newPortCreated = false;
+                    needNewEdge = false;
+
                     currentSource = (ElkPort) edge.getSources().getFirst();
                     currentSink = (ElkPort) edge.getTargets().getFirst();
 
@@ -174,11 +182,31 @@ public class SignalBundler {
 
                     // now remove original ports and edge (-s???; i sure hope not)
 
-                    currentSourceNode.getPorts().remove(currentSource);
-                    currentSinkNode.getPorts().remove(currentSink);
+//                    currentSourceNode.getPorts().remove(currentSource);
+//                    currentSinkNode.getPorts().remove(currentSink);
+
+                    // First remove edge
                     edge.getContainingNode().getContainedEdges().remove(edge);
+                    currentSource.getOutgoingEdges().remove(edge);
+                    currentSink.getIncomingEdges().remove(edge);
+
+                    // Then check if the source or sink have any more connections
+                    // Remove them, if possible
+
+                    // Source first
+                    if (currentSource.getIncomingEdges().isEmpty() && currentSource.getOutgoingEdges().isEmpty()) {
+                        currentSourceNode.getPorts().remove(currentSource);
+                    }
+
+                    // Then sink
+
+                    if (currentSink.getIncomingEdges().isEmpty() && currentSink.getOutgoingEdges().isEmpty()) {
+                        currentSinkNode.getPorts().remove(currentSink);
+                    }
 
                     // What needs to be removed and when? BIG question
+                    // Dont remove ports too early. Most ports have at least one incoming AND at least one outgoing
+                    // edge. If a port is removed while it still contains edges, the layouter will crash
                 }
             }
         }
