@@ -1,9 +1,6 @@
 package de.thkoeln.fentwums.netlist.backend.parser;
 
-import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchicalNode;
-import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchyTree;
-import de.thkoeln.fentwums.netlist.backend.datatypes.SignalNode;
-import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
+import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import de.thkoeln.fentwums.netlist.backend.helpers.CellPathFormatter;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.graph.ElkEdge;
@@ -40,6 +37,7 @@ public class CellHandler {
         SignalTree currentSignalTree;
         CellPathFormatter formatter = new CellPathFormatter();
         StringBuilder intermediateCellPath;
+        HierarchicalNode newHNode;
 
         HashMap<String, ElkNode> currentConstantNodes;
 
@@ -117,6 +115,11 @@ public class CellHandler {
             ElkLabel newCellNodeLabel = createLabel(((String) currentCell.get("type")).replaceAll("\\$", ""),
                     newCellNode);
             newCellNodeLabel.setDimensions(newCellNodeLabel.getText().length() * 7 + 1, 10);
+
+            // update hierarchy to include the new node
+            newHNode = new HierarchicalNode(currentCellPathSplit[currentCellPathSplit.length - 1],
+                    currentHierarchyPosition, new HashMap<String, HierarchicalNode>(), new ArrayList<Vector>(),
+                    new HashMap<Integer, Bundle>(), newCellNode);
 
             // Create node ports
 
@@ -229,7 +232,7 @@ public class CellHandler {
             if (currentNode.getHChildren().containsKey(fragment)) {
                 currentNode = currentNode.getHChildren().get(fragment);
             } else {
-                currentNode = insertMissingHNode(currentNode, fragment, null);
+                currentNode = insertMissingSNode(currentNode, fragment, null);
             }
         }
 
@@ -245,7 +248,7 @@ public class CellHandler {
         }
     }
 
-    private SignalNode insertMissingHNode(SignalNode parent, String nodename, ElkPort sPort) {
+    private SignalNode insertMissingSNode(SignalNode parent, String nodename, ElkPort sPort) {
         return new SignalNode(nodename, parent, new HashMap(), null, new HashMap(), new HashMap(), false, sPort);
     }
 }
