@@ -18,4 +18,20 @@ public class HierarchyTree {
     public void setRoot(HierarchicalNode root) {
         this.root = root;
     }
+
+    public HierarchicalNode getNodeAt(String path) {
+        String[] pathSplit = path.trim().split(" ");
+        HierarchicalNode currentNode = root;
+
+        for (String candidate : pathSplit) {
+            currentNode.getChildren().get(candidate);
+
+            if (currentNode == null) {
+                System.out.println("Layer " + candidate + " in path " + path + " not found");
+                return null;
+            }
+        }
+
+        return currentNode;
+    }
 }

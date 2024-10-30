@@ -49,4 +49,20 @@ public class SignalTree {
     public void setSRoot(SignalNode sRoot) {
         this.sRoot = sRoot;
     }
+
+    public SignalNode getNodeAt(String path) {
+        String[] pathSplit = path.trim().split(" ");
+        SignalNode currentNode = hRoot;
+
+        for (String candidate : pathSplit) {
+            currentNode.getHChildren().get(candidate);
+
+            if (currentNode == null) {
+                System.out.println("Layer " + candidate + " in path " + path + " not found");
+                return null;
+            }
+        }
+
+        return currentNode;
+    }
 }
