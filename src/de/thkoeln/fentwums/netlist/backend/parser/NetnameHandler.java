@@ -33,6 +33,7 @@ public class NetnameHandler {
         HierarchicalNode currentHNode;
         Bundle newBundle;
         HashMap<Integer, Integer> cleanedBitMap;
+        HierarchicalNode childHNode;
 
         for (String currentNetName : netnames.keySet()) {
             currentNet = (HashMap<String, Object>) netnames.get(currentNetName);
@@ -47,7 +48,7 @@ public class NetnameHandler {
 
             // TODO find better solution
             //
-            // Ignore hdlname attribute for now until better mechanism to distiguish its validity is found
+            // Ignore hdlname attribute for now until better mechanism to distinguish its validity is found
             currentNetPath = formatter.format(currentNetName);
 
             currentNetPathSplit = currentNetPath.split(" ");
@@ -122,6 +123,15 @@ public class NetnameHandler {
                     newBundle = new Bundle((int) bit, cleanedBitMap);
 
                     currentHNode.getPossibleBundles().put((int) bit, newBundle);
+
+                    // Add bundle to child hNodes, if the child hNode is a cell (has no children
+                    for (String key : currentHNode.getChildren().keySet()) {
+                        childHNode = currentHNode.getChildren().get(key);
+
+                        if (childHNode.getChildren().isEmpty()) {
+                            childHNode.getPossibleBundles().put((int) bit, newBundle);
+                        }
+                    }
                 }
 
                 if (bitList.size() > 1) {

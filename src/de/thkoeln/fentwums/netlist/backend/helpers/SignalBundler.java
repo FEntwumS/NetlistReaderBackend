@@ -50,11 +50,20 @@ public class SignalBundler {
     // how to deal with additional signals?
     //
 
-    public void bundleSignalWithId(int sId, String path) {
-        SignalNode root = treeMap.get(sId).getHRoot();
+    public void bundleSignalWithId(int sId) {
+        SignalNode sRoot = treeMap.get(sId).getSRoot();
 
+        bundleRecursively(sRoot, sId);
+    }
+
+    public void bundleRecursively(SignalNode sNode, int sId) {
+        SignalNode nextNode;
+
+        String path = sNode.getAbsolutePath();
+
+        // find the possible bundles
         HierarchicalNode hNode = hierarchy.getNodeAt(path);
-        Bundle toBundle = hierarchy.getRoot().getPossibleBundles().get(sId);
+        Bundle toBundle = hNode.getPossibleBundles().get(sId);
 
         if (toBundle == null) {
             return;
@@ -63,14 +72,22 @@ public class SignalBundler {
         ArrayList<SignalNode> nodesToBundle = new ArrayList<>(toBundle.getBundleSignalMap().size());
 
         for (int isId : toBundle.getBundleSignalMap().keySet()) {
-            nodesToBundle.add(treeMap.get(isId).getHRoot());
+            nodesToBundle.add(treeMap.get(isId).getNodeAt(path));
         }
 
         if (nodesToBundle.size() <= 1) {
             return;
         }
 
-        bundleSignalRecursively(nodesToBundle, hierarchy.getNodeAt(path));
+        // then bundle the signal
+        bundlePorts(nodesToBundle);
+
+        // bundle the children
+        for (String child : sNode.getSChildren().keySet()) {
+            nextNode = sNode.getSChildren().get(child);
+
+            bundleRecursively(nextNode, sId);
+        }
     }
 
     public void bundleSignalRecursively(ArrayList<SignalNode> nodesToBundle, HierarchicalNode root) {

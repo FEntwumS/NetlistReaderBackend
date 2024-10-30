@@ -23,11 +23,11 @@ public class HierarchyTree {
         String[] pathSplit = path.trim().split(" ");
         HierarchicalNode currentNode = root;
 
-        for (String candidate : pathSplit) {
-            currentNode.getChildren().get(candidate);
+        for (int i = 1; i < pathSplit.length; i++) {
+            currentNode = currentNode.getChildren().get(pathSplit[i]);
 
             if (currentNode == null) {
-                System.out.println("Layer " + candidate + " in path " + path + " not found");
+                System.out.println("Layer " + pathSplit[i] + " in path " + path + " not found");
                 return null;
             }
         }

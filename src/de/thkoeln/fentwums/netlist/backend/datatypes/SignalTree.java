@@ -54,11 +54,11 @@ public class SignalTree {
         String[] pathSplit = path.trim().split(" ");
         SignalNode currentNode = hRoot;
 
-        for (String candidate : pathSplit) {
-            currentNode.getHChildren().get(candidate);
+        for (String fragment : pathSplit) {
+            currentNode = currentNode.getHChildren().get(fragment);
 
             if (currentNode == null) {
-                System.out.println("Layer " + candidate + " in path " + path + " not found");
+                System.out.println("Layer " + fragment + " in path " + path + " not found");
                 return null;
             }
         }
