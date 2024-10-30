@@ -27,7 +27,7 @@ public class HierarchyTree {
             currentNode = currentNode.getChildren().get(pathSplit[i]);
 
             if (currentNode == null) {
-                System.out.println("Layer " + pathSplit[i] + " in path " + path + " not found");
+                //System.out.println("Layer " + pathSplit[i] + " in path " + path + " not found");
                 return null;
             }
         }

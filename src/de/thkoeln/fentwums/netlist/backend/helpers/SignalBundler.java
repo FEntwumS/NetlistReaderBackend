@@ -24,32 +24,6 @@ public class SignalBundler {
     public SignalBundler() {
     }
 
-    // need to rework bundleSignalWithId to be recursive and the main bundling function (it will supersede
-    // bundleSignalRecursively)
-    // Using an actual hierarchy- and signal tree-based approach, taking into account the already existing bundles
-    // (vectors inside the hierarchy), a more complete and bundler with superior scaling will be created
-    //
-    // but how? :57
-    //
-    // prerequisite: fully built signaltree
-    //
-    // dont want to reimplement tree traversal
-    // but how to connect signalnode with hierarchicalnode? especially if child of snode is parent of respective hnode?
-    // maybe add function that gives absolute path of snode, which could then be used to find the corresponding hnode?
-    // seems like a lot of work (both code and for processor)
-    //
-    // then use hnode to find the bundle, also crosscheck it with the stored vectors
-    // also need some centralised list where all currently collapsed signals are stored (just use index)
-    // -> it is not necessary to store the layer
-    //
-    // bundlePorts()-method can stay as it is now
-    //
-    // If vector signal uses each bit two times (once, to get vector up a layer, and another time to use each bit to
-    // drive a cell), the source shall not be simplified. easier said than done
-    //
-    // how to deal with additional signals?
-    //
-
     public void bundleSignalWithId(int sId) {
         SignalNode sRoot = treeMap.get(sId).getSRoot();
 
@@ -80,7 +54,7 @@ public class SignalBundler {
         }
 
         // then bundle the signal
-        bundlePorts(nodesToBundle);
+        bundleLayer(nodesToBundle, toBundle, hNode, sId);
 
         // bundle the children
         for (String child : sNode.getSChildren().keySet()) {
@@ -88,60 +62,6 @@ public class SignalBundler {
 
             bundleRecursively(nextNode, sId);
         }
-    }
-
-    public void bundleSignalRecursively(ArrayList<SignalNode> nodesToBundle, HierarchicalNode root) {
-
-        bundlePorts(nodesToBundle);
-
-        // Then move the whole list through each of the child nodes
-
-        // How do i work with splits?
-        // what if the desired depth is different on a signal-index basis??
-
-        // get all possible child keys
-
-        HashSet<String> childKeySet = new HashSet<>();
-        for (SignalNode node : nodesToBundle) {
-            childKeySet.addAll(node.getHChildren().keySet());
-        }
-
-        ArrayList<SignalNode> childBundleList = new ArrayList<SignalNode>();
-
-        for (String childKey : childKeySet) {
-            childBundleList.clear();
-
-            for (SignalNode node : nodesToBundle) {
-                if (node.getHChildren().containsKey(childKey)) {
-                    childBundleList.add(node.getHChildren().get(childKey));
-                }
-            }
-
-            bundleSignalRecursively(childBundleList, null);
-        }
-
-        // Use hashmaps with elknodes to create link single port -> bundle port
-
-        // Just wrong, should first use hierarchy to get relevant signals (layer necessary?)
-
-        // how to do this stuff?
-        // find all edges belonging to a certain signal
-        // then check every edge for common sources and sinks
-        // if source and sink are identical, combine them
-
-        // store edges for a given layer in the signal tree (should also give access to source and sink ports)
-        // then use bundles from hierarchy to find the relevant edges in the treemap
-        // combine them
-        // store existing source and destination ports and nodes
-        // iterate through trees to check for duplicates sources/sinks
-        // then follow the relevant signal trees to do the same bundling there
-
-        // how to deal with vectors being split?
-        // detection via portside and incoming/outgoing edges?
-        // then call bundling in relevant direction?
-
-        // the number of signals needing to be bundled will be the biggest problem
-        //
     }
 
     private void bundlePorts(ArrayList<SignalNode> nodesToBundle) {
@@ -265,28 +185,10 @@ public class SignalBundler {
         }
     }
 
-    private void bundleLayer(HierarchicalNode currentHNode, int sId) {
-        Bundle bundle;
-        ArrayList<SignalNode> toBundle;
-
-        // first get the bundle in this layer
-        bundle = currentHNode.getPossibleBundles().get(sId);
-
-        // return early if no bundle exists
-        if (bundle == null) {
-            return;
-        }
-
+    private void bundleLayer(ArrayList<SignalNode> toBundle, Bundle bundle, HierarchicalNode currentHNode, int sId) {
         // return early if the signal is already bundled
         if (currentHNode.getCurrentlyBundledSignals().contains(sId)) {
             return;
-        }
-
-        toBundle = new ArrayList<>(bundle.getBundleSignalMap().size());
-
-        // then get the necessary signal nodes
-        for (int id : bundle.getBundleSignalMap().keySet()) {
-            toBundle.add(treeMap.get(id).getNodeAt(currentHNode.getAbsolutePath()));
         }
 
         // bundle them

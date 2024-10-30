@@ -125,10 +125,11 @@ public class NetnameHandler {
                     currentHNode.getPossibleBundles().put((int) bit, newBundle);
 
                     // Add bundle to child hNodes, if the child hNode is a cell (has no children
+                    // please preselect so that only relevant child hNodes get the bundle
                     for (String key : currentHNode.getChildren().keySet()) {
                         childHNode = currentHNode.getChildren().get(key);
 
-                        if (childHNode.getChildren().isEmpty()) {
+                        if (currentSignalTree.getNodeAt(childHNode.getAbsolutePath()) != null) {
                             childHNode.getPossibleBundles().put((int) bit, newBundle);
                         }
                     }
