@@ -136,4 +136,17 @@ public class HierarchicalNode {
     public void setEdgeList(ArrayList<ElkEdge> edgeList) {
         this.edgeList = edgeList;
     }
+
+    public String getAbsolutePath() {
+        if (this.getParent() != null) {
+            for (String candidate : this.getParent().getChildren().keySet()) {
+                if (this.getParent().getChildren().get(candidate).equals(this)) {
+                    return this.getParent().getAbsolutePath() + " " + candidate;
+                }
+            }
+
+            System.out.println("parent " + this.getParent().getHName() + " does not know its child " + this.getHName());
+        }
+        return "";
+    }
 }

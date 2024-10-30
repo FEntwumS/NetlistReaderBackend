@@ -125,4 +125,17 @@ public class SignalNode {
     public void setIndexInSignal(int indexInSignal) {
         this.indexInSignal = indexInSignal;
     }
+
+    public String getAbsolutePath() {
+        if (this.getHParent() != null) {
+            for (String candidate : this.getHParent().getHChildren().keySet()) {
+                if (this.getHParent().getHChildren().get(candidate).equals(this)) {
+                    return this.getHParent().getAbsolutePath() + " " + candidate;
+                }
+            }
+
+            System.out.println("hParent " + this.getHParent().getSName() + " does not know its child " + this.getSName());
+        }
+        return "";
+    }
 }
