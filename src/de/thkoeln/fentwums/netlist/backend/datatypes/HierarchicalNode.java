@@ -166,7 +166,8 @@ public class HierarchicalNode {
             }
 
             System.out.println("parent " + this.getParent().getHName() + " does not know its child " + this.getHName());
+            return "";
         }
-        return "";
+        return this.getHName();
     }
 }

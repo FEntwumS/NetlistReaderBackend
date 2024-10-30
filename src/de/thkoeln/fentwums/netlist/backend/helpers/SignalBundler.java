@@ -32,6 +32,7 @@ public class SignalBundler {
 
     public void bundleRecursively(SignalNode sNode, int sId) {
         SignalNode nextNode;
+        SignalNode bundleNode;
 
         String path = sNode.getAbsolutePath();
 
@@ -46,7 +47,11 @@ public class SignalBundler {
         ArrayList<SignalNode> nodesToBundle = new ArrayList<>(toBundle.getBundleSignalMap().size());
 
         for (int isId : toBundle.getBundleSignalMap().keySet()) {
-            nodesToBundle.add(treeMap.get(isId).getNodeAt(path));
+            bundleNode = treeMap.get(isId).getNodeAt(path);
+
+            if (bundleNode != null) {
+                nodesToBundle.add(bundleNode);
+            }
         }
 
         if (nodesToBundle.size() <= 1) {
@@ -187,8 +192,10 @@ public class SignalBundler {
 
     private void bundleLayer(ArrayList<SignalNode> toBundle, Bundle bundle, HierarchicalNode currentHNode, int sId) {
         // return early if the signal is already bundled
-        if (currentHNode.getCurrentlyBundledSignals().contains(sId)) {
-            return;
+        for (int bId : bundle.getBundleSignalMap().keySet()) {
+            if (currentHNode.getCurrentlyBundledSignals().contains(bId)) {
+                return;
+            }
         }
 
         // bundle them
