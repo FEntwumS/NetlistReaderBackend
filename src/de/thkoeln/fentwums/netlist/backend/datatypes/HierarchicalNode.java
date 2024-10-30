@@ -19,6 +19,7 @@ public class HierarchicalNode {
     private HashMap<String, ElkNode> constantDrivers;
     private ArrayList<ElkNode> childList;
     private ArrayList<ElkEdge> edgeList;
+    private ArrayList<Integer> currentlyBundledSignals;
 
     public HierarchicalNode() {
         hName = "";
@@ -30,6 +31,7 @@ public class HierarchicalNode {
         possibleBundles = new HashMap<>(8);
         node = null;
         constantDrivers = new HashMap<>();
+        currentlyBundledSignals = new ArrayList<>(8);
     }
 
     public HierarchicalNode(String hName, HierarchicalNode parent, HashMap<String, HierarchicalNode> children,
@@ -47,6 +49,8 @@ public class HierarchicalNode {
         if(parent != null) {
             parent.getChildren().put(hName, this);
         }
+
+        currentlyBundledSignals = new ArrayList<>(8);
     }
 
     public String getHName() {
@@ -135,6 +139,14 @@ public class HierarchicalNode {
 
     public void setEdgeList(ArrayList<ElkEdge> edgeList) {
         this.edgeList = edgeList;
+    }
+
+    public ArrayList<Integer> getCurrentlyBundledSignals() {
+        return currentlyBundledSignals;
+    }
+
+    public void setCurrentlyBundledSignals(ArrayList<Integer> currentlyBundledSignals) {
+        this.currentlyBundledSignals = currentlyBundledSignals;
     }
 
     public String getAbsolutePath() {

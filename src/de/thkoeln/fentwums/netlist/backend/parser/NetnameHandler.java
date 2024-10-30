@@ -178,6 +178,7 @@ public class NetnameHandler {
         ElkPort sink, source;
         int currentSignalIndex;
         boolean needEdge = true;
+        String key = "";
 
         // dont create port, if currentnode is toplevel and no port exists
         if (currentSignalTree.getHRoot().getHChildren().containsValue(currentNode) && currentNode.getSPort() == null) {
@@ -217,6 +218,9 @@ public class NetnameHandler {
 
             // create the connecting edge
             createEdgeIfNotExists(source, sink);
+
+            // update signal tree
+            linkSignalNodes(precursor, currentNode);
 
             // go up one layer
             routeSource(currentSignalTree, currentNode);
@@ -283,6 +287,9 @@ public class NetnameHandler {
             if (source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)
                     && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
                 createEdgeIfNotExists(source, sink);
+
+                // update signal tree
+                linkSignalNodes(currentSignalNode, precursor);
             }
         }
 
@@ -294,6 +301,9 @@ public class NetnameHandler {
 
             if (source != null && source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && sink.getIncomingEdges().isEmpty()) {
                 createEdgeIfNotExists(source, sink);
+
+                // update signal tree
+                linkSignalNodes(currentSignalNode, precursor);
             }
         }
 
@@ -338,6 +348,9 @@ public class NetnameHandler {
             }
 
             createEdgeIfNotExists(source, sink);
+
+            // update signal tree
+            linkSignalNodes(currentSignalNode, precursor);
         }
 
         // Check if source is located in unmarked child
@@ -352,6 +365,9 @@ public class NetnameHandler {
 
             if (source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
                 createEdgeIfNotExists(source, sink);
+
+                // update signal tree
+                linkSignalNodes(currentSignalNode, precursor);
             }
         }
 
@@ -430,5 +446,26 @@ public class NetnameHandler {
             // create connecting edge
             ElkEdge newEdge = createSimpleEdge(source, sink);
         }
+    }
+
+    private void linkSignalNodes(SignalNode child, SignalNode parent) {
+        String key = "";
+
+        // create in-tree connection
+        child.setSParent(parent);
+
+        // get key for child
+        for (String candidate : parent.getHChildren().keySet()) {
+            if (parent.getHChildren().get(candidate).equals(child)) {
+                key = candidate;
+                break;
+            }
+        }
+
+        if (key.isEmpty()) {
+            System.out.println("hParent does not know its children. This should of course never happen");
+        }
+
+        parent.getSChildren().put(key, child);
     }
 }

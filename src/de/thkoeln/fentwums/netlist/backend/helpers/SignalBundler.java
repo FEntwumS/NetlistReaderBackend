@@ -24,11 +24,41 @@ public class SignalBundler {
     public SignalBundler() {
     }
 
+    // need to rework bundleSignalWithId to be recursive and the main bundling function (it will supersede
+    // bundleSignalRecursively)
+    // Using an actual hierarchy- and signal tree-based approach, taking into account the already existing bundles
+    // (vectors inside the hierarchy), a more complete and bundler with superior scaling will be created
+    //
+    // but how? :57
+    //
+    // prerequisite: fully built signaltree
+    //
+    // dont want to reimplement tree traversal
+    // but how to connect signalnode with hierarchicalnode? especially if child of snode is parent of respective hnode?
+    // maybe add function that gives absolute path of snode, which could then be used to find the corresponding hnode?
+    // seems like a lot of work (both code and for processor)
+    //
+    // then use hnode to find the bundle, also crosscheck it with the stored vectors
+    // also need some centralised list where all currently collapsed signals are stored (just use index)
+    // -> it is not necessary to store the layer
+    //
+    // bundlePorts()-method can stay as it is now
+    //
+    // If vector signal uses each bit two times (once, to get vector up a layer, and another time to use each bit to
+    // drive a cell), the source shall not be simplified. easier said than done
+    //
+    // how to deal with additional signals?
+    //
+
     public void bundleSignalWithId(int sId, String path) {
         SignalNode root = treeMap.get(sId).getHRoot();
 
-        HierarchicalNode hNode = findHNode(path);
+        HierarchicalNode hNode = hierarchy.getNodeAt(path);
         Bundle toBundle = hierarchy.getRoot().getPossibleBundles().get(sId);
+
+        if (toBundle == null) {
+            return;
+        }
 
         ArrayList<SignalNode> nodesToBundle = new ArrayList<>(toBundle.getBundleSignalMap().size());
 
@@ -40,17 +70,10 @@ public class SignalBundler {
             return;
         }
 
-        bundleSignalRecursively(nodesToBundle, findHNode(path));
+        bundleSignalRecursively(nodesToBundle, hierarchy.getNodeAt(path));
     }
 
     public void bundleSignalRecursively(ArrayList<SignalNode> nodesToBundle, HierarchicalNode root) {
-//        ArrayList<ElkPort> currentSinkList = new ArrayList<>(), currentSourceList = new ArrayList<>();
-
-        // First bundle the incoming edges
-//        bundleLayer(nodesToBundle, true);
-
-        // Then the outgoing edges
-//        bundleLayer(nodesToBundle, false);
 
         bundlePorts(nodesToBundle);
 
@@ -77,7 +100,7 @@ public class SignalBundler {
                 }
             }
 
-            bundleSignalRecursively(childBundleList, findHNode(childKey));
+            bundleSignalRecursively(childBundleList, null);
         }
 
         // Use hashmaps with elknodes to create link single port -> bundle port
@@ -173,7 +196,11 @@ public class SignalBundler {
             } else {
                 // add new entry
                 bundlePortMap.put(containingNode, currentPort);
+
+                bundlePort = currentPort;
             }
+
+            currentNode.setSPort(bundlePort);
         }
 
         // now update labels
@@ -221,146 +248,41 @@ public class SignalBundler {
         }
     }
 
-    private void bundleLayer(ArrayList<SignalNode> nodesToBundle, boolean incomingEdges) {
-        HashMap<ElkNode, ElkPort> sourcePortMap = new HashMap<>(), sinkPortMap = new HashMap<>();
-        ElkPort currentPort, currentSink, currentSource, newSink, newSource;
-        ElkNode currentSourceNode, currentSinkNode;
-        boolean newPortCreated = false, needNewEdge = true;
-        ArrayList<ElkEdge> edgeList;
+    private void bundleLayer(HierarchicalNode currentHNode, int sId) {
+        Bundle bundle;
+        ArrayList<SignalNode> toBundle;
 
-        for (SignalNode node : nodesToBundle) {
-            currentPort = node.getSPort();
+        // first get the bundle in this layer
+        bundle = currentHNode.getPossibleBundles().get(sId);
 
-            if (currentPort != null) {
-                edgeList = new ArrayList<ElkEdge>(incomingEdges ? currentPort.getIncomingEdges() :
-                        currentPort.getOutgoingEdges());
-
-                for (ElkEdge edge : edgeList) {
-                    newPortCreated = false;
-                    needNewEdge = true;
-
-                    currentSource = (ElkPort) edge.getSources().getFirst();
-                    currentSink = (ElkPort) edge.getTargets().getFirst();
-
-                    currentSinkNode = currentSink.getParent();
-                    currentSourceNode = currentSource.getParent();
-
-                    if (currentSinkNode == null || currentSourceNode == null) {
-                        continue;
-                    }
-
-                    // check if nodes exist in respective hashmaps
-
-                    // source first
-
-                    if (sourcePortMap.containsKey(currentSourceNode)) {
-                        newSource = sourcePortMap.get(currentSourceNode);
-                    } else {
-                        newPortCreated = true;
-
-                        newSource = createPort(currentSourceNode);
-                        newSource.setDimensions(10, 10);
-                        newSource.setProperty(CoreOptions.PORT_SIDE, currentSource.getProperty(CoreOptions.PORT_SIDE));
-
-                        sourcePortMap.put(currentSourceNode, newSource);
-                    }
-
-                    // then sink
-
-                    if (sinkPortMap.containsKey(currentSinkNode)) {
-                        newSink = sinkPortMap.get(currentSinkNode);
-                    } else {
-                        newPortCreated = true;
-
-                        newSink = createPort(currentSinkNode);
-                        newSink.setDimensions(10, 10);
-                        newSink.setProperty(CoreOptions.PORT_SIDE, currentSink.getProperty(CoreOptions.PORT_SIDE));
-
-                        sinkPortMap.put(currentSinkNode, newSink);
-                    }
-
-                    if (newSource == null || newSink == null) {
-                        System.out.println("How did this happen?");
-                        continue;
-                    }
-
-                    // if a port has been created, an edge needs to be constructed EVERY time, else need to check
-
-                    if (newPortCreated) {
-                        ElkEdge newEdge = createSimpleEdge(newSource, newSink);
-                    } else {
-                        for (ElkEdge candidate : newSource.getOutgoingEdges()) {
-                            if (candidate.getTargets().getFirst().equals(currentSink)) {
-                                needNewEdge = false;
-                                break;
-                            }
-                        }
-
-                        if (needNewEdge) {
-                            ElkEdge newEdge = createSimpleEdge(newSource, newSink);
-                        }
-                    }
-
-                    // now remove original ports and edge (-s???; i sure hope not)
-
-//                    currentSourceNode.getPorts().remove(currentSource);
-//                    currentSinkNode.getPorts().remove(currentSink);
-
-                    // First remove edge
-                    edge.getContainingNode().getContainedEdges().remove(edge);
-                    currentSource.getOutgoingEdges().remove(edge);
-                    currentSink.getIncomingEdges().remove(edge);
-
-                    // Then check if the source or sink have any more connections
-                    // Remove them, if possible
-
-                    // Source first
-                    if (currentSource.getIncomingEdges().isEmpty() && currentSource.getOutgoingEdges().isEmpty()) {
-                        currentSourceNode.getPorts().remove(currentSource);
-                    }
-
-                    // Then sink
-
-                    if (currentSink.getIncomingEdges().isEmpty() && currentSink.getOutgoingEdges().isEmpty()) {
-                        currentSinkNode.getPorts().remove(currentSink);
-                    }
-
-                    // What needs to be removed and when? BIG question
-                    // Dont remove ports too early. Most ports have at least one incoming AND at least one outgoing
-                    // edge. If a port is removed while it still contains edges, the layouter will crash
-
-                    // should instead try to reuse ports, especially sources
-                    // this in turn will enable continuous signal bundles
-                    // but how?
-                    // how to handle entry case? perhaps instead of combining edges, an approach based on combining
-                    // ports is better suited to the existing data structures
-                    // then on port combination, an edge obsolescence check can remove any no longer needed edges
-
-                    // port renaming is sticking point for good ui/ux
-                    // perhaps add signal index in vector to list during port removal
-                    // then sort the list
-                    // then step through the list to build ranges
-                    // e.g. [0:7] or [0:7, 16:23]
-                    // for multiple ranges alternative format could be [0:7; 16:23]
-                    // of course something like [0:7; 16] is possible as well
-                    // stupid stuff like [0] is of course neither intended nor allowed
-                }
-            }
+        // return early if no bundle exists
+        if (bundle == null) {
+            return;
         }
+
+        // return early if the signal is already bundled
+        if (currentHNode.getCurrentlyBundledSignals().contains(sId)) {
+            return;
+        }
+
+        toBundle = new ArrayList<>(bundle.getBundleSignalMap().size());
+
+        // then get the necessary signal nodes
+        for (int id : bundle.getBundleSignalMap().keySet()) {
+            toBundle.add(treeMap.get(id).getNodeAt(currentHNode.getAbsolutePath()));
+        }
+
+        // bundle them
+        bundlePorts(toBundle);
+
+        // store the indexes of the newly bundled signals
+        currentHNode.getCurrentlyBundledSignals().addAll(bundle.getBundleSignalMap().keySet());
     }
 
     public void debundleSignalAt(String path) {
     }
 
     public void debundleSignalRecursively(SignalNode sNode, HierarchicalNode hNode) {
-    }
-
-    private SignalNode findSNode(String path) {
-        return null;
-    }
-
-    private HierarchicalNode findHNode(String path) {
-        return null;
     }
 
     public HashMap<Integer, SignalTree> getTreeMap() {

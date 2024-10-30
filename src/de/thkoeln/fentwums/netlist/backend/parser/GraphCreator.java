@@ -94,12 +94,6 @@ public class GraphCreator {
 
         reverser.reversePorts(toplevel);
 
-        SignalBundler bundler = new SignalBundler();
-        bundler.setHierarchy(hierarchyTree);
-        bundler.setTreeMap(signalMap);
-
-        bundler.bundleSignalWithId(3, "");
-
         CellCollapser collapser = new CellCollapser();
         collapser.setGroundTruth(toplevel);
         collapser.setHierarchy(hierarchyTree);
@@ -107,9 +101,9 @@ public class GraphCreator {
         collapser.collapseAllCells();
         collapser.expandAllCells();
 
-        for (String child : hierarchyTree.getRoot().getChildren().keySet()) {
-            collapser.collapseRecursively(hierarchyTree.getRoot().getChildren().get(child));
-        }
+//        for (String child : hierarchyTree.getRoot().getChildren().keySet()) {
+//            collapser.collapseRecursively(hierarchyTree.getRoot().getChildren().get(child));
+//        }
 
 //        collapser.expandCellAt("ws2812_inst");
 //        collapser.expandCellAt("ws2812_inst rtw");
@@ -119,9 +113,17 @@ public class GraphCreator {
 //        collapser.expandCellAt("neorv32_inst neorv32_uart0_inst_true neorv32_uart0_inst");
         //collapser.expandCellAt("ws2812_inst rtw as 9512");
 
-        collapser.expandCellAt("iceduino_button_inst");
+        //collapser.expandCellAt("iceduino_button_inst");
 
+        SignalBundler bundler = new SignalBundler();
+        bundler.setHierarchy(hierarchyTree);
+        bundler.setTreeMap(signalMap);
 
+        //bundler.bundleSignalWithId(4, "");
+
+//        for (int key : signalMap.keySet()) {
+//            bundler.bundleSignalWithId(key, "");
+//        }
     }
 
     public void checkModuleCompleteness(HashMap<String, Object> module) {
