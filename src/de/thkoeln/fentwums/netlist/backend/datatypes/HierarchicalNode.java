@@ -20,6 +20,7 @@ public class HierarchicalNode {
     private ArrayList<ElkNode> childList;
     private ArrayList<ElkEdge> edgeList;
     private ArrayList<Integer> currentlyBundledSignals;
+    private String path;
 
     public HierarchicalNode() {
         hName = "";
@@ -150,10 +151,17 @@ public class HierarchicalNode {
     }
 
     public String getAbsolutePath() {
+        if (path != null) {
+            return path;
+        }
+
         if (this.getParent() != null) {
             for (String candidate : this.getParent().getChildren().keySet()) {
                 if (this.getParent().getChildren().get(candidate).equals(this)) {
-                    return this.getParent().getAbsolutePath() + " " + candidate;
+                    String ret = this.getParent().getAbsolutePath() + " " + candidate;
+                    path = ret;
+
+                    return ret;
                 }
             }
 
