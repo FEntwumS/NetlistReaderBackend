@@ -27,8 +27,6 @@ public class SignalBundler {
     public void bundleSignalWithId(int sId) {
         SignalNode sRoot = treeMap.get(sId).getSRoot();
 
-        System.out.println(sId);
-
         bundleRecursively(sRoot, sId);
     }
 
@@ -37,15 +35,6 @@ public class SignalBundler {
         SignalNode bundleNode;
 
         String path = sNode.getAbsolutePath();
-
-        if (sId == 1161) {
-            SignalTree toInspect = treeMap.get(sId);
-            System.out.println(path);
-        }
-
-        if (path.trim().equals("addressing_top addr_master_1 adr")) {
-            System.out.println("addr_master_1 adr");
-        }
 
         // find the possible bundles
         HierarchicalNode hNode = hierarchy.getNodeAt(path);
@@ -94,6 +83,7 @@ public class SignalBundler {
         StringBuilder signalRange;
         final char separator = ';';
         ElkLabel currentPortLabel;
+        boolean needEdge;
 
         for (SignalNode currentNode : nodesToBundle) {
             currentPort = currentNode.getSPort();
@@ -131,7 +121,29 @@ public class SignalBundler {
                 // transfer edges to the bundle port
 
                 for (ElkEdge incoming : currentPort.getIncomingEdges()) {
-                    if (!bundlePort.getIncomingEdges().contains(incoming)) {
+                    needEdge = true;
+
+                    if (incoming.getSources().isEmpty()) {
+                        // TODO remove
+                        System.out.println("bam");
+
+                        continue;
+                    }
+
+                    for (ElkEdge edge : bundlePort.getIncomingEdges()) {
+                        if (((ElkPort) edge.getSources().getFirst()).getParent().equals(((ElkPort) incoming.getSources().getFirst()).getParent())) {
+                            needEdge = false;
+
+                            // TODO remove
+                            System.out.println("bing");
+
+                            incoming.getContainingNode().getContainedEdges().remove(incoming);
+
+                            break;
+                        }
+                    }
+
+                    if (needEdge) {
                         bundlePort.getIncomingEdges().add(incoming);
                     }
                 }
@@ -139,7 +151,26 @@ public class SignalBundler {
                 currentPort.getIncomingEdges().clear();
 
                 for (ElkEdge outgoing : currentPort.getOutgoingEdges()) {
-                    if (!bundlePort.getOutgoingEdges().contains(outgoing)) {
+                    needEdge = true;
+
+                    if (outgoing.getTargets().isEmpty()) {
+                        continue;
+                    }
+
+                    for (ElkEdge edge : bundlePort.getOutgoingEdges()) {
+                        if (((ElkPort)edge.getTargets().getFirst()).getParent().equals(((ElkPort)outgoing.getTargets().getFirst()).getParent())) {
+                            needEdge = false;
+
+                            // TODO remove
+                            System.out.println("bong");
+
+                            outgoing.getContainingNode().getContainedEdges().remove(outgoing);
+
+                            break;
+                        }
+                    }
+
+                    if (needEdge) {
                         bundlePort.getOutgoingEdges().add(outgoing);
                     }
                 }

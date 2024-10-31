@@ -450,6 +450,10 @@ public class NetnameHandler {
             for (ElkConnectableShape target : edge.getTargets()) {
                 if (target.equals(sink)) {
                     needEdge = false;
+
+                    // TODO remove
+                    System.out.println("ding");
+
                     break;
                 }
             }
@@ -466,10 +470,6 @@ public class NetnameHandler {
 
         // create in-tree connection
         child.setSParent(parent);
-
-        if (child.getAbsolutePath().equals(" neorv32_iceduino_top neorv32_inst neorv32_cpu_inst")) {
-            System.out.println("neorv32_iceduino_top neorv32_inst neorv32_cpu_inst");
-        }
 
         // get key for child
         for (String candidate : child.getHParent().getHChildren().keySet()) {
