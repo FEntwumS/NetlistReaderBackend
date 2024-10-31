@@ -2,11 +2,9 @@ package de.thkoeln.fentwums.netlist.backend.parser;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import de.thkoeln.fentwums.netlist.backend.helpers.CellPathFormatter;
+import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
 import org.eclipse.elk.core.options.*;
-import org.eclipse.elk.graph.ElkEdge;
-import org.eclipse.elk.graph.ElkLabel;
-import org.eclipse.elk.graph.ElkNode;
-import org.eclipse.elk.graph.ElkPort;
+import org.eclipse.elk.graph.*;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -38,6 +36,7 @@ public class CellHandler {
         CellPathFormatter formatter = new CellPathFormatter();
         StringBuilder intermediateCellPath;
         HierarchicalNode newHNode;
+        ElkElementCreator creator = new ElkElementCreator();
 
         HashMap<String, ElkNode> currentConstantNodes;
 
@@ -79,16 +78,11 @@ public class CellHandler {
                             intermediateCellPath.append(" ").append(currentCellPathSplit[j]);
                         }
 
-                        ElkNode newElkNode = createNode(currentHierarchyPosition.getNode());
-                        newElkNode.setIdentifier(intermediateCellPath.toString());
-                        newElkNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_ORDER);
-                        newElkNode.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.allOf(SizeConstraint.class));
-                        newElkNode.setProperty(CoreOptions.NODE_LABELS_PLACEMENT, EnumSet.of(NodeLabelPlacement.H_CENTER,
-                                NodeLabelPlacement.V_TOP, NodeLabelPlacement.OUTSIDE));
-                        newElkNode.setProperty(CoreOptions.PORT_LABELS_PLACEMENT,
-                                EnumSet.of(PortLabelPlacement.INSIDE));
-                        ElkLabel newElkNodeLabel = createLabel(pathFragement, newElkNode);
-                        newElkNodeLabel.setDimensions(newElkNodeLabel.getText().length() * 7 + 1, 10);
+                        ElkNode newElkNode = creator.createNewNode(currentHierarchyPosition.getNode(),
+                                intermediateCellPath.toString());
+
+                        ElkLabel newElkNodeLabel = creator.createNewLabel(pathFragement, newElkNode);
+
                         HierarchicalNode newHierarchyNode = new HierarchicalNode(pathFragement,
                                 currentHierarchyPosition, new HashMap<String, HierarchicalNode>(), new ArrayList<>(),
                                 new HashMap<>(), newElkNode);
@@ -104,17 +98,10 @@ public class CellHandler {
 
             // now that the hierarchy has been created, the actual cells can be constructed
 
-            ElkNode newCellNode = createNode(currentHierarchyPosition.getNode());
-            newCellNode.setIdentifier(currentCellPath);
-            newCellNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_ORDER);
-            newCellNode.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.allOf(SizeConstraint.class));
-            newCellNode.setProperty(CoreOptions.NODE_LABELS_PLACEMENT, EnumSet.of(NodeLabelPlacement.H_CENTER,
-                    NodeLabelPlacement.V_TOP, NodeLabelPlacement.OUTSIDE));
-            newCellNode.setProperty(CoreOptions.PORT_LABELS_PLACEMENT, EnumSet.of(PortLabelPlacement.INSIDE));
+            ElkNode newCellNode = creator.createNewNode(currentHierarchyPosition.getNode(), currentCellPath);
 
-            ElkLabel newCellNodeLabel = createLabel(((String) currentCell.get("type")).replaceAll("\\$", ""),
-                    newCellNode);
-            newCellNodeLabel.setDimensions(newCellNodeLabel.getText().length() * 7 + 1, 10);
+            ElkLabel newCellNodeLabel = creator.createNewLabel(((String) currentCell.get("type")).replaceAll("\\$",
+                    ""), newCellNode);
 
             // update hierarchy to include the new node
             newHNode = new HierarchicalNode(currentCellPathSplit[currentCellPathSplit.length - 1],
@@ -146,13 +133,11 @@ public class CellHandler {
 
                 for(Object driver: currentCellConnectionDrivers) {
 
-                    ElkPort cellPort = createPort(newCellNode);
-                    cellPort.setProperty(CoreOptions.PORT_SIDE, side);
-                    cellPort.setDimensions(10, 10);
+                    ElkPort cellPort = creator.createNewPort(newCellNode, side);
 
-                    ElkLabel cellPortLabel = createLabel(portname + (currentCellConnectionDrivers.size() == 1 ? "" :
+                    ElkLabel cellPortLabel =
+                            creator.createNewLabel(portname + (currentCellConnectionDrivers.size() == 1 ? "" :
                                     " [" + currentPortDriverIndex + "]"), cellPort);
-                    cellPortLabel.setDimensions(cellPortLabel.getText().length() * 7 + 1, 10);
 
 
                     if(driver instanceof Integer) {
@@ -186,18 +171,11 @@ public class CellHandler {
                             // invert port side
                             side = side == PortSide.WEST ? PortSide.EAST : PortSide.WEST;
 
-                            constTarget = createNode(currentHierarchyPosition.getNode());
-                            constTarget.setDimensions(20, 20);
-                            constTarget.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_ORDER);
-                            constTarget.setProperty(CoreOptions.NODE_LABELS_PLACEMENT,
-                                    EnumSet.of(NodeLabelPlacement.H_CENTER, NodeLabelPlacement.V_CENTER, NodeLabelPlacement.INSIDE));
+                            constTarget = creator.createNewConstantDriver(currentHierarchyPosition.getNode());
 
-                            ElkLabel constTargetLabel = createLabel((String) driver, constTarget);
-                            constTargetLabel.setDimensions(constTargetLabel.getText().length() * 7 + 1, 10);
+                            ElkLabel constTargetLabel = creator.createNewLabel((String) driver, constTarget);
 
-                            ElkPort constTargetPort = createPort(constTarget);
-                            constTargetPort.setProperty(CoreOptions.PORT_SIDE, side);
-                            constTargetPort.setDimensions(10, 10);
+                            ElkPort constTargetPort = creator.createNewPort(constTarget, side);
 
                             currentConstantNodes.put(driver + currentPortDirection, constTarget);
 
@@ -213,9 +191,9 @@ public class CellHandler {
                             sink = constTarget.getPorts().getFirst();
                         }
 
-                        ElkEdge constantEdge = createSimpleEdge(source, sink);
-                        ElkLabel constantLabel = createLabel((String) driver, constantEdge);
-                        constantLabel.setDimensions(constantLabel.getText().length() * 7 + 1, 10);
+                        ElkEdge constantEdge = creator.createNewEdge(source, sink);
+
+                        ElkLabel constantLabel = creator.createNewLabel((String) driver, constantEdge);
                     }
 
                     currentPortDriverIndex++;
