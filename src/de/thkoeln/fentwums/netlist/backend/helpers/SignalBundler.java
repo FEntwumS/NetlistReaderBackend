@@ -27,6 +27,8 @@ public class SignalBundler {
     public void bundleSignalWithId(int sId) {
         SignalNode sRoot = treeMap.get(sId).getSRoot();
 
+        System.out.println(sId);
+
         bundleRecursively(sRoot, sId);
     }
 
@@ -35,6 +37,15 @@ public class SignalBundler {
         SignalNode bundleNode;
 
         String path = sNode.getAbsolutePath();
+
+        if (sId == 1161) {
+            SignalTree toInspect = treeMap.get(sId);
+            System.out.println(path);
+        }
+
+        if (path.trim().equals("addressing_top addr_master_1 adr")) {
+            System.out.println("addr_master_1 adr");
+        }
 
         // find the possible bundles
         HierarchicalNode hNode = hierarchy.getNodeAt(path);
@@ -65,7 +76,9 @@ public class SignalBundler {
         for (String child : sNode.getSChildren().keySet()) {
             nextNode = sNode.getSChildren().get(child);
 
-            bundleRecursively(nextNode, sId);
+            if (nextNode.getIsSource() == false) {
+                bundleRecursively(nextNode, sId);
+            }
         }
     }
 

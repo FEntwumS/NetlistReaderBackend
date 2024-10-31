@@ -105,15 +105,15 @@ public class GraphCreator {
             collapser.collapseRecursively(hierarchyTree.getRoot().getChildren().get(child));
         }
 
-//        collapser.expandCellAt("ws2812_inst");
-//        collapser.expandCellAt("ws2812_inst rtw");
-//        collapser.expandCellAt("ws2812_inst rtw as");
+        collapser.expandCellAt("ws2812_inst");
+        collapser.expandCellAt("ws2812_inst rtw");
+        collapser.expandCellAt("ws2812_inst rtw as");
 //        collapser.expandCellAt("neorv32_inst");
 //        collapser.expandCellAt("neorv32_inst neorv32_uart0_inst_true");
 //        collapser.expandCellAt("neorv32_inst neorv32_uart0_inst_true neorv32_uart0_inst");
         //collapser.expandCellAt("ws2812_inst rtw as 9512");
 
-        collapser.expandCellAt("iceduino_button_inst");
+//        collapser.expandCellAt("iceduino_button_inst");
 
         SignalBundler bundler = new SignalBundler();
         bundler.setHierarchy(hierarchyTree);

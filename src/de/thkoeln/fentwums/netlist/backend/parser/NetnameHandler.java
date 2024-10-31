@@ -313,7 +313,7 @@ public class NetnameHandler {
                 createEdgeIfNotExists(source, sink);
 
                 // update signal tree
-                linkSignalNodes(currentSignalNode, precursor);
+                linkSignalNodes(currentSignalNode, sourceNode);
             }
         }
 
@@ -371,13 +371,14 @@ public class NetnameHandler {
 
             // Add final link
 
-            source = precursor.getHChildren().get(possibleSourceBelowSplit[0]).getSPort();
+            sourceNode = precursor.getHChildren().get(possibleSourceBelowSplit[0]);
+            source = sourceNode.getSPort();
 
             if (source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
                 createEdgeIfNotExists(source, sink);
 
                 // update signal tree
-                linkSignalNodes(currentSignalNode, precursor);
+                linkSignalNodes(currentSignalNode, sourceNode);
             }
         }
 
@@ -416,6 +417,8 @@ public class NetnameHandler {
                 return;
             }
             createEdgeIfNotExists(source, sink);
+
+            linkSignalNodes(child, precursor);
         }
     }
 
@@ -464,9 +467,13 @@ public class NetnameHandler {
         // create in-tree connection
         child.setSParent(parent);
 
+        if (child.getAbsolutePath().equals(" neorv32_iceduino_top neorv32_inst neorv32_cpu_inst")) {
+            System.out.println("neorv32_iceduino_top neorv32_inst neorv32_cpu_inst");
+        }
+
         // get key for child
-        for (String candidate : parent.getHChildren().keySet()) {
-            if (parent.getHChildren().get(candidate).equals(child)) {
+        for (String candidate : child.getHParent().getHChildren().keySet()) {
+            if (child.getHParent().getHChildren().get(candidate).equals(child)) {
                 key = candidate;
                 break;
             }
