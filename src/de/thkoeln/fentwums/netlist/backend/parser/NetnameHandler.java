@@ -328,29 +328,38 @@ public class NetnameHandler {
             return;
         }
 
-        // TODO remove commented part of condition
-        if (!sink.getParent().getParent().getParent().getIdentifier().equals("root")/* && sink.getIncomingEdges().isEmpty()*/) {
+        if (!sink.getParent().getParent().getParent().getIdentifier().equals("root") && higherUse(precursor)) {
             // Create new port on western side of precursor (input)
             source = precursor.getSPort();
 
             if (source == null) {
-                source = createPort(sink.getParent().getParent());
-                source.setDimensions(10, 10);
-                source.setProperty(CoreOptions.PORT_SIDE, PortSide.WEST);
+                for (String candidate : precursor.getHChildren().keySet()) {
+                    SignalNode child = precursor.getHChildren().get(candidate);
 
-                currentSignalIndex = precursor.getIndexInSignal();
-
-                ElkLabel sourceLabel;
-
-                if (precursor.getSVisited()) {
-                    sourceLabel = createLabel(precursor.getSName() + (currentSignalIndex != -1 ? " [" + currentSignalIndex +
-                            "]" : ""), source);
-                } else {
-                    sourceLabel = createLabel(String.valueOf(currentSignalTree.getSId()), source);
+                    if (child.getIsSource()) {
+                        source = child.getSPort();
+                    }
                 }
-                sourceLabel.setDimensions(sourceLabel.getText().length() * 7 + 1, 10);
 
-                precursor.setSPort(source);
+                if (source == null) {
+                    source = createPort(sink.getParent().getParent());
+                    source.setDimensions(10, 10);
+                    source.setProperty(CoreOptions.PORT_SIDE, PortSide.WEST);
+
+                    currentSignalIndex = precursor.getIndexInSignal();
+
+                    ElkLabel sourceLabel;
+
+                    if (precursor.getSVisited()) {
+                        sourceLabel = createLabel(precursor.getSName() + (currentSignalIndex != -1 ? " [" + currentSignalIndex +
+                                "]" : ""), source);
+                    } else {
+                        sourceLabel = createLabel(String.valueOf(currentSignalTree.getSId()), source);
+                    }
+                    sourceLabel.setDimensions(sourceLabel.getText().length() * 7 + 1, 10);
+
+                    precursor.setSPort(source);
+                }
             }
 
             if (sink.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST) {
@@ -484,6 +493,18 @@ public class NetnameHandler {
         }
 
         parent.getSChildren().put(key, child);
+    }
+
+    private boolean higherUse(SignalNode startNode) {
+        SignalNode parent = startNode.getHParent();
+
+        if (parent == null) {
+            return false;
+        } else if (parent.getHChildren().keySet().size() > 1 || parent.getIsSource()) {
+            return true;
+        } else {
+            return higherUse(parent);
+        }
     }
 
     private int highestUse(SignalNode currentSignalNode) {
