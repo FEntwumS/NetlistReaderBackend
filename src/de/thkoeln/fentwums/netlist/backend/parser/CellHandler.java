@@ -40,6 +40,7 @@ public class CellHandler {
         ElkElementCreator creator = new ElkElementCreator();
         HashMap<Integer, String> constantValues;
         HashMap<String, ElkNode> currentConstantNodes;
+        int currentDriverIndex, maxSignals;
 
         for (String cellname : cells.keySet()) {
             side = PortSide.EAST;
@@ -105,6 +106,16 @@ public class CellHandler {
             currentCellPortDirections = (HashMap<String, Object>) currentCell.get("port_directions");
             currentCellConnections = (HashMap<String, Object>) currentCell.get("connections");
 
+            // get max number of signals
+            maxSignals = 0;
+
+            for (String portname: currentCellPortDirections.keySet()) {
+                if (((ArrayList<Object>) currentCellConnections.get(portname)).size() > maxSignals) {
+                    maxSignals = ((ArrayList<Object>) currentCellConnections.get(portname)).size();
+                }
+            }
+
+            currentDriverIndex = 0;
             for (String portname: currentCellPortDirections.keySet()) {
                 currentPortDriverIndex = 0;
                 constantValues = new HashMap<Integer, String>();
@@ -127,6 +138,8 @@ public class CellHandler {
                 for(Object driver: currentCellConnectionDrivers) {
                     if(driver instanceof Integer) {
                         ElkPort cellPort = creator.createNewPort(newCellNode, side);
+                        cellPort.setProperty(CoreOptions.PORT_INDEX,
+                                currentDriverIndex * maxSignals + currentPortDriverIndex);
 
                         ElkLabel cellPortLabel =
                                 creator.createNewLabel(portname + (currentCellConnectionDrivers.size() == 1 ? "" :
@@ -155,47 +168,17 @@ public class CellHandler {
                                 cellPort, portname, currentPortDriverIndex);
                     } else {
                         constantValues.put(currentPortDriverIndex, (String) driver);
-
-                        /*
-                        // Reuse (or create, if necessary) a cell for constant drivers
-                        if (currentConstantNodes.containsKey(driver + currentPortDirection)) {
-                            constTarget = currentConstantNodes.get(driver + currentPortDirection);
-                        } else {
-                            // invert port side
-                            side = side == PortSide.WEST ? PortSide.EAST : PortSide.WEST;
-
-                            constTarget = creator.createNewConstantDriver(currentHierarchyPosition.getNode());
-
-                            ElkLabel constTargetLabel = creator.createNewLabel((String) driver, constTarget);
-
-                            ElkPort constTargetPort = creator.createNewPort(constTarget, side);
-
-                            currentConstantNodes.put(driver + currentPortDirection, constTarget);
-
-                            // reinvert port side
-                            side = side == PortSide.WEST ? PortSide.EAST : PortSide.WEST;
-                        }
-
-                        if (currentPortDirection.equals("input")) {
-                            source = constTarget.getPorts().getFirst();
-                            sink = cellPort;
-                        } else {
-                            source = cellPort;
-                            sink = constTarget.getPorts().getFirst();
-                        }
-
-                        ElkEdge constantEdge = creator.createNewEdge(source, sink);
-
-                        ElkLabel constantLabel = creator.createNewLabel((String) driver, constantEdge);*/
-
                     }
 
                     currentPortDriverIndex++;
                 }
 
                 if (!constantValues.keySet().isEmpty()) {
-                    createConstantSignals(newCellNode, currentConstantNodes, constantValues, side, portname);
+                    createConstantSignals(newCellNode, currentConstantNodes, constantValues, side, portname,
+                            currentDriverIndex, maxSignals);
                 }
+
+                currentDriverIndex++;
             }
         }
     }
@@ -229,7 +212,8 @@ public class CellHandler {
     }
 
     private void createConstantSignals(ElkNode parent, HashMap<String, ElkNode> constNodes,
-                                       HashMap<Integer, String> constantValues, PortSide side, String portname) {
+                                       HashMap<Integer, String> constantValues, PortSide side, String portname,
+                                       int driverIndex, int maxSignalIndex) {
         ElkElementCreator creator = new ElkElementCreator();
         int cRangeStart = -2, cRangeEnd = cRangeStart;
         StringBuilder constantValueBuilder = new StringBuilder();
@@ -246,21 +230,26 @@ public class CellHandler {
         for (int key : constantValues.keySet()) {
             if (key - cRangeEnd > 1) {
                 if (!firstRange) {
-                    constantLabelBuilder.append(cRangeEnd - 1).append("]");
+                    if (cRangeEnd - 1 != cRangeStart) {
+                        constantLabelBuilder.append(":").append(cRangeEnd - 1).append("]");
+                    } else {
+                        constantLabelBuilder.append("]");
+                    }
 
                     creator.createNewLabel(constantLabelBuilder.toString(), newPort);
                     ElkLabel constantEdgeLabel = createLabel(constantValueBuilder.toString(), constantEdge);
                     constantEdgeLabel.setDimensions(constantEdgeLabel.getText().length() * 7 + 1, 10);
-                    constantEdgeLabel.setProperty(CoreOptions.EDGE_LABELS_PLACEMENT, EdgeLabelPlacement.TAIL);
+                    constantEdgeLabel.setProperty(CoreOptions.EDGE_LABELS_PLACEMENT, EdgeLabelPlacement.HEAD);
                 }
 
-                constantLabelBuilder = new StringBuilder(portname).append(" [").append(key).append(":");
+                constantLabelBuilder = new StringBuilder(portname).append(" [").append(key);
                 constantValueBuilder = new StringBuilder();
                 firstRange = false;
 
                 // Skip, therefore a new range starts
                 // create port for new range
                 newPort = creator.createNewPort(parent, side);
+                newPort.setProperty(CoreOptions.PORT_INDEX, driverIndex * maxSignalIndex + key);
                 cRangeStart = key;
                 cRangeEnd = key;
             }
@@ -302,11 +291,20 @@ public class CellHandler {
             cRangeEnd++;
         }
 
-        constantLabelBuilder.append(cRangeEnd).append("]");
+        if (cRangeEnd - 1 != cRangeStart) {
+            constantLabelBuilder.append(":").append(cRangeEnd - 1).append("]");
+        } else {
+            constantLabelBuilder.append("]");
+        }
 
         creator.createNewLabel(constantLabelBuilder.toString(), newPort);
-        ElkLabel constantEdgeLabel = createLabel(constantValueBuilder.toString(), constantEdge);
+        ElkLabel constantEdgeLabel;
+        if (constantValues.keySet().size() > 1) {
+             constantEdgeLabel = createLabel(constantValueBuilder.toString(), constantEdge);
+        } else {
+            constantEdgeLabel = createLabel(portname, constantEdge);
+        }
         constantEdgeLabel.setDimensions(constantEdgeLabel.getText().length() * 7 + 1, 10);
-        constantEdgeLabel.setProperty(CoreOptions.EDGE_LABELS_PLACEMENT, EdgeLabelPlacement.TAIL);
+        constantEdgeLabel.setProperty(CoreOptions.EDGE_LABELS_PLACEMENT, EdgeLabelPlacement.HEAD);
     }
 }

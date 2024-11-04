@@ -84,8 +84,13 @@ public class SignalBundler {
         final char separator = ';';
         ElkLabel currentPortLabel;
         boolean needEdge;
+        ArrayList<ElkEdge> reworkEdgeList = new ArrayList<>(), removeEdgeList = new ArrayList<>();
 
         for (SignalNode currentNode : nodesToBundle) {
+            if (currentNode.getAbsolutePath().equals(" neorv32_iceduino_top iceduino_button_inst")) {
+                System.out.println("halt!");
+            }
+
             currentPort = currentNode.getSPort();
 
             if (currentPort == null) {
@@ -118,6 +123,9 @@ public class SignalBundler {
             if (bundlePortMap.containsKey(containingNode)) {
                 bundlePort = bundlePortMap.get(containingNode);
 
+                reworkEdgeList.clear();
+                removeEdgeList.clear();
+
                 // transfer edges to the bundle port
 
                 for (ElkEdge incoming : currentPort.getIncomingEdges()) {
@@ -138,41 +146,49 @@ public class SignalBundler {
                             System.out.println("bing");
 
                             incoming.getContainingNode().getContainedEdges().remove(incoming);
+                            removeEdgeList.add(incoming);
 
-                            break;
+                            //break;
                         }
                     }
 
                     if (needEdge) {
                         bundlePort.getIncomingEdges().add(incoming);
+                        reworkEdgeList.add(incoming);
                     }
                 }
+
+                for (ElkEdge edge : reworkEdgeList) {
+                    edge.getTargets().clear();
+                    edge.getTargets().add(bundlePort);
+                }
+
+                for (ElkEdge edge : removeEdgeList) {
+                    edge.getTargets().getFirst().getIncomingEdges().remove(edge);
+                    edge.getSources().getFirst().getOutgoingEdges().remove(edge);
+                    edge.getTargets().clear();
+                    edge.getSources().clear();
+                }
+
+                reworkEdgeList.clear();
+                removeEdgeList.clear();
 
                 currentPort.getIncomingEdges().clear();
 
                 for (ElkEdge outgoing : currentPort.getOutgoingEdges()) {
-                    needEdge = true;
 
                     if (outgoing.getTargets().isEmpty()) {
                         continue;
                     }
 
-                    for (ElkEdge edge : bundlePort.getOutgoingEdges()) {
-                        if (((ElkPort)edge.getTargets().getFirst()).getParent().equals(((ElkPort)outgoing.getTargets().getFirst()).getParent())) {
-                            needEdge = false;
+                    bundlePort.getOutgoingEdges().add(outgoing);
+                    reworkEdgeList.add(outgoing);
 
-                            // TODO remove
-                            System.out.println("bong");
+                }
 
-                            outgoing.getContainingNode().getContainedEdges().remove(outgoing);
-
-                            break;
-                        }
-                    }
-
-                    if (needEdge) {
-                        bundlePort.getOutgoingEdges().add(outgoing);
-                    }
+                for (ElkEdge edge : reworkEdgeList) {
+                    edge.getSources().clear();
+                    edge.getSources().add(bundlePort);
                 }
 
                 currentPort.getOutgoingEdges().clear();
