@@ -292,11 +292,6 @@ public class NetnameHandler {
 
             source = sourceNode.getSPort();
 
-            if (sink == null) {
-                System.out.println("oops");
-                return;
-            }
-
             if (source != null && source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && sink.getIncomingEdges().isEmpty()) {
                 createEdgeIfNotExists(source, sink);
             }
@@ -314,7 +309,7 @@ public class NetnameHandler {
         }
 
         // TODO remove commented part of condition
-        if (!sink.getParent().getParent().getParent().getIdentifier().equals("root") && highestUse(currentSignalNode) > 1) {
+        if (!sink.getParent().getParent().getParent().getIdentifier().equals("root")/* && sink.getIncomingEdges().isEmpty()*/) {
             // Create new port on western side of precursor (input)
             source = precursor.getSPort();
 
@@ -349,7 +344,6 @@ public class NetnameHandler {
         String possibleSourceBelow = getSourceBelow(precursor);
         if (!possibleSourceBelow.isEmpty()) {
             String[] possibleSourceBelowSplit = possibleSourceBelow.split(" ");
-
             routeSourceBelow(currentSignalTree, precursor, possibleSourceBelowSplit, 0);
 
             // Add final link
@@ -436,6 +430,27 @@ public class NetnameHandler {
             // create connecting edge
             ElkEdge newEdge = createSimpleEdge(source, sink);
         }
+    }
+
+    private void linkSignalNodes(SignalNode child, SignalNode parent) {
+        String key = "";
+
+        // create in-tree connection
+        child.setSParent(parent);
+
+        // get key for child
+        for (String candidate : child.getHParent().getHChildren().keySet()) {
+            if (child.getHParent().getHChildren().get(candidate).equals(child)) {
+                key = candidate;
+                break;
+            }
+        }
+
+        if (key.isEmpty()) {
+            System.out.println("hParent does not know its children. This should of course never happen");
+        }
+
+        parent.getSChildren().put(key, child);
     }
 
     private int highestUse(SignalNode currentSignalNode) {

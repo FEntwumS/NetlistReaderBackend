@@ -15,6 +15,7 @@ public class SignalNode {
     private boolean isSource;
     private ElkPort sPort;
     private int indexInSignal;
+    private String path;
 
     public SignalNode() {
         sName = "";
@@ -124,5 +125,25 @@ public class SignalNode {
 
     public void setIndexInSignal(int indexInSignal) {
         this.indexInSignal = indexInSignal;
+    }
+
+    public String getAbsolutePath() {
+        if (path != null) {
+            return path;
+        }
+
+        if (this.getHParent() != null) {
+            for (String candidate : this.getHParent().getHChildren().keySet()) {
+                if (this.getHParent().getHChildren().get(candidate).equals(this)) {
+                    String ret =  this.getHParent().getAbsolutePath() + " " + candidate;
+                    path = ret;
+
+                    return ret;
+                }
+            }
+
+            System.out.println("hParent " + this.getHParent().getSName() + " does not know its child " + this.getSName());
+        }
+        return "";
     }
 }

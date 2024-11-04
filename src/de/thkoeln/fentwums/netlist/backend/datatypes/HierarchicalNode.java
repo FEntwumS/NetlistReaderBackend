@@ -14,11 +14,13 @@ public class HierarchicalNode {
     private HashMap<String, HierarchicalNode> children;
     private boolean isLeaf;
     private ArrayList<Vector> vectors;
-    private ArrayList<Bundle> possibleBundles;
+    private HashMap<Integer, Bundle> possibleBundles;
     private ElkNode node;
     private HashMap<String, ElkNode> constantDrivers;
     private ArrayList<ElkNode> childList;
     private ArrayList<ElkEdge> edgeList;
+    private ArrayList<Integer> currentlyBundledSignals;
+    private String path;
 
     public HierarchicalNode() {
         hName = "";
@@ -27,13 +29,14 @@ public class HierarchicalNode {
         children = new HashMap<String, HierarchicalNode>(8);
         isLeaf = true;
         vectors = new ArrayList<>(8);
-        possibleBundles = new ArrayList<>(8);
+        possibleBundles = new HashMap<>(8);
         node = null;
         constantDrivers = new HashMap<>();
+        currentlyBundledSignals = new ArrayList<>(8);
     }
 
     public HierarchicalNode(String hName, HierarchicalNode parent, HashMap<String, HierarchicalNode> children,
-                            ArrayList<Vector> vectors, ArrayList<Bundle> possibleBundles, ElkNode node) {
+                            ArrayList<Vector> vectors, HashMap<Integer, Bundle> possibleBundles, ElkNode node) {
         this.hName = hName;
         this.parent = parent;
         this.children = children;
@@ -47,6 +50,8 @@ public class HierarchicalNode {
         if(parent != null) {
             parent.getChildren().put(hName, this);
         }
+
+        currentlyBundledSignals = new ArrayList<>(8);
     }
 
     public String getHName() {
@@ -97,11 +102,11 @@ public class HierarchicalNode {
         this.vectors = vectors;
     }
 
-    public ArrayList<Bundle> getPossibleBundles() {
+    public HashMap<Integer, Bundle> getPossibleBundles() {
         return possibleBundles;
     }
 
-    public void setPossibleBundles(ArrayList<Bundle> possibleBundles) {
+    public void setPossibleBundles(HashMap<Integer, Bundle> possibleBundles) {
         this.possibleBundles = possibleBundles;
     }
 
@@ -135,5 +140,34 @@ public class HierarchicalNode {
 
     public void setEdgeList(ArrayList<ElkEdge> edgeList) {
         this.edgeList = edgeList;
+    }
+
+    public ArrayList<Integer> getCurrentlyBundledSignals() {
+        return currentlyBundledSignals;
+    }
+
+    public void setCurrentlyBundledSignals(ArrayList<Integer> currentlyBundledSignals) {
+        this.currentlyBundledSignals = currentlyBundledSignals;
+    }
+
+    public String getAbsolutePath() {
+        if (path != null) {
+            return path;
+        }
+
+        if (this.getParent() != null) {
+            for (String candidate : this.getParent().getChildren().keySet()) {
+                if (this.getParent().getChildren().get(candidate).equals(this)) {
+                    String ret = this.getParent().getAbsolutePath() + " " + candidate;
+                    path = ret;
+
+                    return ret;
+                }
+            }
+
+            System.out.println("parent " + this.getParent().getHName() + " does not know its child " + this.getHName());
+            return "";
+        }
+        return this.getHName();
     }
 }
