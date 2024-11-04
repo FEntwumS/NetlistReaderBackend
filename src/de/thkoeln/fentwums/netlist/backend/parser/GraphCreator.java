@@ -44,7 +44,7 @@ public class GraphCreator {
     @SuppressWarnings("unchecked")
     public void createGraphFromNetlist(HashMap<String, Object> module, String modulename) {
         root.setIdentifier("root");
-        root.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
+        //root.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
         root.setProperty(LayeredOptions.SPACING_BASE_VALUE, 35d);   // TODO Look for better spacing solution
 
         if (root.getChildren().isEmpty()) {
