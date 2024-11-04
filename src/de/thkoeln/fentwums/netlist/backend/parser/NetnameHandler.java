@@ -33,6 +33,7 @@ public class NetnameHandler {
         HierarchicalNode currentHNode;
         Bundle newBundle;
         HashMap<Integer, Integer> cleanedBitMap;
+        HierarchicalNode childHNode;
 
         for (String currentNetName : netnames.keySet()) {
             currentNet = (HashMap<String, Object>) netnames.get(currentNetName);
@@ -47,7 +48,7 @@ public class NetnameHandler {
 
             // TODO find better solution
             //
-            // Ignore hdlname attribute for now until better mechanism to distiguish its validity is found
+            // Ignore hdlname attribute for now until better mechanism to distinguish its validity is found
             currentNetPath = formatter.format(currentNetName);
 
             currentNetPathSplit = currentNetPath.split(" ");
@@ -121,7 +122,16 @@ public class NetnameHandler {
                 if (bitList.size() - unusedBitsSplit.length > 1) {
                     newBundle = new Bundle((int) bit, cleanedBitMap);
 
-                    currentHNode.getPossibleBundles().add(newBundle);
+                    currentHNode.getPossibleBundles().put((int) bit, newBundle);
+
+                    // Add bundle to relevant child hNodes
+                    for (String key : currentHNode.getChildren().keySet()) {
+                        childHNode = currentHNode.getChildren().get(key);
+
+                        if (currentSignalTree.getNodeAt(childHNode.getAbsolutePath()) != null && childHNode.getChildren().isEmpty()) {
+                            childHNode.getPossibleBundles().put((int) bit, newBundle);
+                        }
+                    }
                 }
 
                 if (bitList.size() > 1) {
@@ -172,15 +182,16 @@ public class NetnameHandler {
     //
     // TODO check for loops or other nonsensical user-generated constructs
 
-    private void routeSource(SignalTree currentTree, SignalNode precursor) {
+    private void routeSource(SignalTree currentSignalTree, SignalNode precursor) {
         SignalNode currentNode = precursor.getHParent();
         ElkNode currentGraphNode;
         ElkPort sink, source;
         int currentSignalIndex;
         boolean needEdge = true;
+        String key = "";
 
         // dont create port, if currentnode is toplevel and no port exists
-        if (currentTree.getHRoot().getHChildren().containsValue(currentNode) && currentNode.getSPort() == null) {
+        if (currentSignalTree.getHRoot().getHChildren().containsValue(currentNode) && currentNode.getSPort() == null) {
             return;
         }
 
@@ -218,8 +229,11 @@ public class NetnameHandler {
             // create the connecting edge
             createEdgeIfNotExists(source, sink);
 
+            // update signal tree
+            linkSignalNodes(precursor, currentNode);
+
             // go up one layer
-            routeSource(currentTree, currentNode);
+            routeSource(currentSignalTree, currentNode);
         } else {
             return;
         }
@@ -283,6 +297,9 @@ public class NetnameHandler {
             if (source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)
                     && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
                 createEdgeIfNotExists(source, sink);
+
+                // update signal tree
+                linkSignalNodes(currentSignalNode, precursor);
             }
         }
 
@@ -294,6 +311,9 @@ public class NetnameHandler {
 
             if (source != null && source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && sink.getIncomingEdges().isEmpty()) {
                 createEdgeIfNotExists(source, sink);
+
+                // update signal tree
+                linkSignalNodes(currentSignalNode, sourceNode);
             }
         }
 
@@ -338,6 +358,9 @@ public class NetnameHandler {
             }
 
             createEdgeIfNotExists(source, sink);
+
+            // update signal tree
+            linkSignalNodes(currentSignalNode, precursor);
         }
 
         // Check if source is located in unmarked child
@@ -348,10 +371,14 @@ public class NetnameHandler {
 
             // Add final link
 
-            source = precursor.getHChildren().get(possibleSourceBelowSplit[0]).getSPort();
+            sourceNode = precursor.getHChildren().get(possibleSourceBelowSplit[0]);
+            source = sourceNode.getSPort();
 
             if (source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
                 createEdgeIfNotExists(source, sink);
+
+                // update signal tree
+                linkSignalNodes(currentSignalNode, sourceNode);
             }
         }
 
@@ -390,6 +417,8 @@ public class NetnameHandler {
                 return;
             }
             createEdgeIfNotExists(source, sink);
+
+            linkSignalNodes(child, precursor);
         }
     }
 
@@ -421,6 +450,10 @@ public class NetnameHandler {
             for (ElkConnectableShape target : edge.getTargets()) {
                 if (target.equals(sink)) {
                     needEdge = false;
+
+                    // TODO remove
+                    System.out.println("ding");
+
                     break;
                 }
             }

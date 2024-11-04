@@ -5,6 +5,7 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchyTree;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
 import de.thkoeln.fentwums.netlist.backend.helpers.CellCollapser;
 import de.thkoeln.fentwums.netlist.backend.helpers.OutputReverser;
+import de.thkoeln.fentwums.netlist.backend.helpers.SignalBundler;
 import org.eclipse.elk.alg.layered.options.LayeredOptions;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.graph.ElkLabel;
@@ -73,7 +74,7 @@ public class GraphCreator {
 
         ElkNode toplevel = root.getChildren().getFirst();
         HierarchyTree hierarchyTree = new HierarchyTree(new HierarchicalNode(toplevel.getIdentifier(), null,
-                new HashMap<>(), new ArrayList<>(), new ArrayList<>(), toplevel));
+                new HashMap<>(), new ArrayList<>(), new HashMap<>(), toplevel));
 
 
         PortHandler portHandler = new PortHandler();
@@ -92,6 +93,14 @@ public class GraphCreator {
         OutputReverser reverser = new OutputReverser();
 
         reverser.reversePorts(toplevel);
+
+        SignalBundler bundler = new SignalBundler();
+        bundler.setHierarchy(hierarchyTree);
+        bundler.setTreeMap(signalMap);
+
+        for (int key : signalMap.keySet()) {
+            bundler.bundleSignalWithId(key);
+        }
 
         CellCollapser collapser = new CellCollapser();
         collapser.setGroundTruth(toplevel);
@@ -115,6 +124,8 @@ public class GraphCreator {
 //        collapser.expandCellAt("neorv32_inst neorv32_uart0_inst_true");
 //        collapser.expandCellAt("neorv32_inst neorv32_uart0_inst_true neorv32_uart0_inst");
         //collapser.expandCellAt("ws2812_inst rtw as 9512");
+
+        collapser.expandCellAt("iceduino_button_inst");
     }
 
     public void checkModuleCompleteness(HashMap<String, Object> module) {
