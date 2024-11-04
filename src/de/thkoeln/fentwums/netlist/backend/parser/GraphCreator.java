@@ -10,10 +10,12 @@ import org.eclipse.elk.alg.layered.options.LayeredOptions;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.graph.ElkLabel;
 import org.eclipse.elk.graph.ElkNode;
+import org.eclipse.elk.graph.json.ElkGraphJson;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.TreeMap;
 
 import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
 
@@ -50,7 +52,7 @@ public class GraphCreator {
             toplevelNode.setIdentifier(modulename);
             ElkLabel toplevelLabel = createLabel(modulename,  toplevelNode);
             toplevelNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_ORDER);
-            toplevelNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
+            //toplevelNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
             toplevelNode.setProperty(CoreOptions.ALGORITHM, "layered");
             toplevelNode.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.allOf(SizeConstraint.class));
             toplevelNode.setProperty(CoreOptions.NODE_LABELS_PLACEMENT, EnumSet.of(NodeLabelPlacement.H_CENTER,
@@ -116,6 +118,8 @@ public class GraphCreator {
         collapser.expandCellAt("ws2812_inst");
         collapser.expandCellAt("ws2812_inst rtw");
         collapser.expandCellAt("ws2812_inst rtw as");
+        collapser.expandCellAt("ws2812_inst rtw ac");
+
 //        collapser.expandCellAt("neorv32_inst");
 //        collapser.expandCellAt("neorv32_inst neorv32_uart0_inst_true");
 //        collapser.expandCellAt("neorv32_inst neorv32_uart0_inst_true neorv32_uart0_inst");

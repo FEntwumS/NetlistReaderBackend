@@ -24,7 +24,7 @@ public class CellHandler {
         String currentCellPath;
         String[] currentCellPathSplit;
         HierarchicalNode currentHierarchyPosition;
-        String pathFragement;
+        String pathFragment;
         HashMap<String, Object> currentCellPortDirections;
         HashMap<String, Object> currentCellConnections;
         ArrayList<Object> currentCellConnectionDrivers;
@@ -41,15 +41,32 @@ public class CellHandler {
         HashMap<Integer, String> constantValues;
         HashMap<String, ElkNode> currentConstantNodes;
         int currentDriverIndex, maxSignals;
+        String addendum;
 
         for (String cellname : cells.keySet()) {
             side = PortSide.EAST;
             currentCell = (HashMap<String, Object>) cells.get(cellname);
             currentCellAttributes = (HashMap<String, Object>) currentCell.get("attributes");
 
+            if (cellname.startsWith("$flatten")) {
+                currentCellPathSplit = cellname.split("\\$");
+                addendum = " " + currentCellPathSplit[currentCellPathSplit.length - 1];
+            } else {
+                addendum = "";
+            }
+
+            if (currentCellAttributes.containsKey("hdlname")) {
+                currentCellPath = (String) currentCellAttributes.get("hdlname") + addendum;
+            } else if (currentCellAttributes.containsKey("scopename")) {
+                currentCellPath = (String) currentCellAttributes.get("scopename") + addendum;
+            } else {
+                currentCellPath = cellname;
+                //throw new RuntimeException("Cell contains neither hdlname nor scopename attribute. Aborting!");
+            }
+
             currentHierarchyPosition = hierarchyTree.getRoot();
 
-            currentCellPath = formatter.format(cellname);
+            currentCellPath = formatter.format(currentCellPath);
 
             currentCellPathSplit = currentCellPath.split(" ");
 
@@ -58,10 +75,10 @@ public class CellHandler {
             // if the split cell path only contains one element, the toplevel is the parent node
             if(currentCellPathSplit.length > 1) {
                 for (int i = 0; i < currentCellPathSplit.length - 1; i++) {
-                    pathFragement = currentCellPathSplit[i];
+                    pathFragment = currentCellPathSplit[i];
 
-                    if (currentHierarchyPosition.getChildren().containsKey(pathFragement)) {
-                        currentHierarchyPosition = currentHierarchyPosition.getChildren().get(pathFragement);
+                    if (currentHierarchyPosition.getChildren().containsKey(pathFragment)) {
+                        currentHierarchyPosition = currentHierarchyPosition.getChildren().get(pathFragment);
                     } else {
                         intermediateCellPath = new StringBuilder();
 
@@ -74,13 +91,13 @@ public class CellHandler {
                         ElkNode newElkNode = creator.createNewNode(currentHierarchyPosition.getNode(),
                                 intermediateCellPath.toString());
 
-                        ElkLabel newElkNodeLabel = creator.createNewLabel(pathFragement, newElkNode);
+                        ElkLabel newElkNodeLabel = creator.createNewLabel(pathFragment, newElkNode);
 
-                        HierarchicalNode newHierarchyNode = new HierarchicalNode(pathFragement,
+                        HierarchicalNode newHierarchyNode = new HierarchicalNode(pathFragment,
                                 currentHierarchyPosition, new HashMap<String, HierarchicalNode>(), new ArrayList<>(),
                                 new HashMap<>(), newElkNode);
 
-                        currentHierarchyPosition.getChildren().put(pathFragement, newHierarchyNode);
+                        currentHierarchyPosition.getChildren().put(pathFragment, newHierarchyNode);
 
                         currentHierarchyPosition = newHierarchyNode;
                     }

@@ -87,10 +87,6 @@ public class SignalBundler {
         ArrayList<ElkEdge> reworkEdgeList = new ArrayList<>(), removeEdgeList = new ArrayList<>();
 
         for (SignalNode currentNode : nodesToBundle) {
-            if (currentNode.getAbsolutePath().equals(" neorv32_iceduino_top iceduino_button_inst")) {
-                System.out.println("halt!");
-            }
-
             currentPort = currentNode.getSPort();
 
             if (currentPort == null) {
@@ -132,18 +128,12 @@ public class SignalBundler {
                     needEdge = true;
 
                     if (incoming.getSources().isEmpty()) {
-                        // TODO remove
-                        System.out.println("bam");
-
                         continue;
                     }
 
                     for (ElkEdge edge : bundlePort.getIncomingEdges()) {
                         if (((ElkPort) edge.getSources().getFirst()).getParent().equals(((ElkPort) incoming.getSources().getFirst()).getParent())) {
                             needEdge = false;
-
-                            // TODO remove
-                            System.out.println("bing");
 
                             incoming.getContainingNode().getContainedEdges().remove(incoming);
                             removeEdgeList.add(incoming);

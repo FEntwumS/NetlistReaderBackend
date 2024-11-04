@@ -40,16 +40,20 @@ public class NetnameHandler {
             currentNetAttributes = (HashMap<String, Object>) currentNet.get("attributes");
             currentBitIndex = 0;
 
-//            if (currentNetAttributes.containsKey("hdlname")) {
-//                currentNetPath = (String) currentNetAttributes.get("hdlname");
-//            } else {
-//                currentNetPath = formatter.format(currentNetName);
-//            }
+            if (currentNetAttributes.containsKey("hdlname")) {
+                currentNetPath = (String) currentNetAttributes.get("hdlname");
+            } else if (currentNetAttributes.containsKey("scopename")) {
+              currentNetPath = (String) currentNetAttributes.get("scopename");
+            } else {
+                currentNetPath = "";
+                //throw new RuntimeException("Net contains neither hdlname nor scopename attribute. Aborting");
+                //currentNetPath = formatter.format(currentNetName);
+            }
 
             // TODO find better solution
             //
             // Ignore hdlname attribute for now until better mechanism to distinguish its validity is found
-            currentNetPath = formatter.format(currentNetName);
+            currentNetPath = formatter.format(currentNetPath);
 
             currentNetPathSplit = currentNetPath.split(" ");
 
@@ -332,11 +336,15 @@ public class NetnameHandler {
             // Create new port on western side of precursor (input)
             source = precursor.getSPort();
 
+            if (sink.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST) {
+                return;
+            }
+
             if (source == null) {
                 for (String candidate : precursor.getHChildren().keySet()) {
                     SignalNode child = precursor.getHChildren().get(candidate);
 
-                    if (child.getIsSource()) {
+                    if (child.getSPort() != null && child.getSPort().getProperty(CoreOptions.PORT_SIDE) != PortSide.WEST) {
                         source = child.getSPort();
                     }
                 }
@@ -360,10 +368,6 @@ public class NetnameHandler {
 
                     precursor.setSPort(source);
                 }
-            }
-
-            if (sink.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST) {
-                return;
             }
 
             createEdgeIfNotExists(source, sink);
@@ -459,9 +463,6 @@ public class NetnameHandler {
             for (ElkConnectableShape target : edge.getTargets()) {
                 if (target.equals(sink)) {
                     needEdge = false;
-
-                    // TODO remove
-                    System.out.println("ding");
 
                     break;
                 }
