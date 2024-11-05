@@ -249,8 +249,10 @@ public class CellHandler {
                 if (!firstRange) {
                     if (cRangeEnd - 1 != cRangeStart) {
                         constantLabelBuilder.append(":").append(cRangeEnd - 1).append("]");
+                        creator.createNewLabel(constantLabelBuilder.toString(), newPort);
                     } else {
                         constantLabelBuilder.append("]");
+                        creator.createNewLabel(portname + " [" + cRangeStart + "]", newPort);
                     }
 
                     creator.createNewLabel(constantLabelBuilder.toString(), newPort);
@@ -314,13 +316,13 @@ public class CellHandler {
             constantLabelBuilder.append("]");
         }
 
-        creator.createNewLabel(constantLabelBuilder.toString(), newPort);
-        ElkLabel constantEdgeLabel;
         if (constantValues.keySet().size() > 1) {
-             constantEdgeLabel = createLabel(constantValueBuilder.toString(), constantEdge);
+            creator.createNewLabel(constantLabelBuilder.toString(), newPort);
         } else {
-            constantEdgeLabel = createLabel(portname, constantEdge);
+            creator.createNewLabel(portname, newPort);
         }
+        ElkLabel constantEdgeLabel;
+        constantEdgeLabel = createLabel(constantValueBuilder.toString(), constantEdge);
         constantEdgeLabel.setDimensions(constantEdgeLabel.getText().length() * 7 + 1, 10);
         constantEdgeLabel.setProperty(CoreOptions.EDGE_LABELS_PLACEMENT, EdgeLabelPlacement.HEAD);
     }
