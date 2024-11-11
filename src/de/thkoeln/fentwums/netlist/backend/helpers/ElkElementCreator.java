@@ -39,7 +39,7 @@ public class ElkElementCreator {
 
     public ElkLabel createNewLabel(String content, ElkGraphElement parent) {
         ElkLabel newLabel = createLabel(content, parent);
-        newLabel.setDimensions(content.length() * 6.5 + 1, 10);
+        newLabel.setDimensions(content.length() * 7 + 1, 10);
 
         return newLabel;
     }
@@ -47,7 +47,7 @@ public class ElkElementCreator {
     public ElkNode createNewConstantDriver(ElkNode parent) {
         ElkNode newNode = createNode(parent);
 
-        newNode.setDimensions(20, 20);
+        newNode.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.allOf(SizeConstraint.class));
         newNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_ORDER);
         newNode.setProperty(CoreOptions.NODE_LABELS_PLACEMENT,
                 EnumSet.of(NodeLabelPlacement.H_CENTER, NodeLabelPlacement.V_CENTER, NodeLabelPlacement.INSIDE));

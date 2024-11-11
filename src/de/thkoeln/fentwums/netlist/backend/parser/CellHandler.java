@@ -242,6 +242,7 @@ public class CellHandler {
         ElkPort constantNodePort;
         boolean firstRange = true;
         boolean needEdge;
+        int lastKey = 0;
 
         // Group constant drivers
         for (int key : constantValues.keySet()) {
@@ -249,8 +250,38 @@ public class CellHandler {
                 if (!firstRange) {
                     if (cRangeEnd - 1 != cRangeStart) {
                         constantLabelBuilder.append(":").append(cRangeEnd - 1).append("]");
+
+                        // create driver
+                        constantNode = creator.createNewConstantDriver(parent.getParent());
+
+                        constantNodeLabel = creator.createNewLabel(constantValueBuilder.toString(), constantNode);
+
+                        constantNodePort = creator.createNewPort(constantNode, side == PortSide.WEST ? PortSide.EAST :
+                                PortSide.WEST);
+
+                        // create edge
+                        constantEdge = creator.createNewEdge(newPort, constantNodePort);
                     } else {
                         constantLabelBuilder.append("]");
+
+                        // get driver, create if it does not exist yet
+                        constantNode = constNodes.get(constantValues.get(key));
+
+                        if (constantNode == null) {
+                            constantNode = creator.createNewConstantDriver(parent.getParent());
+
+                            constantNodeLabel = creator.createNewLabel((String) constantValues.get(key), constantNode);
+
+                            constantNodePort = creator.createNewPort(constantNode, side == PortSide.WEST ? PortSide.EAST :
+                                    PortSide.WEST);
+
+                            constNodes.put(constantValues.get(key), constantNode);
+                        } else {
+                            constantNodePort = constantNode.getPorts().getFirst();
+                        }
+
+                        // create edge
+                        constantEdge = creator.createNewEdge(newPort, constantNodePort);
                     }
 
                     creator.createNewLabel(constantLabelBuilder.toString(), newPort);
@@ -273,45 +304,44 @@ public class CellHandler {
 
             constantValueBuilder.insert(0, constantValues.get(key));
 
-            // get driver, create if it does not exist yet
-            constantNode = constNodes.get(constantValues.get(key));
-
-            if (constantNode == null) {
-                constantNode = creator.createNewConstantDriver(parent.getParent());
-
-                constantNodeLabel = creator.createNewLabel((String) constantValues.get(key), constantNode);
-
-                constantNodePort = creator.createNewPort(constantNode, side == PortSide.WEST ? PortSide.EAST :
-                        PortSide.WEST);
-
-                constNodes.put(constantValues.get(key), constantNode);
-            } else {
-                constantNodePort = constantNode.getPorts().getFirst();
-            }
-
-            // create edge, if it does not exist yet
-            needEdge = true;
-
-            for (ElkEdge edge : constantNodePort.getOutgoingEdges()) {
-                if (edge.getTargets().getFirst().equals(newPort)) {
-                    needEdge = false;
-                    constantEdge = edge;
-
-                    break;
-                }
-            }
-
-            if (needEdge) {
-                constantEdge = creator.createNewEdge(newPort, constantNodePort);
-            }
-
             cRangeEnd++;
+            lastKey = key;
         }
 
         if (cRangeEnd - 1 != cRangeStart) {
             constantLabelBuilder.append(":").append(cRangeEnd - 1).append("]");
+
+            // create driver
+            constantNode = creator.createNewConstantDriver(parent.getParent());
+
+            constantNodeLabel = creator.createNewLabel(constantValueBuilder.toString(), constantNode);
+
+            constantNodePort = creator.createNewPort(constantNode, side == PortSide.WEST ? PortSide.EAST :
+                    PortSide.WEST);
+
+            // create edge
+            constantEdge = creator.createNewEdge(newPort, constantNodePort);
         } else {
             constantLabelBuilder.append("]");
+
+            // get driver, create if it does not exist yet
+            constantNode = constNodes.get(constantValues.get(lastKey));
+
+            if (constantNode == null) {
+                constantNode = creator.createNewConstantDriver(parent.getParent());
+
+                constantNodeLabel = creator.createNewLabel((String) constantValues.get(lastKey), constantNode);
+
+                constantNodePort = creator.createNewPort(constantNode, side == PortSide.WEST ? PortSide.EAST :
+                        PortSide.WEST);
+
+                constNodes.put(constantValues.get(lastKey), constantNode);
+            } else {
+                constantNodePort = constantNode.getPorts().getFirst();
+            }
+
+            // create edge
+            constantEdge = creator.createNewEdge(newPort, constantNodePort);
         }
 
         if (constantValues.keySet().size() == 1) {
