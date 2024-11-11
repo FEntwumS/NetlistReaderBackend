@@ -314,13 +314,14 @@ public class CellHandler {
             constantLabelBuilder.append("]");
         }
 
-        creator.createNewLabel(constantLabelBuilder.toString(), newPort);
-        ElkLabel constantEdgeLabel;
-        if (constantValues.keySet().size() > 1) {
-             constantEdgeLabel = createLabel(constantValueBuilder.toString(), constantEdge);
+        if (constantValues.keySet().size() == 1) {
+            creator.createNewLabel(portname, newPort);
         } else {
-            constantEdgeLabel = createLabel(portname, constantEdge);
+            creator.createNewLabel(constantLabelBuilder.toString(), newPort);
         }
+        ElkLabel constantEdgeLabel;
+
+        constantEdgeLabel = createLabel(constantValueBuilder.toString(), constantEdge);
         constantEdgeLabel.setDimensions(constantEdgeLabel.getText().length() * 7 + 1, 10);
         constantEdgeLabel.setProperty(CoreOptions.EDGE_LABELS_PLACEMENT, EdgeLabelPlacement.HEAD);
     }
