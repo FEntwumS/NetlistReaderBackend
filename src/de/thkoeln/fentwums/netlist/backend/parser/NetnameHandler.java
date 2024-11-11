@@ -272,8 +272,22 @@ public class NetnameHandler {
 
         sink = currentSignalNode.getSPort();
 
+        // else source should be in same layer; search there for signal source (check port side)
+        for (String candidate : precursor.getHChildren().keySet()) {
+            sourceNode = precursor.getHChildren().get(candidate);
+
+            source = sourceNode.getSPort();
+
+            if (source != null && source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && sink.getIncomingEdges().isEmpty()) {
+                createEdgeIfNotExists(source, sink);
+
+                // update signal tree
+                linkSignalNodes(currentSignalNode, sourceNode);
+            }
+        }
+
         // check if signal came from parent, construct port as necessary
-        if (precursor.getHParent().getSVisited()) {
+        if (precursor.getHParent().getSVisited() && sink.getIncomingEdges().isEmpty()) {
             // check if precursor source port exists
             if (precursor.getSPort() == null) {
                 if (sink.getParent().getParent().getIdentifier().equals("root")) {
@@ -307,20 +321,6 @@ public class NetnameHandler {
             }
         }
 
-        // else source should be in same layer; search there for signal source (check port side)
-        for (String candidate : precursor.getHChildren().keySet()) {
-            sourceNode = precursor.getHChildren().get(candidate);
-
-            source = sourceNode.getSPort();
-
-            if (source != null && source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && sink.getIncomingEdges().isEmpty()) {
-                createEdgeIfNotExists(source, sink);
-
-                // update signal tree
-                linkSignalNodes(currentSignalNode, sourceNode);
-            }
-        }
-
         // Source could be somewhere in an unmarked parent
         // So continue upwards
         //
@@ -332,7 +332,7 @@ public class NetnameHandler {
             return;
         }
 
-        if (!sink.getParent().getParent().getParent().getIdentifier().equals("root") && higherUse(precursor)) {
+        if (!sink.getParent().getParent().getParent().getIdentifier().equals("root") && higherUse(precursor) && sink.getIncomingEdges().isEmpty()) {
             // Create new port on western side of precursor (input)
             source = precursor.getSPort();
 
