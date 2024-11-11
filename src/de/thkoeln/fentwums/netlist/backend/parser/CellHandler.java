@@ -271,7 +271,7 @@ public class CellHandler {
                 cRangeEnd = key;
             }
 
-            constantValueBuilder.append(constantValues.get(key));
+            constantValueBuilder.insert(0, constantValues.get(key));
 
             // get driver, create if it does not exist yet
             constantNode = constNodes.get(constantValues.get(key));
