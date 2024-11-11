@@ -125,7 +125,7 @@ public class GraphCreator {
 //        collapser.expandCellAt("neorv32_inst neorv32_uart0_inst_true neorv32_uart0_inst");
         //collapser.expandCellAt("ws2812_inst rtw as 9512");
 
-//        collapser.expandCellAt("iceduino_button_inst");
+        collapser.expandCellAt("iceduino_button_inst");
     }
 
     public void checkModuleCompleteness(HashMap<String, Object> module) {

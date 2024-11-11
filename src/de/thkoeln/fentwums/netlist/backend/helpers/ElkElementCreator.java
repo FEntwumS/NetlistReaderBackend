@@ -39,7 +39,7 @@ public class ElkElementCreator {
 
     public ElkLabel createNewLabel(String content, ElkGraphElement parent) {
         ElkLabel newLabel = createLabel(content, parent);
-        newLabel.setDimensions(content.length() * 7 + 1, 10);
+        newLabel.setDimensions(content.length() * 8.25 + 1, 10);
 
         return newLabel;
     }
