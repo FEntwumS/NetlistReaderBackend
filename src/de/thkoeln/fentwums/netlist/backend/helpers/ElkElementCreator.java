@@ -19,6 +19,7 @@ public class ElkElementCreator {
                 NodeLabelPlacement.V_TOP, NodeLabelPlacement.OUTSIDE));
         newNode.setProperty(CoreOptions.PORT_LABELS_PLACEMENT,
                 EnumSet.of(PortLabelPlacement.INSIDE));
+        newNode.setProperty(CoreOptions.SPACING_LABEL_PORT_HORIZONTAL, 3.0d);
 
         return newNode;
     }
@@ -51,6 +52,7 @@ public class ElkElementCreator {
         newNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_ORDER);
         newNode.setProperty(CoreOptions.NODE_LABELS_PLACEMENT,
                 EnumSet.of(NodeLabelPlacement.H_CENTER, NodeLabelPlacement.V_CENTER, NodeLabelPlacement.INSIDE));
+        newNode.setProperty(CoreOptions.SPACING_LABEL_PORT_HORIZONTAL, 3.0d);
 
         return newNode;
     }
