@@ -245,6 +245,8 @@ public class NetnameHandler {
             if (newEdge != null) {
                 newEdge.setProperty(FEntwumSOptions.SRC_LOCATION, precursor.getSrcLocation());
                 newEdge.setProperty(FEntwumSOptions.LOCATION_PATH, precursor.getAbsolutePath());
+                newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, precursor.getSName());
+                newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, precursor.getIndexInSignal());
             }
 
             // update signal tree
