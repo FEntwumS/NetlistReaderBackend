@@ -4,6 +4,7 @@ import org.eclipse.elk.core.data.ILayoutMetaDataProvider;
 import org.eclipse.elk.core.data.LayoutOptionData;
 import org.eclipse.elk.graph.properties.IProperty;
 import org.eclipse.elk.graph.properties.Property;
+import org.eclipse.emf.ecore.ENamedElement;
 
 import java.util.EnumSet;
 
@@ -51,6 +52,11 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
     public static final IProperty<Integer> INDEX_IN_SIGNAL = new Property<Integer>(
             "de.thkoeln.fentwums.netlist.backend.index-in-signal",
             0
+    );
+
+    public static final IProperty<SignalType> SIGNAL_TYPE = new Property<SignalType>(
+            "de.thkoeln.fentwums.netlist.backend.signaltype",
+            SignalType.UNDEFINED
     );
 
     @Override
@@ -140,6 +146,16 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
                 .defaultValue(0)
                 .type(LayoutOptionData.Type.INT)
                 .optionClass(Integer.class)
+                .targets(EnumSet.of(LayoutOptionData.Target.EDGES))
+                .visibility(LayoutOptionData.Visibility.VISIBLE)
+                .create()
+        );
+
+        registry.register(new LayoutOptionData.Builder()
+                .id("de.thkoeln.fentwums.netlist.backend.signaltype")
+                .defaultValue(SignalType.UNDEFINED)
+                .type(LayoutOptionData.Type.ENUM)
+                .optionClass(SignalType.class)
                 .targets(EnumSet.of(LayoutOptionData.Target.EDGES))
                 .visibility(LayoutOptionData.Visibility.VISIBLE)
                 .create()
