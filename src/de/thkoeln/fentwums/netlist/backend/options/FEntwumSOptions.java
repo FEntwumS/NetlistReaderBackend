@@ -48,6 +48,11 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
             ""
     );
 
+    public static final IProperty<Integer> INDEX_IN_SIGNAL = new Property<Integer>(
+            "de.thkoeln.fentwums.netlist.backend.index-in-signal",
+            0
+    );
+
     @Override
     public void apply(Registry registry) {
         registry.register(new LayoutOptionData.Builder()
@@ -125,6 +130,16 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
                 .defaultValue("")
                 .type(LayoutOptionData.Type.STRING)
                 .optionClass(String.class)
+                .targets(EnumSet.of(LayoutOptionData.Target.EDGES))
+                .visibility(LayoutOptionData.Visibility.VISIBLE)
+                .create()
+        );
+
+        registry.register(new LayoutOptionData.Builder()
+                .id("de.thkoeln.fentwums.netlist.backend.index-in-signal")
+                .defaultValue(0)
+                .type(LayoutOptionData.Type.INT)
+                .optionClass(Integer.class)
                 .targets(EnumSet.of(LayoutOptionData.Target.EDGES))
                 .visibility(LayoutOptionData.Visibility.VISIBLE)
                 .create()

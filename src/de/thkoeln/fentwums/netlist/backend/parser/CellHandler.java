@@ -3,6 +3,7 @@ package de.thkoeln.fentwums.netlist.backend.parser;
 import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import de.thkoeln.fentwums.netlist.backend.helpers.CellPathFormatter;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
+import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.graph.*;
 
@@ -14,11 +15,11 @@ import java.util.HashMap;
 import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
 
 public class CellHandler {
-    public CellHandler() {}
+    public CellHandler() {
+    }
 
     @SuppressWarnings("unchecked")
-    public void createCells(HashMap<String, Object> cells, String modulename, ElkNode toplevel,
-                            HashMap<Integer, SignalTree> signalMap, HierarchyTree hierarchyTree) {
+    public void createCells(HashMap<String, Object> cells, String modulename, ElkNode toplevel, HashMap<Integer, SignalTree> signalMap, HierarchyTree hierarchyTree) {
         HashMap<String, Object> currentCell;
         HashMap<String, Object> currentCellAttributes;
         String currentCellPath;
@@ -42,6 +43,8 @@ public class CellHandler {
         HashMap<String, ElkNode> currentConstantNodes;
         int currentDriverIndex, maxSignals;
         String addendum;
+        String celltype;
+        String srcLocation = "";
 
         for (String cellname : cells.keySet()) {
             side = PortSide.EAST;
@@ -73,7 +76,7 @@ public class CellHandler {
             // find parent node in hierarchy
             // create it, if it doesn't yet exist
             // if the split cell path only contains one element, the toplevel is the parent node
-            if(currentCellPathSplit.length > 1) {
+            if (currentCellPathSplit.length > 1) {
                 for (int i = 0; i < currentCellPathSplit.length - 1; i++) {
                     pathFragment = currentCellPathSplit[i];
 
@@ -88,14 +91,13 @@ public class CellHandler {
                             intermediateCellPath.append(" ").append(currentCellPathSplit[j]);
                         }
 
-                        ElkNode newElkNode = creator.createNewNode(currentHierarchyPosition.getNode(),
-                                intermediateCellPath.toString());
+                        ElkNode newElkNode = creator.createNewNode(currentHierarchyPosition.getNode(), intermediateCellPath.toString());
+
+                        newElkNode.setProperty(FEntwumSOptions.LOCATION_PATH, intermediateCellPath.toString());
 
                         ElkLabel newElkNodeLabel = creator.createNewLabel(pathFragment, newElkNode);
 
-                        HierarchicalNode newHierarchyNode = new HierarchicalNode(pathFragment,
-                                currentHierarchyPosition, new HashMap<String, HierarchicalNode>(), new ArrayList<>(),
-                                new HashMap<>(), newElkNode);
+                        HierarchicalNode newHierarchyNode = new HierarchicalNode(pathFragment, currentHierarchyPosition, new HashMap<String, HierarchicalNode>(), new ArrayList<>(), new HashMap<>(), newElkNode);
 
                         currentHierarchyPosition.getChildren().put(pathFragment, newHierarchyNode);
 
@@ -106,17 +108,25 @@ public class CellHandler {
 
             currentConstantNodes = currentHierarchyPosition.getConstantDrivers();
 
+            celltype = ((String) currentCell.get("type")).replaceAll("\\$", "");
+
+            if(currentCellAttributes.containsKey("src")) {
+                srcLocation = (String) currentCellAttributes.get("src");
+            }
+
             // now that the hierarchy has been created, the actual cells can be constructed
 
             ElkNode newCellNode = creator.createNewNode(currentHierarchyPosition.getNode(), currentCellPath);
 
-            ElkLabel newCellNodeLabel = creator.createNewLabel(((String) currentCell.get("type")).replaceAll("\\$",
-                    ""), newCellNode);
+            newCellNode.setProperty(FEntwumSOptions.CELL_NAME, currentCellPathSplit[currentCellPathSplit.length - 1]);
+            newCellNode.setProperty(FEntwumSOptions.CELL_TYPE, celltype);
+            newCellNode.setProperty(FEntwumSOptions.LOCATION_PATH, currentCellPath);
+            newCellNode.setProperty(FEntwumSOptions.SRC_LOCATION, srcLocation);
+
+            ElkLabel newCellNodeLabel = creator.createNewLabel(celltype, newCellNode);
 
             // update hierarchy to include the new node
-            newHNode = new HierarchicalNode(currentCellPathSplit[currentCellPathSplit.length - 1],
-                    currentHierarchyPosition, new HashMap<String, HierarchicalNode>(), new ArrayList<Vector>(),
-                    new HashMap<Integer, Bundle>(), newCellNode);
+            newHNode = new HierarchicalNode(currentCellPathSplit[currentCellPathSplit.length - 1], currentHierarchyPosition, new HashMap<String, HierarchicalNode>(), new ArrayList<Vector>(), new HashMap<Integer, Bundle>(), newCellNode);
 
             // Create node ports
 
@@ -126,14 +136,14 @@ public class CellHandler {
             // get max number of signals
             maxSignals = 0;
 
-            for (String portname: currentCellPortDirections.keySet()) {
+            for (String portname : currentCellPortDirections.keySet()) {
                 if (((ArrayList<Object>) currentCellConnections.get(portname)).size() > maxSignals) {
                     maxSignals = ((ArrayList<Object>) currentCellConnections.get(portname)).size();
                 }
             }
 
             currentDriverIndex = 0;
-            for (String portname: currentCellPortDirections.keySet()) {
+            for (String portname : currentCellPortDirections.keySet()) {
                 currentPortDriverIndex = 0;
                 constantValues = new HashMap<Integer, String>();
 
@@ -152,15 +162,12 @@ public class CellHandler {
 
                 currentCellConnectionDrivers = (ArrayList<Object>) currentCellConnections.get(portname);
 
-                for(Object driver: currentCellConnectionDrivers) {
-                    if(driver instanceof Integer) {
+                for (Object driver : currentCellConnectionDrivers) {
+                    if (driver instanceof Integer) {
                         ElkPort cellPort = creator.createNewPort(newCellNode, side);
-                        cellPort.setProperty(CoreOptions.PORT_INDEX,
-                                currentDriverIndex * maxSignals + currentPortDriverIndex);
+                        cellPort.setProperty(CoreOptions.PORT_INDEX, currentDriverIndex * maxSignals + currentPortDriverIndex);
 
-                        ElkLabel cellPortLabel =
-                                creator.createNewLabel(portname + (currentCellConnectionDrivers.size() == 1 ? "" :
-                                        " [" + currentPortDriverIndex + "]"), cellPort);
+                        ElkLabel cellPortLabel = creator.createNewLabel(portname + (currentCellConnectionDrivers.size() == 1 ? "" : " [" + currentPortDriverIndex + "]"), cellPort);
 
                         cellPort.setIdentifier(currentCellPathSplit[currentCellPathSplit.length - 1] + (int) driver);
 
@@ -170,19 +177,15 @@ public class CellHandler {
                             currentSignalTree = new SignalTree();
                             currentSignalTree.setSId((int) driver);
 
-                            SignalNode rootNode = new SignalNode("root", null, new HashMap<String, SignalNode>(), null,
-                                    new HashMap<String, SignalNode>(), new HashMap<String, SignalNode>(), false, null);
+                            SignalNode rootNode = new SignalNode("root", null, new HashMap<String, SignalNode>(), null, new HashMap<String, SignalNode>(), new HashMap<String, SignalNode>(), false, null);
 
                             currentSignalTree.setHRoot(rootNode);
 
-                            SignalNode toplevelNode = new SignalNode(modulename, rootNode, new HashMap<String, SignalNode>(), null,
-                                    new HashMap<String, SignalNode>(), new HashMap<String, SignalNode>(), false, null);
+                            SignalNode toplevelNode = new SignalNode(modulename, rootNode, new HashMap<String, SignalNode>(), null, new HashMap<String, SignalNode>(), new HashMap<String, SignalNode>(), false, null);
 
                             signalMap.put((int) driver, currentSignalTree);
                         }
-                        updateSignalTree(currentSignalTree, currentCellPathSplit, modulename,
-                                cellPort.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST,
-                                cellPort, portname, currentPortDriverIndex);
+                        updateSignalTree(currentSignalTree, currentCellPathSplit, modulename, cellPort.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST, cellPort, portname, currentPortDriverIndex);
                     } else {
                         constantValues.put(currentPortDriverIndex, (String) driver);
                     }
@@ -191,8 +194,7 @@ public class CellHandler {
                 }
 
                 if (!constantValues.keySet().isEmpty()) {
-                    createConstantSignals(newCellNode, currentConstantNodes, constantValues, side, portname,
-                            currentDriverIndex, maxSignals);
+                    createConstantSignals(newCellNode, currentConstantNodes, constantValues, side, portname, currentDriverIndex, maxSignals);
                 }
 
                 currentDriverIndex++;
@@ -200,11 +202,10 @@ public class CellHandler {
         }
     }
 
-    public void updateSignalTree(SignalTree signalTree, String[] hierarchyPath, String modulename, boolean isSource,
-                                 ElkPort sPort, String portname, int index) {
+    public void updateSignalTree(SignalTree signalTree, String[] hierarchyPath, String modulename, boolean isSource, ElkPort sPort, String portname, int index) {
         SignalNode currentNode = signalTree.getHRoot().getHChildren().get(modulename);
 
-        for (String fragment: hierarchyPath) {
+        for (String fragment : hierarchyPath) {
             if (currentNode.getHChildren().containsKey(fragment)) {
                 currentNode = currentNode.getHChildren().get(fragment);
             } else {
@@ -228,9 +229,7 @@ public class CellHandler {
         return new SignalNode(nodename, parent, new HashMap(), null, new HashMap(), new HashMap(), false, sPort);
     }
 
-    private void createConstantSignals(ElkNode parent, HashMap<String, ElkNode> constNodes,
-                                       HashMap<Integer, String> constantValues, PortSide side, String portname,
-                                       int driverIndex, int maxSignalIndex) {
+    private void createConstantSignals(ElkNode parent, HashMap<String, ElkNode> constNodes, HashMap<Integer, String> constantValues, PortSide side, String portname, int driverIndex, int maxSignalIndex) {
         ElkElementCreator creator = new ElkElementCreator();
         int cRangeStart = -2, cRangeEnd = cRangeStart;
         StringBuilder constantValueBuilder = new StringBuilder();
@@ -256,8 +255,7 @@ public class CellHandler {
 
                         constantNodeLabel = creator.createNewLabel(constantValueBuilder.toString(), constantNode);
 
-                        constantNodePort = creator.createNewPort(constantNode, side == PortSide.WEST ? PortSide.EAST :
-                                PortSide.WEST);
+                        constantNodePort = creator.createNewPort(constantNode, side == PortSide.WEST ? PortSide.EAST : PortSide.WEST);
 
                         // create edge
                         constantEdge = creator.createNewEdge(newPort, constantNodePort);
@@ -272,8 +270,7 @@ public class CellHandler {
 
                             constantNodeLabel = creator.createNewLabel((String) constantValues.get(key), constantNode);
 
-                            constantNodePort = creator.createNewPort(constantNode, side == PortSide.WEST ? PortSide.EAST :
-                                    PortSide.WEST);
+                            constantNodePort = creator.createNewPort(constantNode, side == PortSide.WEST ? PortSide.EAST : PortSide.WEST);
 
                             constNodes.put(constantValues.get(key), constantNode);
                         } else {
@@ -316,8 +313,7 @@ public class CellHandler {
 
             constantNodeLabel = creator.createNewLabel(constantValueBuilder.toString(), constantNode);
 
-            constantNodePort = creator.createNewPort(constantNode, side == PortSide.WEST ? PortSide.EAST :
-                    PortSide.WEST);
+            constantNodePort = creator.createNewPort(constantNode, side == PortSide.WEST ? PortSide.EAST : PortSide.WEST);
 
             // create edge
             constantEdge = creator.createNewEdge(newPort, constantNodePort);
@@ -332,8 +328,7 @@ public class CellHandler {
 
                 constantNodeLabel = creator.createNewLabel((String) constantValues.get(lastKey), constantNode);
 
-                constantNodePort = creator.createNewPort(constantNode, side == PortSide.WEST ? PortSide.EAST :
-                        PortSide.WEST);
+                constantNodePort = creator.createNewPort(constantNode, side == PortSide.WEST ? PortSide.EAST : PortSide.WEST);
 
                 constNodes.put(constantValues.get(lastKey), constantNode);
             } else {

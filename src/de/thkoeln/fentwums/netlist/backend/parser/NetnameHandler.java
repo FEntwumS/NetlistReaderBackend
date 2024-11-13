@@ -2,6 +2,7 @@ package de.thkoeln.fentwums.netlist.backend.parser;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import de.thkoeln.fentwums.netlist.backend.helpers.CellPathFormatter;
+import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.PortSide;
 import org.eclipse.elk.graph.*;
@@ -34,6 +35,7 @@ public class NetnameHandler {
         Bundle newBundle;
         HashMap<Integer, Integer> cleanedBitMap;
         HierarchicalNode childHNode;
+        String srcLocation = "";
 
         for (String currentNetName : netnames.keySet()) {
             currentNet = (HashMap<String, Object>) netnames.get(currentNetName);
@@ -71,6 +73,8 @@ public class NetnameHandler {
             cleanedBitMap = new HashMap<Integer, Integer>(bitList.size());
 
             for (Object bit : bitList) {
+                srcLocation = "";
+
                 if (bit instanceof String) {
                     currentBitIndex++;
                     continue;   // Constant drivers cant be routed using the signal tree
@@ -120,6 +124,11 @@ public class NetnameHandler {
                     continue;
                 }
 
+                if (currentNetAttributes.containsKey("src")) {
+                    srcLocation = (String) currentNetAttributes.get("src");
+                }
+
+                currentSignalNode.setSrcLocation(srcLocation);
                 currentSignalNode.setSVisited(true);
                 currentSignalNode.setSName(currentNetPathSplit[currentNetPathSplit.length - 1]);
 
@@ -231,7 +240,12 @@ public class NetnameHandler {
             }
 
             // create the connecting edge
-            createEdgeIfNotExists(source, sink);
+            ElkEdge newEdge = createEdgeIfNotExists(source, sink);
+
+            if (newEdge != null) {
+                newEdge.setProperty(FEntwumSOptions.SRC_LOCATION, precursor.getSrcLocation());
+                newEdge.setProperty(FEntwumSOptions.LOCATION_PATH, precursor.getAbsolutePath());
+            }
 
             // update signal tree
             linkSignalNodes(precursor, currentNode);
@@ -279,7 +293,14 @@ public class NetnameHandler {
             source = sourceNode.getSPort();
 
             if (source != null && source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && sink.getIncomingEdges().isEmpty()) {
-                createEdgeIfNotExists(source, sink);
+                ElkEdge newEdge = createEdgeIfNotExists(source, sink);
+
+                if (newEdge != null) {
+                    newEdge.setProperty(FEntwumSOptions.SRC_LOCATION, sourceNode.getSrcLocation());
+                    newEdge.setProperty(FEntwumSOptions.LOCATION_PATH, sourceNode.getAbsolutePath());
+                    newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, sourceNode.getIndexInSignal());
+                    newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, sourceNode.getSName());
+                }
 
                 // update signal tree
                 linkSignalNodes(currentSignalNode, sourceNode);
@@ -314,7 +335,14 @@ public class NetnameHandler {
 
             if (source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)
                     && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
-                createEdgeIfNotExists(source, sink);
+                ElkEdge newEdge = createEdgeIfNotExists(source, sink);
+
+                if (newEdge != null) {
+                    newEdge.setProperty(FEntwumSOptions.SRC_LOCATION, precursor.getSrcLocation());
+                    newEdge.setProperty(FEntwumSOptions.LOCATION_PATH, precursor.getAbsolutePath());
+                    newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, precursor.getIndexInSignal());
+                    newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, precursor.getSName());
+                }
 
                 // update signal tree
                 linkSignalNodes(currentSignalNode, precursor);
@@ -333,16 +361,17 @@ public class NetnameHandler {
         }
 
         if (!sink.getParent().getParent().getParent().getIdentifier().equals("root") && higherUse(precursor) && sink.getIncomingEdges().isEmpty()) {
-            // Create new port on western side of precursor (input)
             source = precursor.getSPort();
 
             if (sink.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST) {
                 return;
             }
 
+            SignalNode child = null;
+
             if (source == null) {
                 for (String candidate : precursor.getHChildren().keySet()) {
-                    SignalNode child = precursor.getHChildren().get(candidate);
+                    child = precursor.getHChildren().get(candidate);
 
                     if (child.getSPort() != null && child.getSPort().getProperty(CoreOptions.PORT_SIDE) != PortSide.WEST) {
                         source = child.getSPort();
@@ -370,7 +399,21 @@ public class NetnameHandler {
                 }
             }
 
-            createEdgeIfNotExists(source, sink);
+            ElkEdge newEdge = createEdgeIfNotExists(source, sink);
+
+            if (newEdge != null) {
+                if (child != null) {
+                    newEdge.setProperty(FEntwumSOptions.SRC_LOCATION, child.getSrcLocation());
+                    newEdge.setProperty(FEntwumSOptions.LOCATION_PATH, child.getAbsolutePath());
+                    newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, child.getIndexInSignal());
+                    newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, child.getSName());
+                } else {
+                    newEdge.setProperty(FEntwumSOptions.SRC_LOCATION, precursor.getSrcLocation());
+                    newEdge.setProperty(FEntwumSOptions.LOCATION_PATH, precursor.getAbsolutePath());
+                    newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, precursor.getIndexInSignal());
+                    newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, precursor.getSName());
+                }
+            }
 
             // update signal tree
             linkSignalNodes(currentSignalNode, precursor);
@@ -388,7 +431,14 @@ public class NetnameHandler {
             source = sourceNode.getSPort();
 
             if (source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
-                createEdgeIfNotExists(source, sink);
+                ElkEdge newEdge = createEdgeIfNotExists(source, sink);
+
+                if (newEdge != null) {
+                    newEdge.setProperty(FEntwumSOptions.SRC_LOCATION, sourceNode.getSrcLocation());
+                    newEdge.setProperty(FEntwumSOptions.LOCATION_PATH, sourceNode.getAbsolutePath());
+                    newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, sourceNode.getIndexInSignal());
+                    newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, sourceNode.getSName());
+                }
 
                 // update signal tree
                 linkSignalNodes(currentSignalNode, sourceNode);
@@ -429,7 +479,14 @@ public class NetnameHandler {
             if (sink.getProperty(CoreOptions.PORT_SIDE) == PortSide.WEST) {
                 return;
             }
-            createEdgeIfNotExists(source, sink);
+            ElkEdge newEdge = createEdgeIfNotExists(source, sink);
+
+            if (newEdge != null) {
+                newEdge.setProperty(FEntwumSOptions.SRC_LOCATION, child.getSrcLocation());
+                newEdge.setProperty(FEntwumSOptions.LOCATION_PATH, child.getAbsolutePath());
+                newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, child.getIndexInSignal());
+                newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, child.getSName());
+            }
 
             linkSignalNodes(child, precursor);
         }
@@ -456,23 +513,19 @@ public class NetnameHandler {
         return "";
     }
 
-    private void createEdgeIfNotExists(ElkPort source, ElkPort sink) {
-        boolean needEdge = true;
-
+    private ElkEdge createEdgeIfNotExists(ElkPort source, ElkPort sink) {
         for (ElkEdge edge : source.getOutgoingEdges()) {
             for (ElkConnectableShape target : edge.getTargets()) {
                 if (target.equals(sink)) {
-                    needEdge = false;
-
-                    break;
+                    return null;
                 }
             }
         }
 
-        if (needEdge) {
-            // create connecting edge
-            ElkEdge newEdge = createSimpleEdge(source, sink);
-        }
+        // create connecting edge
+        ElkEdge newEdge = createSimpleEdge(source, sink);
+
+        return newEdge;
     }
 
     private void linkSignalNodes(SignalNode child, SignalNode parent) {

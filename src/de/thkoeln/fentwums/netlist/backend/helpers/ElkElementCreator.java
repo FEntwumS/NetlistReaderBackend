@@ -1,7 +1,6 @@
 package de.thkoeln.fentwums.netlist.backend.helpers;
 
 import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
-import de.thkoeln.fentwums.netlist.backend.options.SignalIndexProperty;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.graph.*;
 
@@ -28,7 +27,6 @@ public class ElkElementCreator {
 
     public ElkEdge createNewEdge(ElkConnectableShape sink, ElkConnectableShape source) {
         ElkEdge newEdge = createSimpleEdge(source, sink);
-        newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, "test");
 
         return newEdge;
     }
@@ -56,6 +54,7 @@ public class ElkElementCreator {
         newNode.setProperty(CoreOptions.NODE_LABELS_PLACEMENT,
                 EnumSet.of(NodeLabelPlacement.H_CENTER, NodeLabelPlacement.V_CENTER, NodeLabelPlacement.INSIDE));
         newNode.setProperty(CoreOptions.SPACING_LABEL_PORT_HORIZONTAL, 3.0d);
+        newNode.setProperty(FEntwumSOptions.CELL_TYPE, "Constant driver");
 
         return newNode;
     }

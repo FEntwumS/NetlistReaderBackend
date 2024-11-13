@@ -16,6 +16,7 @@ public class SignalNode {
     private ElkPort sPort;
     private int indexInSignal;
     private String path;
+    private String srcLocation;
 
     public SignalNode() {
         sName = "";
@@ -145,5 +146,13 @@ public class SignalNode {
             System.out.println("hParent " + this.getHParent().getSName() + " does not know its child " + this.getSName());
         }
         return "";
+    }
+
+    public void setSrcLocation(String srcLocation) {
+        this.srcLocation = srcLocation;
+    }
+
+    public String getSrcLocation() {
+        return srcLocation;
     }
 }
