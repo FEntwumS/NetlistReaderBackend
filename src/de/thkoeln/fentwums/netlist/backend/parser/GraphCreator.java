@@ -6,7 +6,9 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
 import de.thkoeln.fentwums.netlist.backend.helpers.CellCollapser;
 import de.thkoeln.fentwums.netlist.backend.helpers.OutputReverser;
 import de.thkoeln.fentwums.netlist.backend.helpers.SignalBundler;
+import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
 import org.eclipse.elk.alg.layered.options.LayeredOptions;
+import org.eclipse.elk.core.data.LayoutMetaDataService;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.graph.ElkLabel;
 import org.eclipse.elk.graph.ElkNode;
@@ -43,6 +45,9 @@ public class GraphCreator {
 
     @SuppressWarnings("unchecked")
     public void createGraphFromNetlist(HashMap<String, Object> module, String modulename) {
+        LayoutMetaDataService service = LayoutMetaDataService.getInstance();
+        service.registerLayoutMetaDataProviders(new FEntwumSOptions());
+
         root.setIdentifier("root");
         //root.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
         root.setProperty(LayeredOptions.SPACING_BASE_VALUE, 35d);   // TODO Look for better spacing solution
