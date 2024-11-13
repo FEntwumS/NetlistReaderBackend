@@ -2,6 +2,8 @@ package de.thkoeln.fentwums.netlist.backend.parser;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalNode;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
+import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
+import de.thkoeln.fentwums.netlist.backend.options.SignalType;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.EdgeLabelPlacement;
 import org.eclipse.elk.core.options.NodeLabelPlacement;
@@ -113,6 +115,9 @@ public class PortHandler {
                     }
 
                     ElkEdge constantEdge = createSimpleEdge(source, sink);
+
+                    constantEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.CONSTANT);
+
                     ElkLabel constantLabel =  createLabel((String) driver, constantEdge);
                     constantLabel.setDimensions(constantLabel.getText().length() * 7 + 1, 10);
                     constantLabel.setProperty(CoreOptions.EDGE_LABELS_PLACEMENT, EdgeLabelPlacement.TAIL);

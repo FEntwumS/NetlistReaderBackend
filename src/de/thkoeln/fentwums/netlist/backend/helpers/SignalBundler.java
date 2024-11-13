@@ -1,6 +1,8 @@
 package de.thkoeln.fentwums.netlist.backend.helpers;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.*;
+import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
+import de.thkoeln.fentwums.netlist.backend.options.SignalType;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.PortSide;
 import org.eclipse.elk.graph.ElkEdge;
@@ -138,11 +140,15 @@ public class SignalBundler {
                             incoming.getContainingNode().getContainedEdges().remove(incoming);
                             removeEdgeList.add(incoming);
 
+                            edge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
+
                             //break;
                         }
                     }
 
                     if (needEdge) {
+
+
                         bundlePort.getIncomingEdges().add(incoming);
                         reworkEdgeList.add(incoming);
                     }

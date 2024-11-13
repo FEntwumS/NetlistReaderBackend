@@ -2,6 +2,7 @@ package de.thkoeln.fentwums.netlist.backend.parser;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import de.thkoeln.fentwums.netlist.backend.helpers.CellPathFormatter;
+import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
 import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.PortSide;
@@ -524,8 +525,10 @@ public class NetnameHandler {
             }
         }
 
+        ElkElementCreator creator = new ElkElementCreator();
+
         // create connecting edge
-        ElkEdge newEdge = createSimpleEdge(source, sink);
+        ElkEdge newEdge = creator.createNewEdge(sink, source);
 
         return newEdge;
     }

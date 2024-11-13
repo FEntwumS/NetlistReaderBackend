@@ -4,6 +4,7 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import de.thkoeln.fentwums.netlist.backend.helpers.CellPathFormatter;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
 import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
+import de.thkoeln.fentwums.netlist.backend.options.SignalType;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.graph.*;
 
@@ -281,6 +282,8 @@ public class CellHandler {
                         constantEdge = creator.createNewEdge(newPort, constantNodePort);
                     }
 
+                    constantEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.CONSTANT);
+
                     creator.createNewLabel(constantLabelBuilder.toString(), newPort);
                     ElkLabel constantEdgeLabel = createLabel(constantValueBuilder.toString(), constantEdge);
                     constantEdgeLabel.setDimensions(constantEdgeLabel.getText().length() * 7 + 1, 10);
@@ -338,6 +341,8 @@ public class CellHandler {
             // create edge
             constantEdge = creator.createNewEdge(newPort, constantNodePort);
         }
+
+        constantEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.CONSTANT);
 
         if (constantValues.keySet().size() == 1) {
             creator.createNewLabel(portname, newPort);

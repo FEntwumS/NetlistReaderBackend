@@ -1,6 +1,7 @@
 package de.thkoeln.fentwums.netlist.backend.helpers;
 
 import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
+import de.thkoeln.fentwums.netlist.backend.options.SignalType;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.graph.*;
 
@@ -27,6 +28,9 @@ public class ElkElementCreator {
 
     public ElkEdge createNewEdge(ElkConnectableShape sink, ElkConnectableShape source) {
         ElkEdge newEdge = createSimpleEdge(source, sink);
+
+        // Every signal is single by default
+        newEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.SINGLE);
 
         return newEdge;
     }
