@@ -260,6 +260,7 @@ public class CellHandler {
 
                         // create edge
                         constantEdge = creator.createNewEdge(newPort, constantNodePort);
+                        constantEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED_CONSTANT);
                     } else {
                         constantLabelBuilder.append("]");
 
@@ -280,9 +281,8 @@ public class CellHandler {
 
                         // create edge
                         constantEdge = creator.createNewEdge(newPort, constantNodePort);
+                        constantEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.CONSTANT);
                     }
-
-                    constantEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.CONSTANT);
 
                     creator.createNewLabel(constantLabelBuilder.toString(), newPort);
                     ElkLabel constantEdgeLabel = createLabel(constantValueBuilder.toString(), constantEdge);
@@ -320,6 +320,7 @@ public class CellHandler {
 
             // create edge
             constantEdge = creator.createNewEdge(newPort, constantNodePort);
+            constantEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED_CONSTANT);
         } else {
             constantLabelBuilder.append("]");
 
@@ -340,9 +341,8 @@ public class CellHandler {
 
             // create edge
             constantEdge = creator.createNewEdge(newPort, constantNodePort);
+            constantEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.CONSTANT);
         }
-
-        constantEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.CONSTANT);
 
         if (constantValues.keySet().size() == 1) {
             creator.createNewLabel(portname, newPort);

@@ -116,9 +116,9 @@ public class GraphCreator {
         collapser.collapseAllCells();
         collapser.expandAllCells();
 
-        for (String child : hierarchyTree.getRoot().getChildren().keySet()) {
-            collapser.collapseRecursively(hierarchyTree.getRoot().getChildren().get(child));
-        }
+//        for (String child : hierarchyTree.getRoot().getChildren().keySet()) {
+//            collapser.collapseRecursively(hierarchyTree.getRoot().getChildren().get(child));
+//        }
 
         collapser.expandCellAt("ws2812_inst");
         collapser.expandCellAt("ws2812_inst rtw");

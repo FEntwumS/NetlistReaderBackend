@@ -525,6 +525,10 @@ public class NetnameHandler {
             }
         }
 
+        if (source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST) && sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
+            System.out.println("Oops!");
+        }
+
         ElkElementCreator creator = new ElkElementCreator();
 
         // create connecting edge

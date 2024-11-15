@@ -22,6 +22,8 @@ public class ElkElementCreator {
         newNode.setProperty(CoreOptions.PORT_LABELS_PLACEMENT,
                 EnumSet.of(PortLabelPlacement.INSIDE));
         newNode.setProperty(CoreOptions.SPACING_LABEL_PORT_HORIZONTAL, 3.0d);
+        newNode.setProperty(CoreOptions.SPACING_EDGE_LABEL, 3.0d);
+        newNode.setProperty(CoreOptions.SPACING_LABEL_NODE, 4.0d);
 
         return newNode;
     }
@@ -44,8 +46,12 @@ public class ElkElementCreator {
     }
 
     public ElkLabel createNewLabel(String content, ElkGraphElement parent) {
+        if (parent.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)) {
+            content += " ";
+        }
+
         ElkLabel newLabel = createLabel(content, parent);
-        newLabel.setDimensions(content.length() * 8.25 + 1, 10);
+        newLabel.setDimensions(content.length() * 7 + 1, 10);
 
         return newLabel;
     }

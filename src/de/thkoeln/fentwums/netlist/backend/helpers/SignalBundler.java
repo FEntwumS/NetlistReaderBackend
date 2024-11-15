@@ -91,6 +91,10 @@ public class SignalBundler {
         for (SignalNode currentNode : nodesToBundle) {
             currentPort = currentNode.getSPort();
 
+            if (currentNode.getSrcLocation() != null && currentNode.getSrcLocation().equals("../../../neorv32/rtl/core/neorv32_cpu_control.vhd:1614:5")) {
+                System.out.println("Gotcha?");
+            }
+
             if (currentPort == null) {
                 continue;
             }
