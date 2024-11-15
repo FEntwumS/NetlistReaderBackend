@@ -245,8 +245,9 @@ public class SignalBundler {
 
             currentPortLabel = currentPort.getLabels().getFirst();
 
-            currentPortLabel.setText(signalName);
-            currentPortLabel.setDimensions(signalName.length() * 7 + 1, 10);
+            currentPort.getLabels().remove(currentPortLabel);
+
+            currentPortLabel = creator.createNewLabel(signalName, currentPort);
         }
     }
 
