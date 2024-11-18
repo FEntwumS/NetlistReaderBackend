@@ -111,7 +111,11 @@ public class SignalBundler {
 
                     currentInfo = new BundlingInformation(currentPort, signalName, new ArrayList<>());
 
+                    currentInfo.containedSignals().add(currentIndexInSignal);
+
                     bundlePortMap.get(containingNode).put(currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME), currentInfo);
+
+                    continue;
                 }
 
                 currentInfo.containedSignals().add(currentIndexInSignal);
@@ -151,6 +155,8 @@ public class SignalBundler {
                 for (ElkEdge edge : reworkEdgeList) {
                     edge.getTargets().clear();
                     edge.getTargets().add(bundlePort);
+
+                    currentPort.getIncomingEdges().remove(edge);
                 }
 
                 for (ElkEdge edge : removeEdgeList) {
@@ -158,21 +164,14 @@ public class SignalBundler {
                     edge.getSources().getFirst().getOutgoingEdges().remove(edge);
                     edge.getTargets().clear();
                     edge.getSources().clear();
+
+                    currentPort.getIncomingEdges().remove(edge);
                 }
 
                 reworkEdgeList.clear();
                 removeEdgeList.clear();
 
-                currentPort.getIncomingEdges().clear();
-
-//                if (!currentPort.getProperty(CoreOptions.PORT_SIDE).equals(bundlePort.getProperty(CoreOptions.PORT_SIDE))) {
-//                    if (outgoingBundlePortMap.containsKey(containingNode)) {
-//                        bundlePort = outgoingBundlePortMap.get(containingNode);
-//                    } else {
-//                        bundlePort = currentPort;
-//                        outgoingBundlePortMap.put(containingNode, currentPort);
-//                    }
-//                }
+                // currentPort.getIncomingEdges().clear();
 
                 for (ElkEdge outgoing : currentPort.getOutgoingEdges()) {
 
@@ -226,6 +225,11 @@ public class SignalBundler {
                 signalRange = new StringBuilder("[");
 
                 currentSignalRange.sort(Integer::compareTo);    // Very important
+
+                // Only one signal was Bundled in the given port group, therefore its label does not need to be updated
+                if (currentSignalRange.size() == 1) {
+                    continue;
+                }
 
                 int cRangeStart = currentSignalRange.getFirst(), cRangeEnd = currentSignalRange.getFirst(), cVal = 0;
 
