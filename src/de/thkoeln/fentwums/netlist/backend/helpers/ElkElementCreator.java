@@ -41,6 +41,7 @@ public class ElkElementCreator {
         ElkPort newPort = createPort(parent);
         newPort.setDimensions(10, 10);
         newPort.setProperty(CoreOptions.PORT_SIDE, side);
+        newPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, "A");
 
         return newPort;
     }

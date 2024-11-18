@@ -5,6 +5,7 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchyTree;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
 import de.thkoeln.fentwums.netlist.backend.helpers.CellCollapser;
 import de.thkoeln.fentwums.netlist.backend.helpers.OutputReverser;
+import de.thkoeln.fentwums.netlist.backend.helpers.SanityChecker;
 import de.thkoeln.fentwums.netlist.backend.helpers.SignalBundler;
 import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
 import org.eclipse.elk.alg.layered.options.LayeredOptions;
@@ -108,6 +109,10 @@ public class GraphCreator {
         for (int key : signalMap.keySet()) {
             bundler.bundleSignalWithId(key);
         }
+
+        SanityChecker checker = new SanityChecker();
+
+        checker.checkGraph(root);
 
         CellCollapser collapser = new CellCollapser();
         collapser.setGroundTruth(toplevel);

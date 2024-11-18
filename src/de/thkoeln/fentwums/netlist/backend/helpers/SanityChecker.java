@@ -49,7 +49,7 @@ public class SanityChecker {
             return;
         }
 
-        if (edge.getSources().getFirst().getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST) && edge.getTargets().getFirst().getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
+        if (edge.getSources().getFirst().getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST) && !edge.getTargets().getFirst().getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)) {
             System.out.println("Edge " + edge + " goes from target to source");
         }
     }

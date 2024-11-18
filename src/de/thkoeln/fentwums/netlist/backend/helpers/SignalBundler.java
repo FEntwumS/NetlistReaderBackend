@@ -74,7 +74,7 @@ public class SignalBundler {
     }
 
     private void bundlePorts(ArrayList<SignalNode> nodesToBundle) {
-        HashMap<ElkNode, ElkPort> bundlePortMap = new HashMap<>();
+        HashMap<ElkNode, ElkPort> incomingBundlePortMap = new HashMap<>(), outgoingBundlePortMap = new HashMap<>();
         HashMap<ElkNode, ArrayList<Integer>> indexRangeMap = new HashMap<>();
         HashMap<ElkNode, String> signalNameMap = new HashMap<>();
         ArrayList<Integer> currentSignalRange;
@@ -87,13 +87,12 @@ public class SignalBundler {
         ElkLabel currentPortLabel;
         boolean needEdge;
         ArrayList<ElkEdge> reworkEdgeList = new ArrayList<>(), removeEdgeList = new ArrayList<>();
+        HashMap<ElkNode, HashMap<String, ElkPort>> bundlePortMap = new HashMap<>();
+
+        ElkElementCreator creator = new ElkElementCreator();
 
         for (SignalNode currentNode : nodesToBundle) {
             currentPort = currentNode.getSPort();
-
-            if (currentNode.getSrcLocation() != null && currentNode.getSrcLocation().equals("../../../neorv32/rtl/core/neorv32_cpu_control.vhd:1614:5")) {
-                System.out.println("Gotcha?");
-            }
 
             if (currentPort == null) {
                 continue;
@@ -123,10 +122,16 @@ public class SignalBundler {
             }
 
             if (bundlePortMap.containsKey(containingNode)) {
-                bundlePort = bundlePortMap.get(containingNode);
+                if (bundlePortMap.get(containingNode).containsKey(currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME))) {
+                    bundlePort = bundlePortMap.get(containingNode).get(currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
+                } else {
+                    bundlePort = currentPort;
+                    bundlePortMap.get(containingNode).put(currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME), currentPort);
+                }
 
                 reworkEdgeList.clear();
                 removeEdgeList.clear();
+
 
                 // transfer edges to the bundle port
 
@@ -151,8 +156,6 @@ public class SignalBundler {
                     }
 
                     if (needEdge) {
-
-
                         bundlePort.getIncomingEdges().add(incoming);
                         reworkEdgeList.add(incoming);
                     }
@@ -175,6 +178,15 @@ public class SignalBundler {
 
                 currentPort.getIncomingEdges().clear();
 
+                if (!currentPort.getProperty(CoreOptions.PORT_SIDE).equals(bundlePort.getProperty(CoreOptions.PORT_SIDE))) {
+                    if (outgoingBundlePortMap.containsKey(containingNode)) {
+                        bundlePort = outgoingBundlePortMap.get(containingNode);
+                    } else {
+                        bundlePort = currentPort;
+                        outgoingBundlePortMap.put(containingNode, currentPort);
+                    }
+                }
+
                 for (ElkEdge outgoing : currentPort.getOutgoingEdges()) {
 
                     if (outgoing.getTargets().isEmpty()) {
@@ -187,27 +199,35 @@ public class SignalBundler {
                 }
 
                 for (ElkEdge edge : reworkEdgeList) {
+
                     edge.getSources().clear();
                     edge.getSources().add(bundlePort);
+
+                    if (!currentPort.equals(bundlePort)) {
+                        currentPort.getOutgoingEdges().remove(edge);
+                    }
                 }
 
-                currentPort.getOutgoingEdges().clear();
-
                 // Now remove the evaluated port from its parent element
-                currentPort.getParent().getPorts().remove(currentPort);
+                if (currentPort.getIncomingEdges().isEmpty() && currentPort.getOutgoingEdges().isEmpty() && !currentPort.equals(bundlePort)) {
+                    currentPort.getParent().getPorts().remove(currentPort);
+                }
             } else {
                 // add new entry
-                bundlePortMap.put(containingNode, currentPort);
+                bundlePortMap.put(containingNode, new HashMap<>());
+
+                bundlePortMap.get(containingNode).put(currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME), currentPort);
 
                 bundlePort = currentPort;
             }
 
+            // TODO rework
             currentNode.setSPort(bundlePort);
         }
 
         // now update labels
-        for (ElkNode key : indexRangeMap.keySet()) {
-            currentPort = bundlePortMap.get(key);
+        for (ElkNode key : incomingBundlePortMap.keySet()) {
+            currentPort = incomingBundlePortMap.get(key);
             currentSignalRange = indexRangeMap.get(key);
             signalName = signalNameMap.get(key);
             signalRange = new StringBuilder("[");
@@ -222,7 +242,7 @@ public class SignalBundler {
 
                     signalRange.append(cRangeStart);
 
-                    if(cRangeStart != cRangeEnd) {
+                    if (cRangeStart != cRangeEnd) {
                         signalRange.append(":").append(cRangeEnd);
                     }
 
@@ -286,5 +306,16 @@ public class SignalBundler {
 
     public void setHierarchy(HierarchyTree hierarchy) {
         this.hierarchy = hierarchy;
+    }
+
+    private boolean isRootReachable(ElkNode node) {
+        if (node.getIdentifier().equals("root")) {
+            return true;
+        }
+        if (node.getParent() == null) {
+            return false;
+        }
+
+        return isRootReachable(node.getParent());
     }
 }
