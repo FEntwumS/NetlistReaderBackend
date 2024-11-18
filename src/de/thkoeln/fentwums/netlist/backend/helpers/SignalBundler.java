@@ -74,9 +74,6 @@ public class SignalBundler {
     }
 
     private void bundlePorts(ArrayList<SignalNode> nodesToBundle) {
-        HashMap<ElkNode, ElkPort> incomingBundlePortMap = new HashMap<>(), outgoingBundlePortMap = new HashMap<>();
-        HashMap<ElkNode, ArrayList<Integer>> indexRangeMap = new HashMap<>();
-        HashMap<ElkNode, String> signalNameMap = new HashMap<>();
         ArrayList<Integer> currentSignalRange;
         ElkPort currentPort, bundlePort;
         ElkNode containingNode;
@@ -87,7 +84,8 @@ public class SignalBundler {
         ElkLabel currentPortLabel;
         boolean needEdge;
         ArrayList<ElkEdge> reworkEdgeList = new ArrayList<>(), removeEdgeList = new ArrayList<>();
-        HashMap<ElkNode, HashMap<String, ElkPort>> bundlePortMap = new HashMap<>();
+        HashMap<ElkNode, HashMap<String, BundlingInformation>> bundlePortMap = new HashMap<>();
+        BundlingInformation currentInfo;
 
         ElkElementCreator creator = new ElkElementCreator();
 
@@ -104,30 +102,19 @@ public class SignalBundler {
             // check if the node this port is attached to already has a bundle port
             containingNode = currentPort.getParent();
 
-            // add in-vector index
-            if (indexRangeMap.containsKey(containingNode)) {
-                currentSignalRange = indexRangeMap.get(containingNode);
-
-                currentSignalRange.add(currentIndexInSignal);
-            } else {
-                currentSignalRange = new ArrayList<>();
-
-                currentSignalRange.add(currentIndexInSignal);
-
-                indexRangeMap.put(containingNode, currentSignalRange);
-            }
-
-            if (!signalNameMap.containsKey(containingNode)) {
-                signalNameMap.put(containingNode, signalName);
-            }
-
             if (bundlePortMap.containsKey(containingNode)) {
                 if (bundlePortMap.get(containingNode).containsKey(currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME))) {
-                    bundlePort = bundlePortMap.get(containingNode).get(currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
+                    currentInfo = bundlePortMap.get(containingNode).get(currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
+                    bundlePort = currentInfo.port();
                 } else {
                     bundlePort = currentPort;
-                    bundlePortMap.get(containingNode).put(currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME), currentPort);
+
+                    currentInfo = new BundlingInformation(currentPort, signalName, new ArrayList<>());
+
+                    bundlePortMap.get(containingNode).put(currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME), currentInfo);
                 }
+
+                currentInfo.containedSignals().add(currentIndexInSignal);
 
                 reworkEdgeList.clear();
                 removeEdgeList.clear();
@@ -178,14 +165,14 @@ public class SignalBundler {
 
                 currentPort.getIncomingEdges().clear();
 
-                if (!currentPort.getProperty(CoreOptions.PORT_SIDE).equals(bundlePort.getProperty(CoreOptions.PORT_SIDE))) {
-                    if (outgoingBundlePortMap.containsKey(containingNode)) {
-                        bundlePort = outgoingBundlePortMap.get(containingNode);
-                    } else {
-                        bundlePort = currentPort;
-                        outgoingBundlePortMap.put(containingNode, currentPort);
-                    }
-                }
+//                if (!currentPort.getProperty(CoreOptions.PORT_SIDE).equals(bundlePort.getProperty(CoreOptions.PORT_SIDE))) {
+//                    if (outgoingBundlePortMap.containsKey(containingNode)) {
+//                        bundlePort = outgoingBundlePortMap.get(containingNode);
+//                    } else {
+//                        bundlePort = currentPort;
+//                        outgoingBundlePortMap.put(containingNode, currentPort);
+//                    }
+//                }
 
                 for (ElkEdge outgoing : currentPort.getOutgoingEdges()) {
 
@@ -216,7 +203,10 @@ public class SignalBundler {
                 // add new entry
                 bundlePortMap.put(containingNode, new HashMap<>());
 
-                bundlePortMap.get(containingNode).put(currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME), currentPort);
+                currentInfo = new BundlingInformation(currentPort, signalName, new ArrayList<>());
+                currentInfo.containedSignals().add(currentIndexInSignal);
+
+                bundlePortMap.get(containingNode).put(currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME), currentInfo);
 
                 bundlePort = currentPort;
             }
@@ -226,48 +216,52 @@ public class SignalBundler {
         }
 
         // now update labels
-        for (ElkNode key : incomingBundlePortMap.keySet()) {
-            currentPort = incomingBundlePortMap.get(key);
-            currentSignalRange = indexRangeMap.get(key);
-            signalName = signalNameMap.get(key);
-            signalRange = new StringBuilder("[");
+        for (ElkNode key : bundlePortMap.keySet()) {
+            for (String portgroup : bundlePortMap.get(key).keySet()) {
+                currentInfo = bundlePortMap.get(key).get(portgroup);
 
-            currentSignalRange.sort(Integer::compareTo);    // Very important
+                currentPort = currentInfo.port();
+                currentSignalRange = currentInfo.containedSignals();
+                signalName = currentInfo.signalName();
+                signalRange = new StringBuilder("[");
 
-            int cRangeStart = currentSignalRange.getFirst(), cRangeEnd = currentSignalRange.getFirst(), cVal = 0;
+                currentSignalRange.sort(Integer::compareTo);    // Very important
 
-            for (int value : currentSignalRange) {
-                if (value - cRangeEnd > 1) {
-                    // skip, therefore start new range
+                int cRangeStart = currentSignalRange.getFirst(), cRangeEnd = currentSignalRange.getFirst(), cVal = 0;
 
-                    signalRange.append(cRangeStart);
+                for (int value : currentSignalRange) {
+                    if (value - cRangeEnd > 1) {
+                        // skip, therefore start new range
 
-                    if (cRangeStart != cRangeEnd) {
-                        signalRange.append(":").append(cRangeEnd);
+                        signalRange.append(cRangeStart);
+
+                        if (cRangeStart != cRangeEnd) {
+                            signalRange.append(":").append(cRangeEnd);
+                        }
+
+                        signalRange.append(separator + " ");
+                        cRangeStart = value;
                     }
-
-                    signalRange.append(separator + " ");
-                    cRangeStart = value;
+                    cRangeEnd = value;
                 }
-                cRangeEnd = value;
+
+                // add last part of range
+                signalRange.append(cRangeStart);
+
+                if (cRangeStart != cRangeEnd) {
+                    signalRange.append(':').append(cRangeEnd);
+                }
+
+                signalRange.append(']');
+
+                signalName += " " + signalRange;
+
+                currentPortLabel = currentPort.getLabels().getFirst();
+
+                currentPort.getLabels().remove(currentPortLabel);
+
+                currentPortLabel = creator.createNewLabel(signalName, currentPort);
             }
-
-            // add last part of range
-            signalRange.append(cRangeStart);
-
-            if (cRangeStart != cRangeEnd) {
-                signalRange.append(':').append(cRangeEnd);
-            }
-
-            signalRange.append(']');
-
-            signalName += " " + signalRange;
-
-            currentPortLabel = currentPort.getLabels().getFirst();
-
-            currentPort.getLabels().remove(currentPortLabel);
-
-            currentPortLabel = creator.createNewLabel(signalName, currentPort);
         }
     }
 
