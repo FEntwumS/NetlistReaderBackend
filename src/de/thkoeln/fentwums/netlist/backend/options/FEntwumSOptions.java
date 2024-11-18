@@ -59,6 +59,11 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
             SignalType.UNDEFINED
     );
 
+    public static final IProperty<String> PORT_GROUP_NAME = new Property<String>(
+            "de.thkoeln.fentwums.netlist.backend.port-group-name",
+            ""
+    );
+
     @Override
     public void apply(Registry registry) {
         registry.register(new LayoutOptionData.Builder()
@@ -158,6 +163,16 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
                 .optionClass(SignalType.class)
                 .targets(EnumSet.of(LayoutOptionData.Target.EDGES))
                 .visibility(LayoutOptionData.Visibility.VISIBLE)
+                .create()
+        );
+
+        registry.register(new LayoutOptionData.Builder()
+                .id("de.thkoeln.fentwums.netlist.backend.port-group-name")
+                .defaultValue("")
+                .type(LayoutOptionData.Type.STRING)
+                .optionClass(String.class)
+                .targets(EnumSet.of(LayoutOptionData.Target.PORTS))
+                .visibility(LayoutOptionData.Visibility.HIDDEN)
                 .create()
         );
     }
