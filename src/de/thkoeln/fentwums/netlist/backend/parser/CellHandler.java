@@ -167,6 +167,7 @@ public class CellHandler {
                     if (driver instanceof Integer) {
                         ElkPort cellPort = creator.createNewPort(newCellNode, side);
                         cellPort.setProperty(CoreOptions.PORT_INDEX, currentDriverIndex * maxSignals + currentPortDriverIndex);
+                        cellPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portname);
 
                         ElkLabel cellPortLabel = creator.createNewLabel(portname + (currentCellConnectionDrivers.size() == 1 ? "" : " [" + currentPortDriverIndex + "]"), cellPort);
 
