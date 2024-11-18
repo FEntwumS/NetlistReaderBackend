@@ -229,6 +229,9 @@ public class NetnameHandler {
                 sink.setDimensions(10, 10);
                 sink.setProperty(CoreOptions.PORT_SIDE, PortSide.EAST);
 
+                // Propagate port group indication to created ports
+                sink.setProperty(FEntwumSOptions.PORT_GROUP_NAME, source.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
+
                 currentNode.setSPort(sink);
 
                 currentSignalIndex = currentNode.getIndexInSignal();
@@ -323,6 +326,7 @@ public class NetnameHandler {
                 source = createPort(sink.getParent().getParent());
                 source.setDimensions(10, 10);
                 source.setProperty(CoreOptions.PORT_SIDE, PortSide.WEST);
+                source.setProperty(FEntwumSOptions.PORT_GROUP_NAME, sink.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
 
                 currentSignalIndex = precursor.getIndexInSignal();
 
@@ -385,6 +389,7 @@ public class NetnameHandler {
                     source = createPort(sink.getParent().getParent());
                     source.setDimensions(10, 10);
                     source.setProperty(CoreOptions.PORT_SIDE, PortSide.WEST);
+                    source.setProperty(FEntwumSOptions.PORT_GROUP_NAME, sink.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
 
                     currentSignalIndex = precursor.getIndexInSignal();
 
@@ -472,6 +477,7 @@ public class NetnameHandler {
                 sink = createPort(source.getParent().getParent());
                 sink.setDimensions(10, 10);
                 sink.setProperty(CoreOptions.PORT_SIDE, PortSide.EAST);
+                sink.setProperty(FEntwumSOptions.PORT_GROUP_NAME, source.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
 
                 precursor.setSPort(sink);
 
