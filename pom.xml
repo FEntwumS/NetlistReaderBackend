@@ -1,0 +1,70 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+        
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>fentwums.th-koeln.de</groupId>
+    <artifactId>fentwums-parent</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>fentwums-netlist-reader-service</module>
+    </modules>
+
+    <properties>
+        <!-- Definieren von Properties -->
+        <java.version>11</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+
+        <!-- Dpendencies Properties -->
+        <dependency.version.eclipse.elk>0.9.1</dependency.version.eclipse.elk>
+        <dependency.version.fasterxml.jackson>2.18.1</dependency.version.fasterxml.jackson>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.eclipse.elk</groupId>
+                <artifactId>org.eclipse.elk.core</artifactId>
+                <version>${dependency.version.eclipse.elk}</version>
+            </dependency>
+        
+            <!-- https://mvnrepository.com/artifact/org.eclipse.elk/org.eclipse.elk.alg.layered -->
+            <dependency>
+                <groupId>org.eclipse.elk</groupId>
+                <artifactId>org.eclipse.elk.alg.layered</artifactId>
+                <version>${dependency.version.eclipse.elk}</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${dependency.version.fasterxml.jackson}</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${dependency.version.fasterxml.jackson}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version> <!-- Oder eine aktuelle Version -->
+                <configuration>
+                    <source>8</source> <!-- Oder 11, 17 etc., je nach Bedarf -->
+                    <target>8</target> <!-- Oder 11, 17 etc., je nach Bedarf -->
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
