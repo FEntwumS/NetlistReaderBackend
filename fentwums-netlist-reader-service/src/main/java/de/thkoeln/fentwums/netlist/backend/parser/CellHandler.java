@@ -286,8 +286,7 @@ public class CellHandler {
                     }
 
                     creator.createNewLabel(constantLabelBuilder.toString(), newPort);
-                    ElkLabel constantEdgeLabel = createLabel(constantValueBuilder.toString(), constantEdge);
-                    constantEdgeLabel.setDimensions(constantEdgeLabel.getText().length() * 7 + 1, 10);
+                    ElkLabel constantEdgeLabel = creator.createNewLabel(constantValueBuilder.toString(), constantEdge);
                     constantEdgeLabel.setProperty(CoreOptions.EDGE_LABELS_PLACEMENT, EdgeLabelPlacement.HEAD);
                 }
 
@@ -352,8 +351,7 @@ public class CellHandler {
         }
         ElkLabel constantEdgeLabel;
 
-        constantEdgeLabel = createLabel(constantValueBuilder.toString(), constantEdge);
-        constantEdgeLabel.setDimensions(constantEdgeLabel.getText().length() * 7 + 1, 10);
+        constantEdgeLabel = creator.createNewLabel(constantValueBuilder.toString(), constantEdge);
         constantEdgeLabel.setProperty(CoreOptions.EDGE_LABELS_PLACEMENT, EdgeLabelPlacement.HEAD);
     }
 }
