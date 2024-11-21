@@ -6,6 +6,7 @@ import org.eclipse.elk.graph.properties.IProperty;
 import org.eclipse.elk.graph.properties.Property;
 import org.eclipse.emf.ecore.ENamedElement;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
 
 public class FEntwumSOptions implements ILayoutMetaDataProvider {
@@ -62,6 +63,11 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
     public static final IProperty<String> PORT_GROUP_NAME = new Property<String>(
             "de.thkoeln.fentwums.netlist.backend.port-group-name",
             ""
+    );
+
+    public static final IProperty<ArrayList<Integer>> BUNDLED_SIGNALS = new Property<ArrayList<Integer>>(
+            "de.thkoeln.fentwums.netlist.backend.bundled-signals",
+            null
     );
 
     @Override
@@ -173,6 +179,16 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
                 .optionClass(String.class)
                 .targets(EnumSet.of(LayoutOptionData.Target.PORTS))
                 .visibility(LayoutOptionData.Visibility.HIDDEN)
+                .create()
+        );
+
+        registry.register(new LayoutOptionData.Builder()
+                .id("de.thkoeln.fentwums.netlist.backend.bundled-signals")
+                .defaultValue(null)
+                .type(LayoutOptionData.Type.OBJECT)
+                .optionClass(ArrayList.class)
+                .targets(EnumSet.of(LayoutOptionData.Target.PORTS))
+                .visibility(LayoutOptionData.Visibility.VISIBLE)
                 .create()
         );
     }

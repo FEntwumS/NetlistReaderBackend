@@ -231,6 +231,8 @@ public class SignalBundler {
                     continue;
                 }
 
+                currentPort.setProperty(FEntwumSOptions.BUNDLED_SIGNALS, currentSignalRange);
+
                 int cRangeStart = currentSignalRange.getFirst(), cRangeEnd = currentSignalRange.getFirst(), cVal = 0;
 
                 for (int value : currentSignalRange) {
