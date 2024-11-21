@@ -38,7 +38,7 @@ public class NetlistParser {
     }
 
     public NetlistParser(String netlistFilePath) {
-        netlistFile = new File(netlistFilePath);
+        netlistFile = new File(getClass().getResource(netlistFilePath).getFile());
         mapper = new ObjectMapper();
         typeRef = new TypeReference<HashMap<String, Object>>() {};
         readNetlist = null;

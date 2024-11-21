@@ -18,7 +18,7 @@ import java.time.Instant;
 public class Main {
     public static void main(String[] args) throws IOException, ExecutionControl.NotImplementedException {
         GraphCreator graphCreator = new GraphCreator();
-        NetlistParser parser = new NetlistParser("src/optimal-info2.json");
+        NetlistParser parser = new NetlistParser("/optimal-info2.json");
 
         Instant start = Instant.now();
         parser.readNetlist();
