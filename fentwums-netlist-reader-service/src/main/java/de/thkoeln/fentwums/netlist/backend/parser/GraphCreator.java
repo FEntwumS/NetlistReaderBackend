@@ -5,15 +5,20 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchyTree;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
 import de.thkoeln.fentwums.netlist.backend.helpers.CellCollapser;
 import de.thkoeln.fentwums.netlist.backend.helpers.OutputReverser;
+import de.thkoeln.fentwums.netlist.backend.helpers.SanityChecker;
 import de.thkoeln.fentwums.netlist.backend.helpers.SignalBundler;
+import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
 import org.eclipse.elk.alg.layered.options.LayeredOptions;
+import org.eclipse.elk.core.data.LayoutMetaDataService;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.graph.ElkLabel;
 import org.eclipse.elk.graph.ElkNode;
+import org.eclipse.elk.graph.json.ElkGraphJson;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.TreeMap;
 
 import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
 
@@ -41,8 +46,11 @@ public class GraphCreator {
 
     @SuppressWarnings("unchecked")
     public void createGraphFromNetlist(HashMap<String, Object> module, String modulename) {
+        LayoutMetaDataService service = LayoutMetaDataService.getInstance();
+        service.registerLayoutMetaDataProviders(new FEntwumSOptions());
+
         root.setIdentifier("root");
-        root.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
+        //root.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
         root.setProperty(LayeredOptions.SPACING_BASE_VALUE, 35d);   // TODO Look for better spacing solution
 
         if (root.getChildren().isEmpty()) {
@@ -50,7 +58,7 @@ public class GraphCreator {
             toplevelNode.setIdentifier(modulename);
             ElkLabel toplevelLabel = createLabel(modulename,  toplevelNode);
             toplevelNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_ORDER);
-            toplevelNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
+            //toplevelNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
             toplevelNode.setProperty(CoreOptions.ALGORITHM, "layered");
             toplevelNode.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.allOf(SizeConstraint.class));
             toplevelNode.setProperty(CoreOptions.NODE_LABELS_PLACEMENT, EnumSet.of(NodeLabelPlacement.H_CENTER,
@@ -102,6 +110,10 @@ public class GraphCreator {
             bundler.bundleSignalWithId(key);
         }
 
+        SanityChecker checker = new SanityChecker();
+
+        checker.checkGraph(root);
+
         CellCollapser collapser = new CellCollapser();
         collapser.setGroundTruth(toplevel);
         collapser.setHierarchy(hierarchyTree);
@@ -109,16 +121,17 @@ public class GraphCreator {
         collapser.collapseAllCells();
         collapser.expandAllCells();
 
-        for (String child : hierarchyTree.getRoot().getChildren().keySet()) {
-            collapser.collapseRecursively(hierarchyTree.getRoot().getChildren().get(child));
-        }
+//        for (String child : hierarchyTree.getRoot().getChildren().keySet()) {
+//            collapser.collapseRecursively(hierarchyTree.getRoot().getChildren().get(child));
+//        }
 
-//        collapser.expandCellAt("ws2812_inst");
-//        collapser.expandCellAt("ws2812_inst rtw");
-//        collapser.expandCellAt("ws2812_inst rtw as");
-//        collapser.expandCellAt("neorv32_inst");
-//        collapser.expandCellAt("neorv32_inst neorv32_uart0_inst_true");
-//        collapser.expandCellAt("neorv32_inst neorv32_uart0_inst_true neorv32_uart0_inst");
+        collapser.expandCellAt("ws2812_inst");
+        collapser.expandCellAt("ws2812_inst rtw");
+        collapser.expandCellAt("ws2812_inst rtw as");
+        collapser.expandCellAt("ws2812_inst rtw ac");
+
+        collapser.expandCellAt("neorv32_inst");
+        collapser.expandCellAt("neorv32_inst neorv32_spi_inst_true.neorv32_spi_inst");
         //collapser.expandCellAt("ws2812_inst rtw as 9512");
 
         collapser.expandCellAt("iceduino_button_inst");

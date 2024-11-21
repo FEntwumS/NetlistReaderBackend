@@ -15,7 +15,8 @@ public class CellPathFormatter {
         if (input.startsWith("$flatten")) {
             output = input.replaceAll("\\$flatten\\\\", "").replaceAll("\\.\\\\", " ");
         } else {
-            output = input.replaceAll("\\.", " ");
+            output = input;
+            //output = input.replaceAll("\\.", " ");
         }
 
         return output.replaceAll("\\\\", "");

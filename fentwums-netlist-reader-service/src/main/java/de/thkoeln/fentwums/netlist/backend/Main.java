@@ -1,9 +1,10 @@
+package de.thkoeln.fentwums.netlist.backend;
+
 import de.thkoeln.fentwums.netlist.backend.parser.GraphCreator;
 import de.thkoeln.fentwums.netlist.backend.parser.NetlistParser;
 import jdk.jshell.spi.ExecutionControl;
 import org.eclipse.elk.core.RecursiveGraphLayoutEngine;
 import org.eclipse.elk.core.util.BasicProgressMonitor;
-import org.eclipse.elk.core.util.LoggedGraph;
 import org.eclipse.elk.graph.json.ElkGraphJson;
 
 import java.io.IOException;
@@ -13,10 +14,11 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 
+
 public class Main {
     public static void main(String[] args) throws IOException, ExecutionControl.NotImplementedException {
         GraphCreator graphCreator = new GraphCreator();
-        NetlistParser parser = new NetlistParser("src/optimal-info-postopt.json");
+        NetlistParser parser = new NetlistParser("src/optimal-info2.json");
 
         Instant start = Instant.now();
         parser.readNetlist();
@@ -48,18 +50,9 @@ public class Main {
 
         String jsongraph =
                 ElkGraphJson.forGraph(graphCreator.getGraph()).omitLayout(false).omitZeroDimension(true)
-                        .omitZeroPositions(true).shortLayoutOptionKeys(true).prettyPrint(false).toJson();
+                        .omitZeroPositions(true).shortLayoutOptionKeys(true).prettyPrint(true).toJson();
 
         try {
-            jsongraph = jsongraph.replace("\"org.eclipse.elk.resolvedAlgorithm\": \"Layout Algorithm: org.eclipse.elk" +
-                    ".layered\",", "");
-            jsongraph = jsongraph.replace("\"org.eclipse.elk.resolvedAlgorithm\": \"Layout Algorithm: org.eclipse.elk" +
-                    ".layered\",\n", "");
-            jsongraph = jsongraph.replace("\"resolvedAlgorithm\": \"Layout Algorithm: org.eclipse.elk.layered\",\n",
-                    "");
-            jsongraph = jsongraph.replace("\"resolvedAlgorithm\": \"Layout Algorithm: org.eclipse.elk.layered\",",
-                    "");
-
             Path outputFile = Paths.get("graph.json");
 
             Files.writeString(outputFile, jsongraph);

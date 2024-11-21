@@ -1,0 +1,1706 @@
+{
+  "creator": "Yosys 0.47 (git sha1 647d61dd9212365a3cd44db219660b8f90b95cbd, g++ 13.3.0 -fPIC -O3)",
+  "modules": {
+    "addressing": {
+      "attributes": {
+        "top": 1
+      },
+      "ports": {
+        "clk_12MHz": {
+          "direction": "input",
+          "bits": [ 2 ]
+        },
+        "clk_50MHz": {
+          "direction": "input",
+          "bits": [ 3 ]
+        },
+        "leds": {
+          "direction": "output",
+          "bits": [ 4, 5, 6, 7, 8, 9, 10, 11 ]
+        }
+      },
+      "cells": {
+        "$auto$ff.cc:266:slice$87": {
+          "hide_name": 1,
+          "type": "$dffe",
+          "parameters": {
+            "CLK_POLARITY": 1,
+            "EN_POLARITY": 1,
+            "WIDTH": 8
+          },
+          "attributes": {
+          },
+          "port_directions": {
+            "CLK": "input",
+            "D": "input",
+            "EN": "input",
+            "Q": "output"
+          },
+          "connections": {
+            "CLK": [ 2 ],
+            "D": [ 12, 13, 14, 15, 16, 17, 18, 19 ],
+            "EN": [ 20 ],
+            "Q": [ 21, 22, 23, 24, 25, 26, 27, 28 ]
+          }
+        },
+        "$flatten\\addr_master_1.$auto$ff.cc:266:slice$62": {
+          "hide_name": 1,
+          "type": "$adffe",
+          "parameters": {
+            "ARST_POLARITY": 1,
+            "ARST_VALUE": 0,
+            "CLK_POLARITY": 1,
+            "EN_POLARITY": 1,
+            "WIDTH": 3
+          },
+          "attributes": {
+            "scopename": "addr_master_1"
+          },
+          "port_directions": {
+            "ARST": "input",
+            "CLK": "input",
+            "D": "input",
+            "EN": "input",
+            "Q": "output"
+          },
+          "connections": {
+            "ARST": [ 29 ],
+            "CLK": [ 2 ],
+            "D": [ 30, 31, 32 ],
+            "EN": [ 33 ],
+            "Q": [ 34, 35, 36 ]
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$ff.cc:266:slice$63": {
+          "hide_name": 1,
+          "type": "$adffe",
+          "parameters": {
+            "ARST_POLARITY": 1,
+            "ARST_VALUE": 0,
+            "CLK_POLARITY": 1,
+            "EN_POLARITY": 1,
+            "WIDTH": 1
+          },
+          "attributes": {
+            "scopename": "addr_slave_1"
+          },
+          "port_directions": {
+            "ARST": "input",
+            "CLK": "input",
+            "D": "input",
+            "EN": "input",
+            "Q": "output"
+          },
+          "connections": {
+            "ARST": [ 29 ],
+            "CLK": [ 3 ],
+            "D": [ 37 ],
+            "EN": [ 38 ],
+            "Q": [ 4 ]
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$ff.cc:266:slice$66": {
+          "hide_name": 1,
+          "type": "$adffe",
+          "parameters": {
+            "ARST_POLARITY": 1,
+            "ARST_VALUE": 0,
+            "CLK_POLARITY": 1,
+            "EN_POLARITY": 1,
+            "WIDTH": 1
+          },
+          "attributes": {
+            "scopename": "addr_slave_1"
+          },
+          "port_directions": {
+            "ARST": "input",
+            "CLK": "input",
+            "D": "input",
+            "EN": "input",
+            "Q": "output"
+          },
+          "connections": {
+            "ARST": [ 29 ],
+            "CLK": [ 3 ],
+            "D": [ 37 ],
+            "EN": [ 39 ],
+            "Q": [ 5 ]
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$ff.cc:266:slice$69": {
+          "hide_name": 1,
+          "type": "$adffe",
+          "parameters": {
+            "ARST_POLARITY": 1,
+            "ARST_VALUE": 0,
+            "CLK_POLARITY": 1,
+            "EN_POLARITY": 1,
+            "WIDTH": 1
+          },
+          "attributes": {
+            "scopename": "addr_slave_1"
+          },
+          "port_directions": {
+            "ARST": "input",
+            "CLK": "input",
+            "D": "input",
+            "EN": "input",
+            "Q": "output"
+          },
+          "connections": {
+            "ARST": [ 29 ],
+            "CLK": [ 3 ],
+            "D": [ 37 ],
+            "EN": [ 40 ],
+            "Q": [ 6 ]
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$ff.cc:266:slice$72": {
+          "hide_name": 1,
+          "type": "$adffe",
+          "parameters": {
+            "ARST_POLARITY": 1,
+            "ARST_VALUE": 0,
+            "CLK_POLARITY": 1,
+            "EN_POLARITY": 1,
+            "WIDTH": 1
+          },
+          "attributes": {
+            "scopename": "addr_slave_1"
+          },
+          "port_directions": {
+            "ARST": "input",
+            "CLK": "input",
+            "D": "input",
+            "EN": "input",
+            "Q": "output"
+          },
+          "connections": {
+            "ARST": [ 29 ],
+            "CLK": [ 3 ],
+            "D": [ 37 ],
+            "EN": [ 41 ],
+            "Q": [ 7 ]
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$ff.cc:266:slice$75": {
+          "hide_name": 1,
+          "type": "$adffe",
+          "parameters": {
+            "ARST_POLARITY": 1,
+            "ARST_VALUE": 0,
+            "CLK_POLARITY": 1,
+            "EN_POLARITY": 1,
+            "WIDTH": 1
+          },
+          "attributes": {
+            "scopename": "addr_slave_1"
+          },
+          "port_directions": {
+            "ARST": "input",
+            "CLK": "input",
+            "D": "input",
+            "EN": "input",
+            "Q": "output"
+          },
+          "connections": {
+            "ARST": [ 29 ],
+            "CLK": [ 3 ],
+            "D": [ 37 ],
+            "EN": [ 42 ],
+            "Q": [ 8 ]
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$ff.cc:266:slice$78": {
+          "hide_name": 1,
+          "type": "$adffe",
+          "parameters": {
+            "ARST_POLARITY": 1,
+            "ARST_VALUE": 0,
+            "CLK_POLARITY": 1,
+            "EN_POLARITY": 1,
+            "WIDTH": 1
+          },
+          "attributes": {
+            "scopename": "addr_slave_1"
+          },
+          "port_directions": {
+            "ARST": "input",
+            "CLK": "input",
+            "D": "input",
+            "EN": "input",
+            "Q": "output"
+          },
+          "connections": {
+            "ARST": [ 29 ],
+            "CLK": [ 3 ],
+            "D": [ 37 ],
+            "EN": [ 43 ],
+            "Q": [ 9 ]
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$ff.cc:266:slice$81": {
+          "hide_name": 1,
+          "type": "$adffe",
+          "parameters": {
+            "ARST_POLARITY": 1,
+            "ARST_VALUE": 0,
+            "CLK_POLARITY": 1,
+            "EN_POLARITY": 1,
+            "WIDTH": 1
+          },
+          "attributes": {
+            "scopename": "addr_slave_1"
+          },
+          "port_directions": {
+            "ARST": "input",
+            "CLK": "input",
+            "D": "input",
+            "EN": "input",
+            "Q": "output"
+          },
+          "connections": {
+            "ARST": [ 29 ],
+            "CLK": [ 3 ],
+            "D": [ 37 ],
+            "EN": [ 44 ],
+            "Q": [ 10 ]
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$ff.cc:266:slice$84": {
+          "hide_name": 1,
+          "type": "$adffe",
+          "parameters": {
+            "ARST_POLARITY": 1,
+            "ARST_VALUE": 0,
+            "CLK_POLARITY": 1,
+            "EN_POLARITY": 1,
+            "WIDTH": 1
+          },
+          "attributes": {
+            "scopename": "addr_slave_1"
+          },
+          "port_directions": {
+            "ARST": "input",
+            "CLK": "input",
+            "D": "input",
+            "EN": "input",
+            "Q": "output"
+          },
+          "connections": {
+            "ARST": [ 29 ],
+            "CLK": [ 3 ],
+            "D": [ 37 ],
+            "EN": [ 45 ],
+            "Q": [ 11 ]
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$opt_dff.cc:220:make_patterns_logic$65": {
+          "hide_name": 1,
+          "type": "$reduce_and",
+          "parameters": {
+            "A_SIGNED": 0,
+            "A_WIDTH": 2,
+            "Y_WIDTH": 1
+          },
+          "attributes": {
+            "scopename": "addr_slave_1"
+          },
+          "port_directions": {
+            "A": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 46, 47 ],
+            "Y": [ 38 ]
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$opt_dff.cc:220:make_patterns_logic$68": {
+          "hide_name": 1,
+          "type": "$reduce_and",
+          "parameters": {
+            "A_SIGNED": 0,
+            "A_WIDTH": 2,
+            "Y_WIDTH": 1
+          },
+          "attributes": {
+            "scopename": "addr_slave_1"
+          },
+          "port_directions": {
+            "A": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 46, 48 ],
+            "Y": [ 39 ]
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$opt_dff.cc:220:make_patterns_logic$71": {
+          "hide_name": 1,
+          "type": "$reduce_and",
+          "parameters": {
+            "A_SIGNED": 0,
+            "A_WIDTH": 2,
+            "Y_WIDTH": 1
+          },
+          "attributes": {
+            "scopename": "addr_slave_1"
+          },
+          "port_directions": {
+            "A": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 46, 49 ],
+            "Y": [ 40 ]
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$opt_dff.cc:220:make_patterns_logic$74": {
+          "hide_name": 1,
+          "type": "$reduce_and",
+          "parameters": {
+            "A_SIGNED": 0,
+            "A_WIDTH": 2,
+            "Y_WIDTH": 1
+          },
+          "attributes": {
+            "scopename": "addr_slave_1"
+          },
+          "port_directions": {
+            "A": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 46, 50 ],
+            "Y": [ 41 ]
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$opt_dff.cc:220:make_patterns_logic$77": {
+          "hide_name": 1,
+          "type": "$reduce_and",
+          "parameters": {
+            "A_SIGNED": 0,
+            "A_WIDTH": 2,
+            "Y_WIDTH": 1
+          },
+          "attributes": {
+            "scopename": "addr_slave_1"
+          },
+          "port_directions": {
+            "A": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 46, 51 ],
+            "Y": [ 42 ]
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$opt_dff.cc:220:make_patterns_logic$80": {
+          "hide_name": 1,
+          "type": "$reduce_and",
+          "parameters": {
+            "A_SIGNED": 0,
+            "A_WIDTH": 2,
+            "Y_WIDTH": 1
+          },
+          "attributes": {
+            "scopename": "addr_slave_1"
+          },
+          "port_directions": {
+            "A": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 46, 52 ],
+            "Y": [ 43 ]
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$opt_dff.cc:220:make_patterns_logic$83": {
+          "hide_name": 1,
+          "type": "$reduce_and",
+          "parameters": {
+            "A_SIGNED": 0,
+            "A_WIDTH": 2,
+            "Y_WIDTH": 1
+          },
+          "attributes": {
+            "scopename": "addr_slave_1"
+          },
+          "port_directions": {
+            "A": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 46, 53 ],
+            "Y": [ 44 ]
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$opt_dff.cc:220:make_patterns_logic$86": {
+          "hide_name": 1,
+          "type": "$reduce_and",
+          "parameters": {
+            "A_SIGNED": 0,
+            "A_WIDTH": 2,
+            "Y_WIDTH": 1
+          },
+          "attributes": {
+            "scopename": "addr_slave_1"
+          },
+          "port_directions": {
+            "A": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 46, 54 ],
+            "Y": [ 45 ]
+          }
+        },
+        "\\10": {
+          "hide_name": 0,
+          "type": "$lt",
+          "parameters": {
+            "A_SIGNED": 0,
+            "A_WIDTH": 8,
+            "B_SIGNED": 0,
+            "B_WIDTH": 8,
+            "Y_WIDTH": 1
+          },
+          "attributes": {
+          },
+          "port_directions": {
+            "A": "input",
+            "B": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 21, 22, 23, 24, 25, 26, 27, 28 ],
+            "B": [ "1", "0", "1", "0", "0", "0", "0", "0" ],
+            "Y": [ 20 ]
+          }
+        },
+        "\\12": {
+          "hide_name": 0,
+          "type": "$add",
+          "parameters": {
+            "A_SIGNED": 0,
+            "A_WIDTH": 8,
+            "B_SIGNED": 0,
+            "B_WIDTH": 8,
+            "Y_WIDTH": 8
+          },
+          "attributes": {
+          },
+          "port_directions": {
+            "A": "input",
+            "B": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 21, 22, 23, 24, 25, 26, 27, 28 ],
+            "B": [ "1", "0", "0", "0", "0", "0", "0", "0" ],
+            "Y": [ 12, 13, 14, 15, 16, 17, 18, 19 ]
+          }
+        },
+        "\\15": {
+          "hide_name": 0,
+          "type": "$mux",
+          "parameters": {
+            "WIDTH": 1
+          },
+          "attributes": {
+          },
+          "port_directions": {
+            "A": "input",
+            "B": "input",
+            "S": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ "0" ],
+            "B": [ "1" ],
+            "S": [ 20 ],
+            "Y": [ 55 ]
+          }
+        },
+        "\\22": {
+          "hide_name": 0,
+          "type": "$dff",
+          "parameters": {
+            "CLK_POLARITY": 1,
+            "WIDTH": 1
+          },
+          "attributes": {
+          },
+          "port_directions": {
+            "CLK": "input",
+            "D": "input",
+            "Q": "output"
+          },
+          "connections": {
+            "CLK": [ 2 ],
+            "D": [ 55 ],
+            "Q": [ 29 ]
+          }
+        },
+        "addr_master_1.103": {
+          "hide_name": 0,
+          "type": "$logic_not",
+          "parameters": {
+            "A_SIGNED": 0,
+            "A_WIDTH": 2,
+            "Y_WIDTH": 1
+          },
+          "attributes": {
+            "hdlname": "addr_master_1 103"
+          },
+          "port_directions": {
+            "A": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 56, 57 ],
+            "Y": [ 58 ]
+          }
+        },
+        "addr_master_1.104": {
+          "hide_name": 0,
+          "type": "$mux",
+          "parameters": {
+            "WIDTH": 1
+          },
+          "attributes": {
+            "hdlname": "addr_master_1 104"
+          },
+          "port_directions": {
+            "A": "input",
+            "B": "input",
+            "S": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ "0" ],
+            "B": [ "1" ],
+            "S": [ 58 ],
+            "Y": [ 59 ]
+          }
+        },
+        "addr_master_1.110": {
+          "hide_name": 0,
+          "type": "$adff",
+          "parameters": {
+            "ARST_POLARITY": 1,
+            "ARST_VALUE": 0,
+            "CLK_POLARITY": 1,
+            "WIDTH": 22
+          },
+          "attributes": {
+            "hdlname": "addr_master_1 110"
+          },
+          "port_directions": {
+            "ARST": "input",
+            "CLK": "input",
+            "D": "input",
+            "Q": "output"
+          },
+          "connections": {
+            "ARST": [ 29 ],
+            "CLK": [ 2 ],
+            "D": [ 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81 ],
+            "Q": [ 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103 ]
+          }
+        },
+        "addr_master_1.111": {
+          "hide_name": 0,
+          "type": "$adff",
+          "parameters": {
+            "ARST_POLARITY": 1,
+            "ARST_VALUE": 0,
+            "CLK_POLARITY": 1,
+            "WIDTH": 1
+          },
+          "attributes": {
+            "hdlname": "addr_master_1 111"
+          },
+          "port_directions": {
+            "ARST": "input",
+            "CLK": "input",
+            "D": "input",
+            "Q": "output"
+          },
+          "connections": {
+            "ARST": [ 29 ],
+            "CLK": [ 2 ],
+            "D": [ 104 ],
+            "Q": [ 105 ]
+          }
+        },
+        "addr_master_1.112": {
+          "hide_name": 0,
+          "type": "$adff",
+          "parameters": {
+            "ARST_POLARITY": 1,
+            "ARST_VALUE": 0,
+            "CLK_POLARITY": 1,
+            "WIDTH": 2
+          },
+          "attributes": {
+            "hdlname": "addr_master_1 112"
+          },
+          "port_directions": {
+            "ARST": "input",
+            "CLK": "input",
+            "D": "input",
+            "Q": "output"
+          },
+          "connections": {
+            "ARST": [ 29 ],
+            "CLK": [ 2 ],
+            "D": [ 106, 107 ],
+            "Q": [ 56, 57 ]
+          }
+        },
+        "addr_master_1.31": {
+          "hide_name": 0,
+          "type": "$lt",
+          "parameters": {
+            "A_SIGNED": 1,
+            "A_WIDTH": 32,
+            "B_SIGNED": 1,
+            "B_WIDTH": 32,
+            "Y_WIDTH": 1
+          },
+          "attributes": {
+            "hdlname": "addr_master_1 31"
+          },
+          "port_directions": {
+            "A": "input",
+            "B": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, "0", "0", "0", "0", "0", "0", "0", "0", "0", "0" ],
+            "B": [ "0", "0", "0", "0", "0", "0", "1", "1", "0", "1", "1", "0", "0", "0", "1", "1", "1", "0", "1", "1", "0", "1", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0" ],
+            "Y": [ 108 ]
+          }
+        },
+        "addr_master_1.34": {
+          "hide_name": 0,
+          "type": "$add",
+          "parameters": {
+            "A_SIGNED": 0,
+            "A_WIDTH": 32,
+            "B_SIGNED": 0,
+            "B_WIDTH": 32,
+            "Y_WIDTH": 32
+          },
+          "attributes": {
+            "hdlname": "addr_master_1 34"
+          },
+          "port_directions": {
+            "A": "input",
+            "B": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, "0", "0", "0", "0", "0", "0", "0", "0", "0", "0" ],
+            "B": [ "1", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0" ],
+            "Y": [ 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140 ]
+          }
+        },
+        "addr_master_1.37": {
+          "hide_name": 0,
+          "type": "$mux",
+          "parameters": {
+            "WIDTH": 22
+          },
+          "attributes": {
+            "hdlname": "addr_master_1 37"
+          },
+          "port_directions": {
+            "A": "input",
+            "B": "input",
+            "S": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0" ],
+            "B": [ 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130 ],
+            "S": [ 108 ],
+            "Y": [ 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81 ]
+          }
+        },
+        "addr_master_1.40": {
+          "hide_name": 0,
+          "type": "$mux",
+          "parameters": {
+            "WIDTH": 1
+          },
+          "attributes": {
+            "hdlname": "addr_master_1 40"
+          },
+          "port_directions": {
+            "A": "input",
+            "B": "input",
+            "S": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ "1" ],
+            "B": [ "0" ],
+            "S": [ 108 ],
+            "Y": [ 104 ]
+          }
+        },
+        "addr_master_1.53": {
+          "hide_name": 0,
+          "type": "$eq",
+          "parameters": {
+            "A_SIGNED": 0,
+            "A_WIDTH": 3,
+            "B_SIGNED": 0,
+            "B_WIDTH": 3,
+            "Y_WIDTH": 1
+          },
+          "attributes": {
+            "hdlname": "addr_master_1 53"
+          },
+          "port_directions": {
+            "A": "input",
+            "B": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 34, 35, 36 ],
+            "B": [ "1", "1", "1" ],
+            "Y": [ 141 ]
+          }
+        },
+        "addr_master_1.55": {
+          "hide_name": 0,
+          "type": "$add",
+          "parameters": {
+            "A_SIGNED": 0,
+            "A_WIDTH": 3,
+            "B_SIGNED": 0,
+            "B_WIDTH": 3,
+            "Y_WIDTH": 3
+          },
+          "attributes": {
+            "hdlname": "addr_master_1 55"
+          },
+          "port_directions": {
+            "A": "input",
+            "B": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 34, 35, 36 ],
+            "B": [ "1", "0", "0" ],
+            "Y": [ 142, 143, 144 ]
+          }
+        },
+        "addr_master_1.57": {
+          "hide_name": 0,
+          "type": "$mux",
+          "parameters": {
+            "WIDTH": 3
+          },
+          "attributes": {
+            "hdlname": "addr_master_1 57"
+          },
+          "port_directions": {
+            "A": "input",
+            "B": "input",
+            "S": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 142, 143, 144 ],
+            "B": [ "0", "0", "0" ],
+            "S": [ 141 ],
+            "Y": [ 30, 31, 32 ]
+          }
+        },
+        "addr_master_1.73": {
+          "hide_name": 0,
+          "type": "$mux",
+          "parameters": {
+            "WIDTH": 2
+          },
+          "attributes": {
+            "hdlname": "addr_master_1 73"
+          },
+          "port_directions": {
+            "A": "input",
+            "B": "input",
+            "S": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ "1", "0" ],
+            "B": [ "0", "1" ],
+            "S": [ 105 ],
+            "Y": [ 145, 146 ]
+          }
+        },
+        "addr_master_1.75": {
+          "hide_name": 0,
+          "type": "$eq",
+          "parameters": {
+            "A_SIGNED": 0,
+            "A_WIDTH": 2,
+            "B_SIGNED": 0,
+            "B_WIDTH": 2,
+            "Y_WIDTH": 1
+          },
+          "attributes": {
+            "hdlname": "addr_master_1 75"
+          },
+          "port_directions": {
+            "A": "input",
+            "B": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 56, 57 ],
+            "B": [ "1", "0" ],
+            "Y": [ 147 ]
+          }
+        },
+        "addr_master_1.77": {
+          "hide_name": 0,
+          "type": "$eq",
+          "parameters": {
+            "A_SIGNED": 0,
+            "A_WIDTH": 2,
+            "B_SIGNED": 0,
+            "B_WIDTH": 2,
+            "Y_WIDTH": 1
+          },
+          "attributes": {
+            "hdlname": "addr_master_1 77"
+          },
+          "port_directions": {
+            "A": "input",
+            "B": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 56, 57 ],
+            "B": [ "0", "1" ],
+            "Y": [ 148 ]
+          }
+        },
+        "addr_master_1.82": {
+          "hide_name": 0,
+          "type": "$pmux",
+          "parameters": {
+            "S_WIDTH": 2,
+            "WIDTH": 2
+          },
+          "attributes": {
+            "hdlname": "addr_master_1 82"
+          },
+          "port_directions": {
+            "A": "input",
+            "B": "input",
+            "S": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ "0", "0" ],
+            "B": [ "1", "0", 145, 146 ],
+            "S": [ 58, 147 ],
+            "Y": [ 106, 107 ]
+          }
+        },
+        "addr_master_1.90": {
+          "hide_name": 0,
+          "type": "$mux",
+          "parameters": {
+            "WIDTH": 1
+          },
+          "attributes": {
+            "hdlname": "addr_master_1 90"
+          },
+          "port_directions": {
+            "A": "input",
+            "B": "input",
+            "S": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ "0" ],
+            "B": [ "1" ],
+            "S": [ 148 ],
+            "Y": [ 33 ]
+          }
+        },
+        "addr_master_1.95": {
+          "hide_name": 0,
+          "type": "$mux",
+          "parameters": {
+            "WIDTH": 1
+          },
+          "attributes": {
+            "hdlname": "addr_master_1 95"
+          },
+          "port_directions": {
+            "A": "input",
+            "B": "input",
+            "S": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 33 ],
+            "B": [ "1" ],
+            "S": [ 58 ],
+            "Y": [ 149 ]
+          }
+        },
+        "addr_slave_1.127": {
+          "hide_name": 0,
+          "type": "$logic_not",
+          "parameters": {
+            "A_SIGNED": 0,
+            "A_WIDTH": 3,
+            "Y_WIDTH": 1
+          },
+          "attributes": {
+            "hdlname": "addr_slave_1 127"
+          },
+          "port_directions": {
+            "A": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 150, 151, 152 ],
+            "Y": [ 47 ]
+          }
+        },
+        "addr_slave_1.129": {
+          "hide_name": 0,
+          "type": "$eq",
+          "parameters": {
+            "A_SIGNED": 0,
+            "A_WIDTH": 3,
+            "B_SIGNED": 0,
+            "B_WIDTH": 3,
+            "Y_WIDTH": 1
+          },
+          "attributes": {
+            "hdlname": "addr_slave_1 129"
+          },
+          "port_directions": {
+            "A": "input",
+            "B": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 150, 151, 152 ],
+            "B": [ "1", "0", "0" ],
+            "Y": [ 48 ]
+          }
+        },
+        "addr_slave_1.131": {
+          "hide_name": 0,
+          "type": "$eq",
+          "parameters": {
+            "A_SIGNED": 0,
+            "A_WIDTH": 3,
+            "B_SIGNED": 0,
+            "B_WIDTH": 3,
+            "Y_WIDTH": 1
+          },
+          "attributes": {
+            "hdlname": "addr_slave_1 131"
+          },
+          "port_directions": {
+            "A": "input",
+            "B": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 150, 151, 152 ],
+            "B": [ "0", "1", "0" ],
+            "Y": [ 49 ]
+          }
+        },
+        "addr_slave_1.133": {
+          "hide_name": 0,
+          "type": "$eq",
+          "parameters": {
+            "A_SIGNED": 0,
+            "A_WIDTH": 3,
+            "B_SIGNED": 0,
+            "B_WIDTH": 3,
+            "Y_WIDTH": 1
+          },
+          "attributes": {
+            "hdlname": "addr_slave_1 133"
+          },
+          "port_directions": {
+            "A": "input",
+            "B": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 150, 151, 152 ],
+            "B": [ "1", "1", "0" ],
+            "Y": [ 50 ]
+          }
+        },
+        "addr_slave_1.135": {
+          "hide_name": 0,
+          "type": "$eq",
+          "parameters": {
+            "A_SIGNED": 0,
+            "A_WIDTH": 3,
+            "B_SIGNED": 0,
+            "B_WIDTH": 3,
+            "Y_WIDTH": 1
+          },
+          "attributes": {
+            "hdlname": "addr_slave_1 135"
+          },
+          "port_directions": {
+            "A": "input",
+            "B": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 150, 151, 152 ],
+            "B": [ "0", "0", "1" ],
+            "Y": [ 51 ]
+          }
+        },
+        "addr_slave_1.137": {
+          "hide_name": 0,
+          "type": "$eq",
+          "parameters": {
+            "A_SIGNED": 0,
+            "A_WIDTH": 3,
+            "B_SIGNED": 0,
+            "B_WIDTH": 3,
+            "Y_WIDTH": 1
+          },
+          "attributes": {
+            "hdlname": "addr_slave_1 137"
+          },
+          "port_directions": {
+            "A": "input",
+            "B": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 150, 151, 152 ],
+            "B": [ "1", "0", "1" ],
+            "Y": [ 52 ]
+          }
+        },
+        "addr_slave_1.139": {
+          "hide_name": 0,
+          "type": "$eq",
+          "parameters": {
+            "A_SIGNED": 0,
+            "A_WIDTH": 3,
+            "B_SIGNED": 0,
+            "B_WIDTH": 3,
+            "Y_WIDTH": 1
+          },
+          "attributes": {
+            "hdlname": "addr_slave_1 139"
+          },
+          "port_directions": {
+            "A": "input",
+            "B": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 150, 151, 152 ],
+            "B": [ "0", "1", "1" ],
+            "Y": [ 53 ]
+          }
+        },
+        "addr_slave_1.141": {
+          "hide_name": 0,
+          "type": "$eq",
+          "parameters": {
+            "A_SIGNED": 0,
+            "A_WIDTH": 3,
+            "B_SIGNED": 0,
+            "B_WIDTH": 3,
+            "Y_WIDTH": 1
+          },
+          "attributes": {
+            "hdlname": "addr_slave_1 141"
+          },
+          "port_directions": {
+            "A": "input",
+            "B": "input",
+            "Y": "output"
+          },
+          "connections": {
+            "A": [ 150, 151, 152 ],
+            "B": [ "1", "1", "1" ],
+            "Y": [ 54 ]
+          }
+        },
+        "addr_slave_1.165": {
+          "hide_name": 0,
+          "type": "$dff",
+          "parameters": {
+            "CLK_POLARITY": 1,
+            "WIDTH": 3
+          },
+          "attributes": {
+            "hdlname": "addr_slave_1 165"
+          },
+          "port_directions": {
+            "CLK": "input",
+            "D": "input",
+            "Q": "output"
+          },
+          "connections": {
+            "CLK": [ 3 ],
+            "D": [ 34, 35, 36 ],
+            "Q": [ 153, 154, 155 ]
+          }
+        },
+        "addr_slave_1.166": {
+          "hide_name": 0,
+          "type": "$dff",
+          "parameters": {
+            "CLK_POLARITY": 1,
+            "WIDTH": 3
+          },
+          "attributes": {
+            "hdlname": "addr_slave_1 166"
+          },
+          "port_directions": {
+            "CLK": "input",
+            "D": "input",
+            "Q": "output"
+          },
+          "connections": {
+            "CLK": [ 3 ],
+            "D": [ 153, 154, 155 ],
+            "Q": [ 150, 151, 152 ]
+          }
+        },
+        "addr_slave_1.167": {
+          "hide_name": 0,
+          "type": "$dff",
+          "parameters": {
+            "CLK_POLARITY": 1,
+            "WIDTH": 1
+          },
+          "attributes": {
+            "hdlname": "addr_slave_1 167"
+          },
+          "port_directions": {
+            "CLK": "input",
+            "D": "input",
+            "Q": "output"
+          },
+          "connections": {
+            "CLK": [ 3 ],
+            "D": [ 59 ],
+            "Q": [ 156 ]
+          }
+        },
+        "addr_slave_1.168": {
+          "hide_name": 0,
+          "type": "$dff",
+          "parameters": {
+            "CLK_POLARITY": 1,
+            "WIDTH": 1
+          },
+          "attributes": {
+            "hdlname": "addr_slave_1 168"
+          },
+          "port_directions": {
+            "CLK": "input",
+            "D": "input",
+            "Q": "output"
+          },
+          "connections": {
+            "CLK": [ 3 ],
+            "D": [ 156 ],
+            "Q": [ 37 ]
+          }
+        },
+        "addr_slave_1.169": {
+          "hide_name": 0,
+          "type": "$dff",
+          "parameters": {
+            "CLK_POLARITY": 1,
+            "WIDTH": 1
+          },
+          "attributes": {
+            "hdlname": "addr_slave_1 169"
+          },
+          "port_directions": {
+            "CLK": "input",
+            "D": "input",
+            "Q": "output"
+          },
+          "connections": {
+            "CLK": [ 3 ],
+            "D": [ 149 ],
+            "Q": [ 157 ]
+          }
+        },
+        "addr_slave_1.170": {
+          "hide_name": 0,
+          "type": "$dff",
+          "parameters": {
+            "CLK_POLARITY": 1,
+            "WIDTH": 1
+          },
+          "attributes": {
+            "hdlname": "addr_slave_1 170"
+          },
+          "port_directions": {
+            "CLK": "input",
+            "D": "input",
+            "Q": "output"
+          },
+          "connections": {
+            "CLK": [ 3 ],
+            "D": [ 157 ],
+            "Q": [ 46 ]
+          }
+        }
+      },
+      "netnames": {
+        "$auto$ghdl.cc:805:import_module$5": {
+          "hide_name": 1,
+          "bits": [ 20 ],
+          "attributes": {
+          }
+        },
+        "$auto$ghdl.cc:805:import_module$6": {
+          "hide_name": 1,
+          "bits": [ 12, 13, 14, 15, 16, 17, 18, 19 ],
+          "attributes": {
+          }
+        },
+        "$auto$ghdl.cc:805:import_module$7": {
+          "hide_name": 1,
+          "bits": [ 55 ],
+          "attributes": {
+          }
+        },
+        "$flatten\\addr_master_1.$auto$ghdl.cc:805:import_module$11": {
+          "hide_name": 1,
+          "bits": [ 108 ],
+          "attributes": {
+            "scopename": "addr_master_1"
+          }
+        },
+        "$flatten\\addr_master_1.$auto$ghdl.cc:805:import_module$12": {
+          "hide_name": 1,
+          "bits": [ 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140 ],
+          "attributes": {
+            "scopename": "addr_master_1",
+            "unused_bits": "22 23 24 25 26 27 28 29 30 31"
+          }
+        },
+        "$flatten\\addr_master_1.$auto$ghdl.cc:805:import_module$13": {
+          "hide_name": 1,
+          "bits": [ 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81 ],
+          "attributes": {
+            "scopename": "addr_master_1"
+          }
+        },
+        "$flatten\\addr_master_1.$auto$ghdl.cc:805:import_module$14": {
+          "hide_name": 1,
+          "bits": [ 104 ],
+          "attributes": {
+            "scopename": "addr_master_1"
+          }
+        },
+        "$flatten\\addr_master_1.$auto$ghdl.cc:805:import_module$15": {
+          "hide_name": 1,
+          "bits": [ 141 ],
+          "attributes": {
+            "scopename": "addr_master_1"
+          }
+        },
+        "$flatten\\addr_master_1.$auto$ghdl.cc:805:import_module$16": {
+          "hide_name": 1,
+          "bits": [ 142, 143, 144 ],
+          "attributes": {
+            "scopename": "addr_master_1"
+          }
+        },
+        "$flatten\\addr_master_1.$auto$ghdl.cc:805:import_module$17": {
+          "hide_name": 1,
+          "bits": [ 30, 31, 32 ],
+          "attributes": {
+            "scopename": "addr_master_1"
+          }
+        },
+        "$flatten\\addr_master_1.$auto$ghdl.cc:805:import_module$20": {
+          "hide_name": 1,
+          "bits": [ 58 ],
+          "attributes": {
+            "scopename": "addr_master_1"
+          }
+        },
+        "$flatten\\addr_master_1.$auto$ghdl.cc:805:import_module$21": {
+          "hide_name": 1,
+          "bits": [ 145, 146 ],
+          "attributes": {
+            "scopename": "addr_master_1"
+          }
+        },
+        "$flatten\\addr_master_1.$auto$ghdl.cc:805:import_module$22": {
+          "hide_name": 1,
+          "bits": [ 147 ],
+          "attributes": {
+            "scopename": "addr_master_1"
+          }
+        },
+        "$flatten\\addr_master_1.$auto$ghdl.cc:805:import_module$23": {
+          "hide_name": 1,
+          "bits": [ 148 ],
+          "attributes": {
+            "scopename": "addr_master_1"
+          }
+        },
+        "$flatten\\addr_master_1.$auto$ghdl.cc:805:import_module$24": {
+          "hide_name": 1,
+          "bits": [ 106, 107 ],
+          "attributes": {
+            "scopename": "addr_master_1"
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$ghdl.cc:805:import_module$38": {
+          "hide_name": 1,
+          "bits": [ 47 ],
+          "attributes": {
+            "scopename": "addr_slave_1"
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$ghdl.cc:805:import_module$39": {
+          "hide_name": 1,
+          "bits": [ 48 ],
+          "attributes": {
+            "scopename": "addr_slave_1"
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$ghdl.cc:805:import_module$40": {
+          "hide_name": 1,
+          "bits": [ 49 ],
+          "attributes": {
+            "scopename": "addr_slave_1"
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$ghdl.cc:805:import_module$41": {
+          "hide_name": 1,
+          "bits": [ 50 ],
+          "attributes": {
+            "scopename": "addr_slave_1"
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$ghdl.cc:805:import_module$42": {
+          "hide_name": 1,
+          "bits": [ 51 ],
+          "attributes": {
+            "scopename": "addr_slave_1"
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$ghdl.cc:805:import_module$43": {
+          "hide_name": 1,
+          "bits": [ 52 ],
+          "attributes": {
+            "scopename": "addr_slave_1"
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$ghdl.cc:805:import_module$44": {
+          "hide_name": 1,
+          "bits": [ 53 ],
+          "attributes": {
+            "scopename": "addr_slave_1"
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$ghdl.cc:805:import_module$45": {
+          "hide_name": 1,
+          "bits": [ 54 ],
+          "attributes": {
+            "scopename": "addr_slave_1"
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$opt_dff.cc:219:make_patterns_logic$64": {
+          "hide_name": 1,
+          "bits": [ 38 ],
+          "attributes": {
+            "scopename": "addr_slave_1"
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$opt_dff.cc:219:make_patterns_logic$67": {
+          "hide_name": 1,
+          "bits": [ 39 ],
+          "attributes": {
+            "scopename": "addr_slave_1"
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$opt_dff.cc:219:make_patterns_logic$70": {
+          "hide_name": 1,
+          "bits": [ 40 ],
+          "attributes": {
+            "scopename": "addr_slave_1"
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$opt_dff.cc:219:make_patterns_logic$73": {
+          "hide_name": 1,
+          "bits": [ 41 ],
+          "attributes": {
+            "scopename": "addr_slave_1"
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$opt_dff.cc:219:make_patterns_logic$76": {
+          "hide_name": 1,
+          "bits": [ 42 ],
+          "attributes": {
+            "scopename": "addr_slave_1"
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$opt_dff.cc:219:make_patterns_logic$79": {
+          "hide_name": 1,
+          "bits": [ 43 ],
+          "attributes": {
+            "scopename": "addr_slave_1"
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$opt_dff.cc:219:make_patterns_logic$82": {
+          "hide_name": 1,
+          "bits": [ 44 ],
+          "attributes": {
+            "scopename": "addr_slave_1"
+          }
+        },
+        "$flatten\\addr_slave_1.$auto$opt_dff.cc:219:make_patterns_logic$85": {
+          "hide_name": 1,
+          "bits": [ 45 ],
+          "attributes": {
+            "scopename": "addr_slave_1"
+          }
+        },
+        "\\5.cnt": {
+          "hide_name": 0,
+          "bits": [ 21, 22, 23, 24, 25, 26, 27, 28 ],
+          "attributes": {
+            "init": 0
+          }
+        },
+        "addr_master_1.48.addr_i": {
+          "hide_name": 0,
+          "bits": [ 34, 35, 36 ],
+          "attributes": {
+            "hdlname": "addr_master_1 48.addr_i",
+            "init": 0
+          }
+        },
+        "addr_master_1.addr_inc": {
+          "hide_name": 0,
+          "bits": [ 33 ],
+          "attributes": {
+            "hdlname": "addr_master_1 addr_inc"
+          }
+        },
+        "addr_master_1.adr": {
+          "hide_name": 0,
+          "bits": [ 34, 35, 36 ],
+          "attributes": {
+            "hdlname": "addr_master_1 adr"
+          }
+        },
+        "addr_master_1.async_reset": {
+          "hide_name": 0,
+          "bits": [ 29 ],
+          "attributes": {
+            "hdlname": "addr_master_1 async_reset"
+          }
+        },
+        "addr_master_1.clk_12mhz": {
+          "hide_name": 0,
+          "bits": [ 2 ],
+          "attributes": {
+            "hdlname": "addr_master_1 clk_12mhz"
+          }
+        },
+        "addr_master_1.d": {
+          "hide_name": 0,
+          "bits": [ 59 ],
+          "attributes": {
+            "hdlname": "addr_master_1 d"
+          }
+        },
+        "addr_master_1.event": {
+          "hide_name": 0,
+          "bits": [ 105 ],
+          "attributes": {
+            "hdlname": "addr_master_1 event"
+          }
+        },
+        "addr_master_1.eventcnt": {
+          "hide_name": 0,
+          "bits": [ 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103 ],
+          "attributes": {
+            "hdlname": "addr_master_1 eventcnt"
+          }
+        },
+        "addr_master_1.state": {
+          "hide_name": 0,
+          "bits": [ 56, 57 ],
+          "attributes": {
+            "hdlname": "addr_master_1 state"
+          }
+        },
+        "addr_master_1.we": {
+          "hide_name": 0,
+          "bits": [ 149 ],
+          "attributes": {
+            "hdlname": "addr_master_1 we"
+          }
+        },
+        "addr_slave_1.addr_b1": {
+          "hide_name": 0,
+          "bits": [ 153, 154, 155 ],
+          "attributes": {
+            "hdlname": "addr_slave_1 addr_b1"
+          }
+        },
+        "addr_slave_1.addr_b2": {
+          "hide_name": 0,
+          "bits": [ 150, 151, 152 ],
+          "attributes": {
+            "hdlname": "addr_slave_1 addr_b2"
+          }
+        },
+        "addr_slave_1.adr": {
+          "hide_name": 0,
+          "bits": [ 34, 35, 36 ],
+          "attributes": {
+            "hdlname": "addr_slave_1 adr"
+          }
+        },
+        "addr_slave_1.async_reset": {
+          "hide_name": 0,
+          "bits": [ 29 ],
+          "attributes": {
+            "hdlname": "addr_slave_1 async_reset"
+          }
+        },
+        "addr_slave_1.clk_50mhz": {
+          "hide_name": 0,
+          "bits": [ 3 ],
+          "attributes": {
+            "hdlname": "addr_slave_1 clk_50mhz"
+          }
+        },
+        "addr_slave_1.d": {
+          "hide_name": 0,
+          "bits": [ 59 ],
+          "attributes": {
+            "hdlname": "addr_slave_1 d"
+          }
+        },
+        "addr_slave_1.d_b1": {
+          "hide_name": 0,
+          "bits": [ 156 ],
+          "attributes": {
+            "hdlname": "addr_slave_1 d_b1"
+          }
+        },
+        "addr_slave_1.d_b2": {
+          "hide_name": 0,
+          "bits": [ 37 ],
+          "attributes": {
+            "hdlname": "addr_slave_1 d_b2"
+          }
+        },
+        "addr_slave_1.led_register": {
+          "hide_name": 0,
+          "bits": [ 4, 5, 6, 7, 8, 9, 10, 11 ],
+          "attributes": {
+            "hdlname": "addr_slave_1 led_register"
+          }
+        },
+        "addr_slave_1.leds": {
+          "hide_name": 0,
+          "bits": [ 4, 5, 6, 7, 8, 9, 10, 11 ],
+          "attributes": {
+            "hdlname": "addr_slave_1 leds"
+          }
+        },
+        "addr_slave_1.we": {
+          "hide_name": 0,
+          "bits": [ 149 ],
+          "attributes": {
+            "hdlname": "addr_slave_1 we"
+          }
+        },
+        "addr_slave_1.we_b1": {
+          "hide_name": 0,
+          "bits": [ 157 ],
+          "attributes": {
+            "hdlname": "addr_slave_1 we_b1"
+          }
+        },
+        "addr_slave_1.we_b2": {
+          "hide_name": 0,
+          "bits": [ 46 ],
+          "attributes": {
+            "hdlname": "addr_slave_1 we_b2"
+          }
+        },
+        "adr_s": {
+          "hide_name": 0,
+          "bits": [ 34, 35, 36 ],
+          "attributes": {
+          }
+        },
+        "async_reset": {
+          "hide_name": 0,
+          "bits": [ 29 ],
+          "attributes": {
+          }
+        },
+        "clk_12MHz": {
+          "hide_name": 0,
+          "bits": [ 2 ],
+          "attributes": {
+          }
+        },
+        "clk_50MHz": {
+          "hide_name": 0,
+          "bits": [ 3 ],
+          "attributes": {
+          }
+        },
+        "d_s": {
+          "hide_name": 0,
+          "bits": [ 59 ],
+          "attributes": {
+          }
+        },
+        "leds": {
+          "hide_name": 0,
+          "bits": [ 4, 5, 6, 7, 8, 9, 10, 11 ],
+          "attributes": {
+          }
+        },
+        "we_s": {
+          "hide_name": 0,
+          "bits": [ 149 ],
+          "attributes": {
+          }
+        }
+      }
+    }
+  }
+}

@@ -16,6 +16,7 @@
     <properties>
         <!-- Definieren von Properties -->
         <java.version>11</java.version>
+        <encoding>UTF-8</encoding>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
@@ -31,13 +32,19 @@
                 <artifactId>org.eclipse.elk.core</artifactId>
                 <version>${dependency.version.eclipse.elk}</version>
             </dependency>
-        
             <!-- https://mvnrepository.com/artifact/org.eclipse.elk/org.eclipse.elk.alg.layered -->
             <dependency>
                 <groupId>org.eclipse.elk</groupId>
                 <artifactId>org.eclipse.elk.alg.layered</artifactId>
                 <version>${dependency.version.eclipse.elk}</version>
             </dependency>
+            <!-- https://mvnrepository.com/artifact/org.eclipse.elk/org.eclipse.elk.graph.json -->
+            <dependency>
+                <groupId>org.eclipse.elk</groupId>
+                <artifactId>org.eclipse.elk.graph.json</artifactId>
+                <version>${dependency.version.eclipse.elk}</version>
+            </dependency>
+
             <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core -->
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>

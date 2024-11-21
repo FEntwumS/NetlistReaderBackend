@@ -7,9 +7,20 @@
         <artifactId>fentwums-parent</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-        
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>16</source>
+                    <target>16</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
     <modelVersion>4.0.0</modelVersion>
-    <groupId>fentwums.th-koeln.de</groupId>
     <artifactId>fentwums-netlist-reader-service</artifactId>
 
     <dependencies>
@@ -28,6 +39,10 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.elk</groupId>
+            <artifactId>org.eclipse.elk.graph.json</artifactId>
         </dependency>
     </dependencies>
 
