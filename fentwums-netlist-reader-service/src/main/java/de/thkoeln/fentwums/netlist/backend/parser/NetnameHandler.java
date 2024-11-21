@@ -15,7 +15,10 @@ import java.util.HashMap;
 import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
 
 public class NetnameHandler {
+    ElkElementCreator creator;
+
     public NetnameHandler() {
+        creator = new ElkElementCreator();
     }
 
     public void handleNetnames(HashMap<String, Object> netnames, String modulename,
@@ -203,7 +206,6 @@ public class NetnameHandler {
         int currentSignalIndex;
         boolean needEdge = true;
         String key = "";
-        ElkElementCreator creator = new ElkElementCreator();
 
         // dont create port, if currentnode is toplevel and no port exists
         if (currentSignalTree.getHRoot().getHChildren().containsValue(currentNode) && currentNode.getSPort() == null) {
@@ -290,7 +292,6 @@ public class NetnameHandler {
         SignalNode sourceNode;
         int currentSignalIndex;
 
-        ElkElementCreator creator = new ElkElementCreator();
 
         sink = currentSignalNode.getSPort();
 
@@ -462,7 +463,7 @@ public class NetnameHandler {
                                   int depth) {
         SignalNode child;
         ElkPort source, sink;
-        ElkElementCreator creator = new ElkElementCreator();
+
 
         child = precursor.getHChildren().get(pathSplit[depth]);
 
@@ -535,7 +536,6 @@ public class NetnameHandler {
             System.out.println("Oops!");
         }
 
-        ElkElementCreator creator = new ElkElementCreator();
 
         // create connecting edge
         ElkEdge newEdge = creator.createNewEdge(sink, source);
