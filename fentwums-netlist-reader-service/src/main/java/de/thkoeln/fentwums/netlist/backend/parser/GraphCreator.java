@@ -3,10 +3,7 @@ package de.thkoeln.fentwums.netlist.backend.parser;
 import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchicalNode;
 import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchyTree;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
-import de.thkoeln.fentwums.netlist.backend.helpers.CellCollapser;
-import de.thkoeln.fentwums.netlist.backend.helpers.OutputReverser;
-import de.thkoeln.fentwums.netlist.backend.helpers.SanityChecker;
-import de.thkoeln.fentwums.netlist.backend.helpers.SignalBundler;
+import de.thkoeln.fentwums.netlist.backend.helpers.*;
 import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
 import org.eclipse.elk.alg.layered.options.LayeredOptions;
 import org.eclipse.elk.core.data.LayoutMetaDataService;
@@ -56,7 +53,7 @@ public class GraphCreator {
         if (root.getChildren().isEmpty()) {
             ElkNode toplevelNode = createNode(root);
             toplevelNode.setIdentifier(modulename);
-            ElkLabel toplevelLabel = createLabel(modulename,  toplevelNode);
+            ElkLabel toplevelLabel = ElkElementCreator.createNewLabel(modulename,  toplevelNode);
             toplevelNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_ORDER);
             //toplevelNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
             toplevelNode.setProperty(CoreOptions.ALGORITHM, "layered");
@@ -64,8 +61,6 @@ public class GraphCreator {
             toplevelNode.setProperty(CoreOptions.NODE_LABELS_PLACEMENT, EnumSet.of(NodeLabelPlacement.H_CENTER,
                     NodeLabelPlacement.V_TOP, NodeLabelPlacement.OUTSIDE));
             toplevelNode.setProperty(CoreOptions.PORT_LABELS_PLACEMENT, EnumSet.of(PortLabelPlacement.INSIDE));
-
-            toplevelLabel.setDimensions(toplevelLabel.getText().length() * 7 + 1, 10);
         }
 
         try {

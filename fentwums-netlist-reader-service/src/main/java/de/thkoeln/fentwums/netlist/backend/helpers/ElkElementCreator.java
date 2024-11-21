@@ -12,7 +12,7 @@ import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
 public class ElkElementCreator {
     public ElkElementCreator() {}
 
-    public ElkNode createNewNode(ElkNode parent, String identifier) {
+    public static ElkNode createNewNode(ElkNode parent, String identifier) {
         ElkNode newNode = createNode(parent);
         newNode.setIdentifier(identifier);
         newNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_ORDER);
@@ -28,7 +28,7 @@ public class ElkElementCreator {
         return newNode;
     }
 
-    public ElkEdge createNewEdge(ElkConnectableShape sink, ElkConnectableShape source) {
+    public static ElkEdge createNewEdge(ElkConnectableShape sink, ElkConnectableShape source) {
         ElkEdge newEdge = createSimpleEdge(source, sink);
 
         // Every signal is single by default
@@ -37,7 +37,7 @@ public class ElkElementCreator {
         return newEdge;
     }
 
-    public ElkPort createNewPort(ElkNode parent, PortSide side) {
+    public static ElkPort createNewPort(ElkNode parent, PortSide side) {
         ElkPort newPort = createPort(parent);
         newPort.setDimensions(10, 10);
         newPort.setProperty(CoreOptions.PORT_SIDE, side);
@@ -46,7 +46,7 @@ public class ElkElementCreator {
         return newPort;
     }
 
-    public ElkLabel createNewLabel(String content, ElkGraphElement parent) {
+    public static ElkLabel createNewLabel(String content, ElkGraphElement parent) {
         if (parent.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)) {
             content += " ";
         }
@@ -57,7 +57,7 @@ public class ElkElementCreator {
         return newLabel;
     }
 
-    public ElkNode createNewConstantDriver(ElkNode parent) {
+    public static ElkNode createNewConstantDriver(ElkNode parent) {
         ElkNode newNode = createNode(parent);
 
         newNode.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.allOf(SizeConstraint.class));

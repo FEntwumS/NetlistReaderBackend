@@ -31,7 +31,6 @@ public class PortHandler {
         HashMap<String, Object> currentPort;
         ArrayList<Object> currentPortDrivers;
         int currentPortDriverIndex;
-        ElkElementCreator creator = new ElkElementCreator();
 
         HashMap<String, ElkNode> constantNodes = new HashMap<>();
         ElkNode constTarget;
@@ -68,7 +67,7 @@ public class PortHandler {
 
                 // Add label to port
                 ElkLabel toplevelPortLabel =
-                        creator.createNewLabel(portname + (currentPortDrivers.size() == 1 ? "" : " [" + currentPortDriverIndex +
+                        ElkElementCreator.createNewLabel(portname + (currentPortDrivers.size() == 1 ? "" : " [" + currentPortDriverIndex +
                                         "]"), toplevelPort);
 
                 // If the port has a constant driver (or is a constant driver), a source (or sink) node needs to be
@@ -89,7 +88,7 @@ public class PortHandler {
                         constTarget.setProperty(CoreOptions.NODE_LABELS_PLACEMENT,
                                 EnumSet.of(NodeLabelPlacement.H_CENTER, NodeLabelPlacement.V_CENTER, NodeLabelPlacement.INSIDE));
 
-                        ElkLabel constTargetLabel = creator.createNewLabel((String) driver, constTarget);
+                        ElkLabel constTargetLabel = ElkElementCreator.createNewLabel((String) driver, constTarget);
 
                         ElkPort constTargetPort = createPort(constTarget);
                         constTargetPort.setProperty(CoreOptions.PORT_SIDE, side);
