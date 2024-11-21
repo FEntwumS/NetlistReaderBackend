@@ -52,7 +52,7 @@ public class ElkElementCreator {
         }
 
         ElkLabel newLabel = createLabel(content, parent);
-        newLabel.setDimensions(content.length() * 7 + 1, 10);
+        newLabel.setDimensions(content.length() * 5.75 + 1, 10);
 
         return newLabel;
     }
