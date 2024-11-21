@@ -2,6 +2,7 @@ package de.thkoeln.fentwums.netlist.backend.parser;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalNode;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
+import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
 import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
 import de.thkoeln.fentwums.netlist.backend.options.SignalType;
 import org.eclipse.elk.core.options.CoreOptions;
@@ -30,6 +31,7 @@ public class PortHandler {
         HashMap<String, Object> currentPort;
         ArrayList<Object> currentPortDrivers;
         int currentPortDriverIndex;
+        ElkElementCreator creator = new ElkElementCreator();
 
         HashMap<String, ElkNode> constantNodes = new HashMap<>();
         ElkNode constTarget;
@@ -66,17 +68,8 @@ public class PortHandler {
 
                 // Add label to port
                 ElkLabel toplevelPortLabel =
-                        createLabel(portname + (currentPortDrivers.size() == 1 ? "" : " [" + currentPortDriverIndex +
+                        creator.createNewLabel(portname + (currentPortDrivers.size() == 1 ? "" : " [" + currentPortDriverIndex +
                                         "]"), toplevelPort);
-                // HACK
-                // TODO find better solution
-                //
-                // Why is this necessary?
-                // This hack was introduced when no frontend for the backend existed and the live demo version of
-                // elkjs was used to display the generated graph. For whatever reason the labels would be crossed by
-                // edges (most likely because the labels weren't being layouted). THis essentially declares a worst
-                // case layout to make the port labels readable
-                toplevelPortLabel.setDimensions(toplevelPortLabel.getText().length() * 7 + 1, 10);
 
                 // If the port has a constant driver (or is a constant driver), a source (or sink) node needs to be
                 // created
@@ -96,8 +89,7 @@ public class PortHandler {
                         constTarget.setProperty(CoreOptions.NODE_LABELS_PLACEMENT,
                                 EnumSet.of(NodeLabelPlacement.H_CENTER, NodeLabelPlacement.V_CENTER, NodeLabelPlacement.INSIDE));
 
-                        ElkLabel constTargetLabel = createLabel((String) driver, constTarget);
-                        constTargetLabel.setDimensions(constTargetLabel.getText().length() * 7 + 1, 10);
+                        ElkLabel constTargetLabel = creator.createNewLabel((String) driver, constTarget);
 
                         ElkPort constTargetPort = createPort(constTarget);
                         constTargetPort.setProperty(CoreOptions.PORT_SIDE, side);

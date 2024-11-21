@@ -203,6 +203,7 @@ public class NetnameHandler {
         int currentSignalIndex;
         boolean needEdge = true;
         String key = "";
+        ElkElementCreator creator = new ElkElementCreator();
 
         // dont create port, if currentnode is toplevel and no port exists
         if (currentSignalTree.getHRoot().getHChildren().containsValue(currentNode) && currentNode.getSPort() == null) {
@@ -236,9 +237,8 @@ public class NetnameHandler {
 
                 currentSignalIndex = currentNode.getIndexInSignal();
 
-                ElkLabel sinkLabel = createLabel(currentNode.getSName() + (currentSignalIndex != -1 ? " [" + currentSignalIndex + "]" : ""),
+                ElkLabel sinkLabel = creator.createNewLabel(currentNode.getSName() + (currentSignalIndex != -1 ? " [" + currentSignalIndex + "]" : ""),
                         sink);
-                sinkLabel.setDimensions(sinkLabel.getText().length() * 7 + 1, 10);
             } else {
                 sink = currentNode.getSPort();
             }
@@ -290,6 +290,8 @@ public class NetnameHandler {
         SignalNode sourceNode;
         int currentSignalIndex;
 
+        ElkElementCreator creator = new ElkElementCreator();
+
         sink = currentSignalNode.getSPort();
 
         // else source should be in same layer; search there for signal source (check port side)
@@ -331,9 +333,8 @@ public class NetnameHandler {
                 currentSignalIndex = precursor.getIndexInSignal();
 
                 ElkLabel sourceLabel =
-                        createLabel(precursor.getSName() + (currentSignalIndex != -1 ? " [" + currentSignalIndex +
+                        creator.createNewLabel(precursor.getSName() + (currentSignalIndex != -1 ? " [" + currentSignalIndex +
                                 "]" : ""), source);
-                sourceLabel.setDimensions(sourceLabel.getText().length() * 7 + 1, 10);
 
                 precursor.setSPort(source);
             } else {
@@ -396,12 +397,11 @@ public class NetnameHandler {
                     ElkLabel sourceLabel;
 
                     if (precursor.getSVisited()) {
-                        sourceLabel = createLabel(precursor.getSName() + (currentSignalIndex != -1 ? " [" + currentSignalIndex +
+                        sourceLabel = creator.createNewLabel(precursor.getSName() + (currentSignalIndex != -1 ? " [" + currentSignalIndex +
                                 "]" : ""), source);
                     } else {
-                        sourceLabel = createLabel(String.valueOf(currentSignalTree.getSId()), source);
+                        sourceLabel = creator.createNewLabel(String.valueOf(currentSignalTree.getSId()), source);
                     }
-                    sourceLabel.setDimensions(sourceLabel.getText().length() * 7 + 1, 10);
 
                     precursor.setSPort(source);
                 }
@@ -462,6 +462,7 @@ public class NetnameHandler {
                                   int depth) {
         SignalNode child;
         ElkPort source, sink;
+        ElkElementCreator creator = new ElkElementCreator();
 
         child = precursor.getHChildren().get(pathSplit[depth]);
 
@@ -481,8 +482,7 @@ public class NetnameHandler {
 
                 precursor.setSPort(sink);
 
-                ElkLabel sinkLabel = createLabel(String.valueOf(currentSignalTree.getSId()), sink);
-                sinkLabel.setDimensions(sinkLabel.getText().length() * 7 + 1, 10);
+                ElkLabel sinkLabel = creator.createNewLabel(String.valueOf(currentSignalTree.getSId()), sink);
             }
 
             if (sink.getProperty(CoreOptions.PORT_SIDE) == PortSide.WEST) {
