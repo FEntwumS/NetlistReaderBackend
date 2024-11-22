@@ -63,11 +63,11 @@ public class SanityChecker {
 
     private void checkIfPortEmpty(ElkPort port) {
         if (port.getIncomingEdges().isEmpty() && !port.getParent().getParent().getIdentifier().equals("root") && !port.getParent().getChildren().isEmpty() && !port.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
-            logger.atError().setMessage("Port {} in port group {} has no incoming edges").addArgument(port).addArgument(port.getProperty(FEntwumSOptions.PORT_GROUP_NAME)).log();
+            logger.atWarn().setMessage("Port {} in port group {} has no incoming edges").addArgument(port).addArgument(port.getProperty(FEntwumSOptions.PORT_GROUP_NAME)).log();
         }
 
         if (port.getOutgoingEdges().isEmpty() && !port.getParent().getChildren().isEmpty() && !port.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST) && !port.getParent().getParent().getIdentifier().equals("root")) {
-            logger.atError().setMessage("Port {} in port group {} has no outgoing edges").addArgument(port).addArgument(port.getProperty(FEntwumSOptions.PORT_GROUP_NAME)).log();
+            logger.atWarn().setMessage("Port {} in port group {} has no outgoing edges").addArgument(port).addArgument(port.getProperty(FEntwumSOptions.PORT_GROUP_NAME)).log();
         }
     }
 }
