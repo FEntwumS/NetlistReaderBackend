@@ -156,6 +156,8 @@ public class SignalBundler {
                     edge.getTargets().clear();
                     edge.getTargets().add(bundlePort);
 
+                    edge.setProperty(CoreOptions.EDGE_THICKNESS, 2.8d);
+
                     currentPort.getIncomingEdges().remove(edge);
                 }
 
@@ -188,6 +190,8 @@ public class SignalBundler {
 
                     edge.getSources().clear();
                     edge.getSources().add(bundlePort);
+
+                    edge.setProperty(CoreOptions.EDGE_THICKNESS, 2.8d);
 
                     if (!currentPort.equals(bundlePort)) {
                         currentPort.getOutgoingEdges().remove(edge);

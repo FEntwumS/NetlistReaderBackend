@@ -48,7 +48,7 @@ public class GraphCreator {
 
         root.setIdentifier("root");
         //root.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
-        root.setProperty(LayeredOptions.SPACING_BASE_VALUE, 35d);   // TODO Look for better spacing solution
+        //root.setProperty(LayeredOptions.SPACING_BASE_VALUE, 35d);   // TODO Look for better spacing solution
 
         if (root.getChildren().isEmpty()) {
             ElkNode toplevelNode = createNode(root);
