@@ -15,12 +15,12 @@
 
     <properties>
         <!-- Definieren von Properties -->
-        <java.version>11</java.version>
+        <java.version>21</java.version>
         <encoding>UTF-8</encoding>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
-        <!-- Dpendencies Properties -->
+        <!-- Dependencies Properties -->
         <dependency.version.eclipse.elk>0.9.1</dependency.version.eclipse.elk>
         <dependency.version.fasterxml.jackson>2.18.1</dependency.version.fasterxml.jackson>
     </properties>
@@ -67,8 +67,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version> <!-- Oder eine aktuelle Version -->
                 <configuration>
-                    <source>8</source> <!-- Oder 11, 17 etc., je nach Bedarf -->
-                    <target>8</target> <!-- Oder 11, 17 etc., je nach Bedarf -->
+                    <source>${java.version}</source> <!-- Oder 11, 17 etc., je nach Bedarf -->
+                    <target>${java.version}</target> <!-- Oder 11, 17 etc., je nach Bedarf -->
                 </configuration>
             </plugin>
         </plugins>
