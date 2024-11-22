@@ -6,6 +6,8 @@ import jdk.jshell.spi.ExecutionControl;
 import org.eclipse.elk.core.RecursiveGraphLayoutEngine;
 import org.eclipse.elk.core.util.BasicProgressMonitor;
 import org.eclipse.elk.graph.json.ElkGraphJson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,6 +18,8 @@ import java.time.Instant;
 
 
 public class Main {
+    private static Logger logger = LoggerFactory.getLogger(Main.class);
+
     public static void main(String[] args) throws IOException, ExecutionControl.NotImplementedException {
         GraphCreator graphCreator = new GraphCreator();
         NetlistParser parser = new NetlistParser("/optimal-info2.json");
@@ -25,14 +29,14 @@ public class Main {
         parser.checkReadNetlist();
         Instant end = Instant.now();
 
-        System.out.println("Read time: " + Duration.between(start, end).toMillis() + "ms");
+        logger.atInfo().setMessage("Read time: {} ms").addArgument(Duration.between(start, end).toMillis()).log();
 
         start = Instant.now();
-        System.out.println(parser.getToplevelName());
+        logger.atInfo().setMessage("{}").addArgument(parser.getToplevelName()).log();
         graphCreator.createGraphFromNetlist(parser.getModuleToParse(), parser.getToplevelName());
         end = Instant.now();
 
-        System.out.println("Graph creation time: " + Duration.between(start, end).toMillis() + "ms");
+        logger.atInfo().setMessage("Graph creation time: {} ms").addArgument(Duration.between(start, end).toMillis()).log();
 
         RecursiveGraphLayoutEngine layouter = new RecursiveGraphLayoutEngine();
         BasicProgressMonitor monitor = new BasicProgressMonitor();
@@ -41,12 +45,11 @@ public class Main {
         try {
             layouter.layout(graphCreator.getGraph(), monitor);
         } catch (StackOverflowError e) {
-            System.out.println("Stack overflow; Graph too big :(");
-            e.printStackTrace();
+            logger.error("Stack overflow; Graph too big :(", e);
         }
         end = Instant.now();
 
-        System.out.println("Graph layouting time: " + Duration.between(start, end).toMillis() + "ms");
+        logger.atInfo().setMessage("Graph layouting time: {} ms").addArgument(Duration.between(start, end).toMillis()).log();
 
         String jsongraph =
                 ElkGraphJson.forGraph(graphCreator.getGraph()).omitLayout(false).omitZeroDimension(true)
@@ -60,6 +63,6 @@ public class Main {
             throw new RuntimeException(e);
         }
 
-        System.out.println("done");
+        logger.info("done");
     }
 }
