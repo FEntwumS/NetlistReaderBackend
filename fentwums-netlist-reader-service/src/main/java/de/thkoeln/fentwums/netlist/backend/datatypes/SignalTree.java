@@ -58,7 +58,6 @@ public class SignalTree {
             currentNode = currentNode.getHChildren().get(fragment);
 
             if (currentNode == null) {
-                //System.out.println("Layer " + fragment + " in path " + path + " not found");
                 return null;
             }
         }

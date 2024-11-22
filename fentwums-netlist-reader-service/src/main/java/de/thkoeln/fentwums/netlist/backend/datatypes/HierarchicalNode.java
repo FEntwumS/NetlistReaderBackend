@@ -3,6 +3,8 @@ package de.thkoeln.fentwums.netlist.backend.datatypes;
 import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkNode;
 import org.eclipse.emf.common.util.EList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,6 +23,8 @@ public class HierarchicalNode {
     private ArrayList<ElkEdge> edgeList;
     private ArrayList<Integer> currentlyBundledSignals;
     private String path;
+
+    private static Logger logger = LoggerFactory.getLogger(HierarchicalNode.class);
 
     public HierarchicalNode() {
         hName = "";
@@ -165,7 +169,7 @@ public class HierarchicalNode {
                 }
             }
 
-            System.out.println("parent " + this.getParent().getHName() + " does not know its child " + this.getHName());
+            logger.atError().setMessage("Parent {} does not know its child {}").addArgument(this.getParent().getHName()).addArgument(this.getHName()).log();
             return "";
         }
         return this.getHName();

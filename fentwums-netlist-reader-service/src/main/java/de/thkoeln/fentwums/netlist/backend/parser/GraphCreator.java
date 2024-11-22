@@ -6,8 +6,10 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
 import de.thkoeln.fentwums.netlist.backend.helpers.*;
 import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
 import org.eclipse.elk.alg.layered.options.LayeredOptions;
+import org.eclipse.elk.core.RecursiveGraphLayoutEngine;
 import org.eclipse.elk.core.data.LayoutMetaDataService;
 import org.eclipse.elk.core.options.*;
+import org.eclipse.elk.core.util.BasicProgressMonitor;
 import org.eclipse.elk.graph.ElkLabel;
 import org.eclipse.elk.graph.ElkNode;
 import org.eclipse.elk.graph.json.ElkGraphJson;
@@ -16,11 +18,13 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.TreeMap;
+import java.util.logging.Logger;
 
 import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
 
 public class GraphCreator {
     private ElkNode root;
+    private static Logger logger = Logger.getLogger(GraphCreator.class.getName());
 
     public GraphCreator() {
         root = createGraph();
@@ -146,5 +150,19 @@ public class GraphCreator {
         if (!module.containsKey("netnames")) {
             throw new RuntimeException("Module does not contain netnames");
         }
+    }
+
+    public String layoutGraph() {
+        RecursiveGraphLayoutEngine engine = new RecursiveGraphLayoutEngine();
+        BasicProgressMonitor monitor = new BasicProgressMonitor();
+
+        try {
+            engine.layout(root, monitor);
+        } catch (Exception e) {
+
+        }
+
+        return ElkGraphJson.forGraph(root).omitLayout(false).omitZeroDimension(true)
+                .omitZeroPositions(true).shortLayoutOptionKeys(true).prettyPrint(false).toJson();
     }
 }

@@ -7,6 +7,8 @@ import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.PortSide;
 import org.eclipse.elk.graph.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,6 +18,7 @@ import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
 
 public class NetnameHandler {
     ElkElementCreator creator;
+    private static Logger logger = LoggerFactory.getLogger(NetnameHandler.class);
 
     public NetnameHandler() {
         creator = new ElkElementCreator();
@@ -112,19 +115,15 @@ public class NetnameHandler {
                 if (currentSignalNode == null) {
                     // TODO check if this is true when a nonsensical user construct exists
 
-                    System.out.println("Unknown cell; Bit " + (int) bit);
-                    System.out.println("This error may be caused by unused signals left in the netlist file");
+                    logger.atWarn().setMessage("Unknown cell; Bit {}").addArgument((int) bit).log();
+                    logger.warn("This error may be caused by unused signals left in the netlist file");
 
                     continue;
                 }
 
                 if (currentHNode == null) {
-                    System.out.print("Missing layer in hierarchy: ");
-                    for (String s : currentNetPathSplit) {
-                        System.out.print(s + " ");
-                    }
+                    logger.atWarn().setMessage("Missing layer in hierarchy: {}").addArgument(currentNetPath).log();
 
-                    System.out.println();
                     continue;
                 }
 
@@ -225,7 +224,7 @@ public class NetnameHandler {
                 currentGraphNode = source.getParent().getParent();
 
                 if (currentGraphNode.getIdentifier().equals("root")) {
-                    System.out.println("wtf! that wasnt supposed to happen :(");
+                    logger.error("Routing somehow reached root node");
                 }
 
                 sink = createPort(currentGraphNode);
@@ -322,7 +321,7 @@ public class NetnameHandler {
             if (precursor.getSPort() == null) {
                 if (sink.getParent().getParent().getIdentifier().equals("root")) {
                     // TODO fixme
-                    System.out.println("wtf! that wasnt supposed to happen :/");
+                    logger.error("The root node seems to contain ports");
 
                     return;
                 }
@@ -533,7 +532,7 @@ public class NetnameHandler {
         }
 
         if (source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST) && sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
-            System.out.println("Oops!");
+            logger.warn("Tried to create edge from sink to source (wrong direction)");
         }
 
 
@@ -558,7 +557,7 @@ public class NetnameHandler {
         }
 
         if (key.isEmpty()) {
-            System.out.println("hParent does not know its children. This should of course never happen");
+            logger.error("hParent does not know its children. This should of course never happen");
         }
 
         parent.getSChildren().put(key, child);

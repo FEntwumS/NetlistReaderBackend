@@ -6,8 +6,12 @@ import org.eclipse.elk.core.options.PortSide;
 import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkNode;
 import org.eclipse.elk.graph.ElkPort;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SanityChecker {
+    private static Logger logger = LoggerFactory.getLogger(SanityChecker.class);
+
     public SanityChecker() {
     }
 
@@ -47,25 +51,23 @@ public class SanityChecker {
 
     private void checkEdgeDirection(ElkEdge edge) {
         if (edge.getSources().getFirst() == null || edge.getTargets().getFirst() == null) {
-            System.out.println("Edge " + edge + " has no target/source");
+            logger.atError().setMessage("Edge {} has no target/source").addArgument(edge).log();
 
             return;
         }
 
         if (edge.getSources().getFirst().getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST) && !edge.getTargets().getFirst().getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)) {
-            System.out.println("Edge " + edge + " goes from target to source");
+            logger.atError().setMessage("Edge {} goes fromm sink to source (wrong direction)").addArgument(edge).log();
         }
     }
 
     private void checkIfPortEmpty(ElkPort port) {
         if (port.getIncomingEdges().isEmpty() && !port.getParent().getParent().getIdentifier().equals("root") && !port.getParent().getChildren().isEmpty() && !port.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
-            System.out.println("Port " + port + " has no incoming edges");
-            System.out.println("Port Group name: " + port.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
+            logger.atError().setMessage("Port {} in port group {} has no incoming edges").addArgument(port).addArgument(port.getProperty(FEntwumSOptions.PORT_GROUP_NAME)).log();
         }
 
         if (port.getOutgoingEdges().isEmpty() && !port.getParent().getChildren().isEmpty() && !port.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST) && !port.getParent().getParent().getIdentifier().equals("root")) {
-            System.out.println("Port " + port + " has no outgoing edges");
-            System.out.println("Port Group name: " + port.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
+            logger.atError().setMessage("Port {} in port group {} has no outgoing edges").addArgument(port).addArgument(port.getProperty(FEntwumSOptions.PORT_GROUP_NAME)).log();
         }
     }
 }

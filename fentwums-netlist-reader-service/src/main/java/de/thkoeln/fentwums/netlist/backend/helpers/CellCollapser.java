@@ -5,12 +5,15 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchyTree;
 import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkNode;
 import org.eclipse.emf.common.util.EList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 public class CellCollapser {
     private HierarchyTree hierarchy;
     private ElkNode groundTruth;
+    private static Logger logger = LoggerFactory.getLogger(CellCollapser.class);
 
     public CellCollapser() {
     }
@@ -125,7 +128,7 @@ public class CellCollapser {
             currentNode = currentNode.getChildren().get(fragment);
 
             if(currentNode == null) {
-                System.out.println("Could not find cell \"" + fragment + "\" from cellpath \"" + cellPath + "\"");
+                logger.atError().setMessage("Could not find cell {} from cellpath {}").addArgument(fragment).addArgument(cellPath).log();
 
                 return null;
             }

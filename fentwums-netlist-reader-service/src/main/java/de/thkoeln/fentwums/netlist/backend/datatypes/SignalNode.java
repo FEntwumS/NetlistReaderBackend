@@ -1,6 +1,8 @@
 package de.thkoeln.fentwums.netlist.backend.datatypes;
 
 import org.eclipse.elk.graph.ElkPort;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 
@@ -17,6 +19,8 @@ public class SignalNode {
     private int indexInSignal;
     private String path;
     private String srcLocation;
+
+    private static Logger logger = LoggerFactory.getLogger(SignalNode.class);
 
     public SignalNode() {
         sName = "";
@@ -143,7 +147,7 @@ public class SignalNode {
                 }
             }
 
-            System.out.println("hParent " + this.getHParent().getSName() + " does not know its child " + this.getSName());
+            logger.atError().setMessage("hParent {} does not know its child {}").addArgument(this.getHParent().getSName()).addArgument(this.getSName()).log();
         }
         return "";
     }
