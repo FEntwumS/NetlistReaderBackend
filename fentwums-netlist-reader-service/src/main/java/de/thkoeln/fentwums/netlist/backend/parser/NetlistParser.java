@@ -6,10 +6,12 @@ import jdk.jshell.spi.ExecutionControl;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 
 public class NetlistParser {
     private File netlistFile;
+    private InputStream netlistStream;
     private ObjectMapper mapper;
     private TypeReference<HashMap<String, Object>> typeRef;
     private HashMap<String, Object> readNetlist;
@@ -25,6 +27,7 @@ public class NetlistParser {
         readModules = null;
         moduleToParse = null;
         toplevelName = null;
+        netlistStream = null;
     }
 
     public NetlistParser(File netlistFile) {
@@ -35,6 +38,7 @@ public class NetlistParser {
         readModules = null;
         moduleToParse = null;
         toplevelName = null;
+        netlistStream = null;
     }
 
     public NetlistParser(String netlistFilePath) {
@@ -45,6 +49,18 @@ public class NetlistParser {
         readModules = null;
         moduleToParse = null;
         toplevelName = null;
+        netlistStream = null;
+    }
+
+    public NetlistParser(InputStream netlistStream) {
+        netlistFile = null;
+        mapper = new ObjectMapper();
+        typeRef = new TypeReference<HashMap<String, Object>>() {};
+        readNetlist = null;
+        readModules = null;
+        moduleToParse = null;
+        toplevelName = null;
+        this.netlistStream = netlistStream;
     }
 
     public File getNetlistFile() {
@@ -95,13 +111,33 @@ public class NetlistParser {
         this.toplevelName = toplevelName;
     }
 
-    public void readNetlist() throws IOException {
+    public InputStream getNetlistStream() {
+        return netlistStream;
+    }
+
+    public void setNetlistStream(InputStream netlistStream) {
+        this.netlistStream = netlistStream;
+    }
+
+    public void readNetlistFile() throws IOException {
         if (netlistFile == null) {
             throw new RuntimeException("netlistFile is null");
         }
 
         try {
             readNetlist = mapper.readValue(netlistFile, typeRef);
+        } catch (IOException e) {
+            throw new RuntimeException("Error parsing netlist", e);
+        }
+    }
+
+    public void readNetlistStream() throws IOException {
+        if (netlistStream == null) {
+            throw new RuntimeException("netlistStream is null");
+        }
+
+        try {
+            readNetlist = mapper.readValue(netlistStream, typeRef);
         } catch (IOException e) {
             throw new RuntimeException("Error parsing netlist", e);
         }

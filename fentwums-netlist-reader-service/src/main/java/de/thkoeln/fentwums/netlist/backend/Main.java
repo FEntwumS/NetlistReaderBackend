@@ -25,7 +25,7 @@ public class Main {
         NetlistParser parser = new NetlistParser("/optimal-info2.json");
 
         Instant start = Instant.now();
-        parser.readNetlist();
+        parser.readNetlistFile();
         parser.checkReadNetlist();
         Instant end = Instant.now();
 

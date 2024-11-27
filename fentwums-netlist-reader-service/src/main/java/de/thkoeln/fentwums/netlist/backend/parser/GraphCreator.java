@@ -24,6 +24,7 @@ import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
 
 public class GraphCreator {
     private ElkNode root;
+    private HierarchyTree hierarchy;
     private static Logger logger = Logger.getLogger(GraphCreator.class.getName());
 
     public GraphCreator() {
@@ -120,6 +121,8 @@ public class GraphCreator {
         collapser.collapseAllCells();
         collapser.expandAllCells();
 
+        this.hierarchy = collapser.getHierarchy();
+
 //        for (String child : hierarchyTree.getRoot().getChildren().keySet()) {
 //            collapser.collapseRecursively(hierarchyTree.getRoot().getChildren().get(child));
 //        }
@@ -164,5 +167,9 @@ public class GraphCreator {
 
         return ElkGraphJson.forGraph(root).omitLayout(false).omitZeroDimension(true)
                 .omitZeroPositions(true).shortLayoutOptionKeys(true).prettyPrint(false).toJson();
+    }
+
+    public HierarchyTree getHierarchyTree() {
+        return hierarchy;
     }
 }
