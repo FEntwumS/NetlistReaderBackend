@@ -119,7 +119,7 @@ public class CellCollapser {
     }
 
     private HierarchicalNode findNode(String cellPath) {
-        String[] cellPathSplit = cellPath.split(" ");
+        String[] cellPathSplit = cellPath.trim().split(" ");
 
         HierarchicalNode currentNode = hierarchy.getRoot();
         HierarchicalNode nextNode;

@@ -115,8 +115,8 @@ public class NetnameHandler {
                 if (currentSignalNode == null) {
                     // TODO check if this is true when a nonsensical user construct exists
 
-                    logger.atWarn().setMessage("Unknown cell; Bit {}").addArgument((int) bit).log();
-                    logger.warn("This error may be caused by unused signals left in the netlist file");
+                    logger.atDebug().setMessage("Unknown cell; Bit {}").addArgument((int) bit).log();
+                    logger.debug("This error may be caused by unused signals left in the netlist file");
 
                     continue;
                 }

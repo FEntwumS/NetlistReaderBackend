@@ -1,5 +1,6 @@
 package de.thkoeln.fentwums.netlist.backend.parser;
 
+import de.thkoeln.fentwums.netlist.backend.Main;
 import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchicalNode;
 import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchyTree;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
@@ -13,19 +14,21 @@ import org.eclipse.elk.core.util.BasicProgressMonitor;
 import org.eclipse.elk.graph.ElkLabel;
 import org.eclipse.elk.graph.ElkNode;
 import org.eclipse.elk.graph.json.ElkGraphJson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.TreeMap;
-import java.util.logging.Logger;
 
 import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
 
 public class GraphCreator {
     private ElkNode root;
     private HierarchyTree hierarchy;
-    private static Logger logger = Logger.getLogger(GraphCreator.class.getName());
+    private HashMap<Integer, SignalTree> signalMap;
+    private static Logger logger = LoggerFactory.getLogger(Main.class);
 
     public GraphCreator() {
         root = createGraph();
@@ -51,8 +54,10 @@ public class GraphCreator {
         LayoutMetaDataService service = LayoutMetaDataService.getInstance();
         service.registerLayoutMetaDataProviders(new FEntwumSOptions());
 
+        logger.info("Successfully registered options");
+
         root.setIdentifier("root");
-        //root.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
+        root.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
         //root.setProperty(LayeredOptions.SPACING_BASE_VALUE, 35d);   // TODO Look for better spacing solution
 
         if (root.getChildren().isEmpty()) {
@@ -71,14 +76,16 @@ public class GraphCreator {
         try {
             checkModuleCompleteness(module);
         } catch (Exception e) {
+            logger.error("Netlist is not complete", e);
+
             throw new RuntimeException("Netlist is not complete", e);
         }
+
+
 
         HashMap<String, Object> ports = (HashMap<String, Object>) module.get("ports");
         HashMap<String, Object> cells = (HashMap<String, Object>) module.get("cells");
         HashMap<String, Object> netnames = (HashMap<String, Object>) module.get("netnames");
-
-        HashMap<Integer, SignalTree> signalMap;
 
         ElkNode toplevel = root.getChildren().getFirst();
         HierarchyTree hierarchyTree = new HierarchyTree(new HierarchicalNode(toplevel.getIdentifier(), null,
@@ -87,41 +94,54 @@ public class GraphCreator {
 
         PortHandler portHandler = new PortHandler();
 
+        logger.info("Start creating ports");
         signalMap = portHandler.createPorts(ports, modulename, toplevel);
+        logger.info("Successfully created ports");
 
         CellHandler cellHandler = new CellHandler();
 
+        logger.info("Start creating cells");
         cellHandler.createCells(cells, modulename, toplevel, signalMap, hierarchyTree);
+        logger.info("Successfully created cells");
 
         NetnameHandler netHandler = new NetnameHandler();
 
+        logger.info("Start creating nets");
         netHandler.handleNetnames(netnames, modulename, signalMap, hierarchyTree);
+        logger.info("Successfully created nets");
+
+        logger.info("Start recreating signal paths");
         netHandler.recreateHierarchy(signalMap, modulename);
+        logger.info("Successfully recreated signal paths");
 
         OutputReverser reverser = new OutputReverser();
 
+        logger.info("Start reversing order of output ports");
         reverser.reversePorts(toplevel);
+        logger.info("Successfully reversed order of output ports");
 
         SignalBundler bundler = new SignalBundler();
         bundler.setHierarchy(hierarchyTree);
         bundler.setTreeMap(signalMap);
 
+        logger.info("Start bundling signals");
         for (int key : signalMap.keySet()) {
             bundler.bundleSignalWithId(key);
         }
+        logger.info("Successfully bundled signals");
 
-        SanityChecker checker = new SanityChecker();
+//        SanityChecker checker = new SanityChecker();
+//
+//        checker.checkGraph(root);
 
-        checker.checkGraph(root);
+//        CellCollapser collapser = new CellCollapser();
+//        collapser.setGroundTruth(toplevel);
+//        collapser.setHierarchy(hierarchyTree);
+//
+//        collapser.collapseAllCells();
+//        collapser.expandAllCells();
 
-        CellCollapser collapser = new CellCollapser();
-        collapser.setGroundTruth(toplevel);
-        collapser.setHierarchy(hierarchyTree);
-
-        collapser.collapseAllCells();
-        collapser.expandAllCells();
-
-        this.hierarchy = collapser.getHierarchy();
+        this.hierarchy = hierarchyTree;
 
 //        for (String child : hierarchyTree.getRoot().getChildren().keySet()) {
 //            collapser.collapseRecursively(hierarchyTree.getRoot().getChildren().get(child));
@@ -171,5 +191,9 @@ public class GraphCreator {
 
     public HierarchyTree getHierarchyTree() {
         return hierarchy;
+    }
+
+    public HashMap<Integer, SignalTree> getSignalTreeMap() {
+        return signalMap;
     }
 }
