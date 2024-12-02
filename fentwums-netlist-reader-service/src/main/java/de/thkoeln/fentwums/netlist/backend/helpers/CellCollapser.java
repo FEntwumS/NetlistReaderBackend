@@ -70,8 +70,8 @@ public class CellCollapser {
             hNode.setChildList(new ArrayList<>());
         }
 
-        for (ElkNode child : currentGraphNode.getChildren()) {
-            hNode.getChildList().add(child);
+        if(hNode.getChildList().isEmpty()) {
+            hNode.getChildList().addAll(currentGraphNode.getChildren());
         }
 
         currentGraphNode.getChildren().clear();
@@ -80,8 +80,8 @@ public class CellCollapser {
             hNode.setEdgeList(new ArrayList<ElkEdge>());
         }
 
-        for (ElkEdge edge : currentGraphNode.getContainedEdges()) {
-            hNode.getEdgeList().add(edge);
+        if (hNode.getEdgeList().isEmpty()) {
+            hNode.getEdgeList().addAll(currentGraphNode.getContainedEdges());
         }
 
         currentGraphNode.getContainedEdges().clear();
@@ -109,6 +109,10 @@ public class CellCollapser {
         ElkNode currentGraphNode = hNode.getNode();
         EList<ElkNode> graphChildren = currentGraphNode.getChildren();
         EList<ElkEdge> graphContainedEdges = currentGraphNode.getContainedEdges();
+
+        if (!graphChildren.isEmpty() || !graphContainedEdges.isEmpty()) {
+            return;
+        }
 
         ArrayList<ElkNode> storedChildren = hNode.getChildList();
         ArrayList<ElkEdge> storedEdges = hNode.getEdgeList();
