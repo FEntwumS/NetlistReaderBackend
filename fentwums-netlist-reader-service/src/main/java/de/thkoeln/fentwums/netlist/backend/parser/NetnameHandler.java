@@ -100,6 +100,12 @@ public class NetnameHandler {
 
                 currentSignalTree = signalMap.get((Integer) bit);
 
+                if (currentSignalTree == null) {
+                    logger.atError().setMessage("Could not find signaltree for index {}. Skipping...").addArgument(bit).log();
+
+                    continue;
+                }
+
                 currentSignalNode = currentSignalTree.getHRoot().getHChildren().get(modulename);
                 currentHNode = hierarchyTree.getRoot();
 
