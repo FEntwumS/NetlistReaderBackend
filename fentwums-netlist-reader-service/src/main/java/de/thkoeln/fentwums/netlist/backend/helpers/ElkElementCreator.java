@@ -2,6 +2,9 @@ package de.thkoeln.fentwums.netlist.backend.helpers;
 
 import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
 import de.thkoeln.fentwums.netlist.backend.options.SignalType;
+import org.eclipse.elk.alg.layered.options.LayeredOptions;
+import org.eclipse.elk.alg.layered.options.LayeringStrategy;
+import org.eclipse.elk.alg.layered.options.NodePlacementStrategy;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.graph.*;
 
@@ -24,6 +27,7 @@ public class ElkElementCreator {
         newNode.setProperty(CoreOptions.SPACING_LABEL_PORT_HORIZONTAL, 3.0d);
         newNode.setProperty(CoreOptions.SPACING_EDGE_LABEL, 3.0d);
         newNode.setProperty(CoreOptions.SPACING_LABEL_NODE, 4.0d);
+        newNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
 
         return newNode;
     }

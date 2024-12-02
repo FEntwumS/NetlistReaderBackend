@@ -2,6 +2,8 @@ package de.thkoeln.fentwums.netlist.backend.helpers;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchicalNode;
 import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchyTree;
+import org.eclipse.elk.core.options.CoreOptions;
+import org.eclipse.elk.core.options.SizeConstraint;
 import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkNode;
 import org.eclipse.emf.common.util.EList;
@@ -85,6 +87,8 @@ public class CellCollapser {
         }
 
         currentGraphNode.getContainedEdges().clear();
+
+        resetDimensionRecursively(currentGraphNode);
     }
 
     public void expandAllCells() {
@@ -139,5 +143,31 @@ public class CellCollapser {
         }
 
         return currentNode;
+    }
+
+    public void toggleCollapsed(String cellPath) {
+        HierarchicalNode node = findNode(cellPath);
+
+        if (!node.getEdgeList().isEmpty() || !node.getChildList().isEmpty()) {
+            // node can have child elements
+
+            if (!node.getNode().getChildren().isEmpty() || !node.getNode().getContainedEdges().isEmpty()) {
+                collapseCell(node);
+            } else {
+                expandCell(node);
+            }
+        } else {
+            logger.atInfo().setMessage("Cell with path {} does not contain any children and can therefore neither be expanded nor collapsed").addArgument(cellPath).log();
+        }
+    }
+
+    private void resetDimensionRecursively(ElkNode node) {
+        if (node.getParent() != null) {
+            node.setProperty(CoreOptions.NODE_SIZE_MINIMUM, null);
+            node.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.allOf(SizeConstraint.class));
+            node.setDimensions(0, 0);
+
+            resetDimensionRecursively(node.getParent());
+        }
     }
 }
