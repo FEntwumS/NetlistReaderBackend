@@ -124,6 +124,8 @@ public class CellCollapser {
         graphChildren.addAll(storedChildren);
 
         graphContainedEdges.addAll(storedEdges);
+
+        resetDimensionRecursively(currentGraphNode);
     }
 
     private HierarchicalNode findNode(String cellPath) {

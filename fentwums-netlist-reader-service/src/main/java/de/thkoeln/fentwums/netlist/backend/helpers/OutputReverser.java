@@ -20,6 +20,8 @@ public class OutputReverser {
         for (ElkPort port : node.getPorts()) {
             if (port.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST) {
                 port.setProperty(CoreOptions.PORT_INDEX, index);
+            } else {
+                port.setProperty(CoreOptions.PORT_INDEX, node.getPorts().size() + (node.getPorts().size() - index));
             }
             index--;
         }
