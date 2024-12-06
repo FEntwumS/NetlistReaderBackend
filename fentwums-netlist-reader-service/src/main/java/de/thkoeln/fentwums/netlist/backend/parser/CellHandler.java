@@ -7,6 +7,8 @@ import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
 import de.thkoeln.fentwums.netlist.backend.options.SignalType;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.graph.*;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -16,6 +18,8 @@ import java.util.HashMap;
 import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
 
 public class CellHandler {
+    private static Logger logger = LoggerFactory.getLogger(CellHandler.class);
+
     public CellHandler() {
     }
 
@@ -45,8 +49,15 @@ public class CellHandler {
         String addendum;
         String celltype;
         String srcLocation = "";
+        int currentCellIndex = 0;
 
         for (String cellname : cells.keySet()) {
+            if (currentCellIndex % 512 == 0) {
+                logger.atInfo().setMessage("Cell {} of {}").addArgument(currentCellIndex).addArgument(cells.size() - 1).log();
+            }
+
+            currentCellIndex++;
+
             side = PortSide.EAST;
             currentCell = (HashMap<String, Object>) cells.get(cellname);
             currentCellAttributes = (HashMap<String, Object>) currentCell.get("attributes");

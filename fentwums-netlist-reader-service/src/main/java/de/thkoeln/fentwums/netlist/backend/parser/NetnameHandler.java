@@ -43,8 +43,15 @@ public class NetnameHandler {
         HashMap<Integer, Integer> cleanedBitMap;
         HierarchicalNode childHNode;
         String srcLocation = "";
+        int currentNetIndex = 0;
 
         for (String currentNetName : netnames.keySet()) {
+            if (currentNetIndex % 512 == 0) {
+                logger.atInfo().setMessage("Net {} of {}").addArgument(currentNetIndex).addArgument(netnames.size() - 1).log();
+            }
+
+            currentNetIndex++;
+
             currentNet = (HashMap<String, Object>) netnames.get(currentNetName);
             currentNetAttributes = (HashMap<String, Object>) currentNet.get("attributes");
             currentBitIndex = 0;
@@ -78,6 +85,10 @@ public class NetnameHandler {
             bitList = (ArrayList<Object>) currentNet.get("bits");
 
             cleanedBitMap = new HashMap<Integer, Integer>(bitList.size());
+
+            if (bitList.size() > 100) {
+                logger.atInfo().setMessage("Net {}: Large signal; {} bits").addArgument(currentNetIndex).addArgument(bitList.size()).log();
+            }
 
             for (Object bit : bitList) {
                 srcLocation = "";
@@ -122,7 +133,6 @@ public class NetnameHandler {
                     // TODO check if this is true when a nonsensical user construct exists
 
                     logger.atDebug().setMessage("Unknown cell; Bit {}").addArgument((int) bit).log();
-                    logger.debug("This error may be caused by unused signals left in the netlist file");
 
                     continue;
                 }
@@ -175,9 +185,15 @@ public class NetnameHandler {
         SignalTree currentSignalTree;
         SignalNode currentSignalNode;
         ElkNode currentGraphNode;
+        int currentSignalIndex = 0;
 
         // For each signal, first find its source, then work backwards towards all sinks
         for (int signalIndex : signalMap.keySet()) {
+            if (currentSignalIndex % 512 == 0) {
+                logger.atInfo().setMessage("Signal {} of {}").addArgument(currentSignalIndex).addArgument(signalMap.size()).log();
+            }
+            currentSignalIndex++;
+
             currentSignalTree = signalMap.get(signalIndex);
 
             currentSignalNode = currentSignalTree.getSRoot();
