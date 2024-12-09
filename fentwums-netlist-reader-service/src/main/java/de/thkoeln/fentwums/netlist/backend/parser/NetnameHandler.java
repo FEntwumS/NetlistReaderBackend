@@ -40,7 +40,7 @@ public class NetnameHandler {
         SignalNode currentSignalNode;
         HierarchicalNode currentHNode;
         Bundle newBundle;
-        HashMap<Integer, Integer> cleanedBitMap;
+        HashMap<Integer, Integer> cleanedBitMap = new HashMap<>(1000);
         HierarchicalNode childHNode;
         String srcLocation = "";
         int currentNetIndex = 0;
@@ -84,7 +84,7 @@ public class NetnameHandler {
 
             bitList = (ArrayList<Object>) currentNet.get("bits");
 
-            cleanedBitMap = new HashMap<Integer, Integer>(bitList.size());
+            cleanedBitMap.clear();
 
             if (bitList.size() > 100) {
                 logger.atInfo().setMessage("Net {}: Large signal; {} bits").addArgument(currentNetIndex).addArgument(bitList.size()).log();
