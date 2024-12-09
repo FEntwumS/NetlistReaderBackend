@@ -10,12 +10,8 @@ import org.eclipse.elk.graph.*;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.HashMap;
-
-import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
 
 public class CellHandler {
     private static Logger logger = LoggerFactory.getLogger(CellHandler.class);
@@ -189,11 +185,11 @@ public class CellHandler {
                             currentSignalTree = new SignalTree();
                             currentSignalTree.setSId((int) driver);
 
-                            SignalNode rootNode = new SignalNode("root", null, new HashMap<String, SignalNode>(), null, new HashMap<String, SignalNode>(), new HashMap<String, SignalNode>(), false, null);
+                            SignalNode rootNode = new SignalNode("root", null, new HashMap<String, SignalNode>(), null, new HashMap<String, SignalNode>(), false, null);
 
                             currentSignalTree.setHRoot(rootNode);
 
-                            SignalNode toplevelNode = new SignalNode(modulename, rootNode, new HashMap<String, SignalNode>(), null, new HashMap<String, SignalNode>(), new HashMap<String, SignalNode>(), false, null);
+                            SignalNode toplevelNode = new SignalNode(modulename, rootNode, new HashMap<String, SignalNode>(), null, new HashMap<String, SignalNode>(), false, null);
 
                             signalMap.put((int) driver, currentSignalTree);
                         }
@@ -238,7 +234,7 @@ public class CellHandler {
     }
 
     private SignalNode insertMissingSNode(SignalNode parent, String nodename, ElkPort sPort) {
-        return new SignalNode(nodename, parent, new HashMap(), null, new HashMap(), new HashMap(), false, sPort);
+        return new SignalNode(nodename, parent, new HashMap(), null, new HashMap(), false, sPort);
     }
 
     private void createConstantSignals(ElkNode parent, HashMap<String, ElkNode> constNodes, HashMap<Integer, String> constantValues, PortSide side, String portname, int driverIndex, int maxSignalIndex) {

@@ -124,13 +124,13 @@ public class PortHandler {
         SignalTree tree = new SignalTree();
         tree.setSId(port);
         SignalNode rootNode = new SignalNode("root", null, new HashMap<String, SignalNode>(), null,
-                new HashMap<String, SignalNode>(), new HashMap<String, SignalNode>(), false, null);
+                new HashMap<String, SignalNode>(), false, null);
 
         tree.setHRoot(rootNode);
         rootNode.setSVisited(true);
 
         SignalNode toplevelNode = new SignalNode(modulename, rootNode, new HashMap<String, SignalNode>(), null,
-                new HashMap<String, SignalNode>(), new HashMap<String, SignalNode>(), false, sPort);
+                new HashMap<String, SignalNode>(), false, sPort);
 
         toplevelNode.setSVisited(true);
 

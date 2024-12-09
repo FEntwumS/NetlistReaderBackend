@@ -32,7 +32,7 @@ public class NetnameHandler {
         String[] currentNetPathSplit;
         ArrayList<Object> bitList;
         String unusedBits;
-        String[] unusedBitsSplit = new String[0];
+        String[] unusedBitsSplit;
         int currentBitIndex = 0;
         CellPathFormatter formatter = new CellPathFormatter();
 
@@ -90,6 +90,8 @@ public class NetnameHandler {
                 logger.atInfo().setMessage("Net {}: Large signal; {} bits").addArgument(currentNetIndex).addArgument(bitList.size()).log();
             }
 
+            //currentHNode = hierarchyTree.getNodeAt(currentNetPath);
+
             for (Object bit : bitList) {
                 srcLocation = "";
 
@@ -128,6 +130,8 @@ public class NetnameHandler {
                         break;
                     }
                 }
+
+                //currentSignalNode = currentSignalTree.getNodeAt(currentNetPath);
 
                 if (currentSignalNode == null) {
                     // TODO check if this is true when a nonsensical user construct exists
@@ -475,7 +479,7 @@ public class NetnameHandler {
             }
         }
 
-        if (!precursor.getHParent().getSName().equals("root")) {
+        if (precursor.getHParent().getHParent() != null) {
             routeSink(currentSignalTree, precursor);
         }
     }

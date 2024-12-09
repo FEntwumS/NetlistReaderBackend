@@ -12,7 +12,6 @@ public class SignalNode {
     private HashMap<String, SignalNode> hChildren;
     private SignalNode sParent;
     private HashMap<String, SignalNode> sChildren;
-    private HashMap<String, SignalNode> sLateralConnections;
     private boolean sVisited;
     private boolean isSource;
     private ElkPort sPort;
@@ -28,19 +27,17 @@ public class SignalNode {
         hChildren = new HashMap<String, SignalNode>(8);
         sParent = null;
         sChildren = new HashMap<String, SignalNode>(8);
-        sLateralConnections = new HashMap<String, SignalNode>(4);
         sVisited = false;
     }
 
     public SignalNode(String sName, SignalNode hParent, HashMap<String, SignalNode> hChildren, SignalNode sParent,
-                      HashMap<String, SignalNode> sChildren, HashMap<String, SignalNode> sLateralConnections,
+                      HashMap<String, SignalNode> sChildren,
                       boolean isSource, ElkPort sPort) {
         this.sName = sName;
         this.hParent = hParent;
         this.hChildren = hChildren;
         this.sParent = sParent;
         this.sChildren = sChildren;
-        this.sLateralConnections = sLateralConnections;
         this.sPort = sPort;
 
         if(hParent != null && hParent.getHChildren() != null) {
@@ -90,14 +87,6 @@ public class SignalNode {
 
     public void setSChildren(HashMap<String, SignalNode> sChildren) {
         this.sChildren = sChildren;
-    }
-
-    public HashMap<String, SignalNode> getSLateralConnections() {
-        return sLateralConnections;
-    }
-
-    public void setSLateralConnections(HashMap<String, SignalNode> sLateralConnections) {
-        this.sLateralConnections = sLateralConnections;
     }
 
     public boolean getSVisited() {
