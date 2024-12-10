@@ -107,6 +107,8 @@ public class NetnameHandler {
                     continue;
                 }
 
+                cleanedBitMap.put((int) bit, currentBitIndex);
+
                 currentBitIndex++;
 
                 currentSignalTree = signalMap.get((Integer) bit);
