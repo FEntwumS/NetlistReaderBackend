@@ -27,9 +27,7 @@ public class ElkElementCreator {
         newNode.setProperty(CoreOptions.SPACING_LABEL_PORT_HORIZONTAL, 3.0d);
         newNode.setProperty(CoreOptions.SPACING_EDGE_LABEL, 3.0d);
         newNode.setProperty(CoreOptions.SPACING_LABEL_NODE, 4.0d);
-        newNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
-        newNode.setProperty(LayeredOptions.CONSIDER_MODEL_ORDER_PORT_MODEL_ORDER, true);
-        newNode.setProperty(LayeredOptions.CONSIDER_MODEL_ORDER_CROSSING_COUNTER_PORT_INFLUENCE, 9000.0d);
+        //newNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
 
         return newNode;
     }

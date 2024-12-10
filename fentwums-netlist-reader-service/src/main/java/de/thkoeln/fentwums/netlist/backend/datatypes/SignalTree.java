@@ -55,7 +55,7 @@ public class SignalTree {
         SignalNode currentNode = hRoot;
 
         if (path.isEmpty()) {
-            return currentNode;
+            // return currentNode;
         }
 
         for (String fragment : pathSplit) {
