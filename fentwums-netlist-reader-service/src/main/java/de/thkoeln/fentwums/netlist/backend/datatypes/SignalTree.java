@@ -1,5 +1,10 @@
 package de.thkoeln.fentwums.netlist.backend.datatypes;
 
+import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
+import de.thkoeln.fentwums.netlist.backend.options.SignalType;
+import org.eclipse.elk.graph.ElkEdge;
+import org.eclipse.elk.graph.ElkPort;
+
 public class SignalTree {
     private int sId;
     private char sValue;
@@ -32,6 +37,8 @@ public class SignalTree {
 
     public void setSValue(char sValue) {
         this.sValue = sValue;
+
+        this.updateSignalValue(this.hRoot);
     }
 
     public SignalNode getHRoot() {
@@ -67,5 +74,23 @@ public class SignalTree {
         }
 
         return currentNode;
+    }
+
+    private void updateSignalValue(SignalNode currentNode) {
+        ElkPort currentPort = currentNode.getSPort();
+
+        if (currentPort != null) {
+            for (ElkEdge edge : currentPort.getOutgoingEdges()) {
+                if (edge.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED)) {
+                    continue;
+                } else if (edge.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.SINGLE)) {
+                    edge.setProperty(FEntwumSOptions.SIGNAL_VALUE, String.valueOf(this.sValue));
+                }
+            }
+        }
+
+        for (String child : currentNode.getHChildren().keySet()) {
+            updateSignalValue(currentNode.getHChildren().get(child));
+        }
     }
 }
