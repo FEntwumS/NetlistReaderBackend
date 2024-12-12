@@ -23,6 +23,14 @@ public class NetnameHandler {
 
 	}
 
+	/**
+	 * Updates all signal trees with occurrences and bundling information from the "netnames" section of the netlist
+	 *
+	 * @param netnames      HashMap containing the deserialized net details
+	 * @param modulename    Name of the top level entity
+	 * @param signalMap     HashMap containing all signal trees
+	 * @param hierarchyTree Tree of the hierarchical netlist structure
+	 */
 	public void handleNetnames(HashMap<String, Object> netnames, String modulename,
 							   HashMap<Integer, SignalTree> signalMap, HierarchyTree hierarchyTree) {
 		HashMap<String, Object> currentNet;
@@ -175,10 +183,15 @@ public class NetnameHandler {
 		}
 	}
 
-	public void recreateHierarchy(HashMap<Integer, SignalTree> signalMap, String modulename) {
+	/**
+	 * Recreates the routes of all not-constant signals
+	 *
+	 * @param signalMap  HashMap containing all signal trees
+	 * @param modulename name of top level entity
+	 */
+	public void recreateSignals(HashMap<Integer, SignalTree> signalMap, String modulename) {
 		SignalTree currentSignalTree;
 		SignalNode currentSignalNode;
-		ElkNode currentGraphNode;
 		int currentSignalIndex = 0;
 
 		// For each signal, first find its source, then work backwards towards all sinks
@@ -200,19 +213,26 @@ public class NetnameHandler {
 		}
 	}
 
+	/**
+	 * Routes signals whose source is a cell in the design "up" through all hierarchy layers that directly or
+	 * indirectly
+	 * containing the source cell and where the signal occurs
+	 *
+	 * @param currentSignalTree signal tree of the signal that is to be routed
+	 * @param precursor         Signal occurrence in the layer below the layer where the signal will be routed to
+	 */
 	private void routeSource(SignalTree currentSignalTree, SignalNode precursor) {
 		SignalNode currentNode = precursor.getHParent();
 		ElkNode currentGraphNode;
 		ElkPort sink, source;
 		int currentSignalIndex;
-		boolean needEdge = true;
-		String key = "";
 
-		// dont create port, if currentnode is toplevel and no port exists
+		// dont create port, if currentNode is toplevel and no port exists
 		if (currentSignalTree.getHRoot().getHChildren().containsValue(currentNode) && currentNode.getSPort() == null) {
 			return;
 		}
 
+		// only create connection if the signal occurred in the current layer
 		if (currentNode.getSVisited()) {
 			// TODO remove if necessary
 			// currentNode.setIsSource(true);
@@ -220,7 +240,8 @@ public class NetnameHandler {
 				return;
 			}
 			source = precursor.getSPort();
-			// create port (if doesnt exist yet)
+
+			// create port (if it doesnt exist yet)
 			// should be the default (except for output signals)
 			if (currentNode.getSPort() == null) {
 				currentGraphNode = source.getParent().getParent();
@@ -229,9 +250,7 @@ public class NetnameHandler {
 					logger.error("Routing somehow reached root node");
 				}
 
-				sink = createPort(currentGraphNode);
-				sink.setDimensions(10, 10);
-				sink.setProperty(CoreOptions.PORT_SIDE, PortSide.EAST);
+				sink = ElkElementCreator.createNewPort(currentGraphNode, PortSide.EAST);
 
 				// Propagate port group indication to created ports
 				sink.setProperty(FEntwumSOptions.PORT_GROUP_NAME, source.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
@@ -240,8 +259,10 @@ public class NetnameHandler {
 
 				currentSignalIndex = currentNode.getIndexInSignal();
 
-				ElkLabel sinkLabel = ElkElementCreator.createNewLabel(currentNode.getSName() + (currentSignalIndex != -1 ? " [" + currentSignalIndex + "]" : ""),
-						sink);
+				ElkLabel sinkLabel =
+						ElkElementCreator.createNewLabel(currentNode.getSName() + (currentSignalIndex != -1 ?
+										" [" + currentSignalIndex + "]" : ""),
+								sink);
 			} else {
 				sink = currentNode.getSPort();
 			}
@@ -266,30 +287,53 @@ public class NetnameHandler {
 		}
 	}
 
+	/**
+	 * Finds all sinks of the signal represented by the current signal tree, then initiate routing of all found sinks
+	 * <p>
+	 * Starts at the root of the tree (highest hierarchy layer), then recursively descends. Each node without children
+	 * that is not a source then gets routed
+	 *
+	 * @param currentSignalTree Signal tree defining the current signal
+	 * @param currentSignalNode Current position in the signal tree
+	 */
 	private void findSinks(SignalTree currentSignalTree, SignalNode currentSignalNode) {
 		SignalNode nextNode;
 		if (currentSignalNode == null) {
 			currentSignalNode = currentSignalTree.getHRoot();
 		}
 
+		// Check each node of the current layer
 		for (String candidate : currentSignalNode.getHChildren().keySet()) {
 			nextNode = currentSignalNode.getHChildren().get(candidate);
 
+			// Ignore sources; they have already been routed
 			if (nextNode.getIsSource() && !currentSignalNode.getSName().equals("root")) {
 				continue;
 			}
 
 			if (nextNode.getHChildren().isEmpty() && !nextNode.getHParent().getSName().equals("root")) {
+				// Found sink; Start routing
+
 				routeSink(currentSignalTree, nextNode);
 			} else {
+				// Check a layer lower for sinks
+
 				findSinks(currentSignalTree, nextNode);
 			}
 		}
 	}
 
+	/**
+	 * Routes a given signal from its sink towards its source. The method searches for possible source in the current
+	 * layer, one layer above and in the layer below this one. This continues recursively until the source (or a
+	 * signal occurrence linked to the source) has been found
+	 *
+	 * @param currentSignalTree
+	 * @param currentSignalNode
+	 */
 	private void routeSink(SignalTree currentSignalTree, SignalNode currentSignalNode) {
 		SignalNode precursor = currentSignalNode.getHParent();
-		ElkPort source, sink;
+		ElkPort source = null, sink;
 		SignalNode sourceNode;
 		int currentSignalIndex;
 
@@ -327,16 +371,16 @@ public class NetnameHandler {
 
 					return;
 				}
-				source = createPort(sink.getParent().getParent());
-				source.setDimensions(10, 10);
-				source.setProperty(CoreOptions.PORT_SIDE, PortSide.WEST);
+
+				source = ElkElementCreator.createNewPort(sink.getParent().getParent(), PortSide.WEST);
 				source.setProperty(FEntwumSOptions.PORT_GROUP_NAME, sink.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
 
 				currentSignalIndex = precursor.getIndexInSignal();
 
 				ElkLabel sourceLabel =
-						ElkElementCreator.createNewLabel(precursor.getSName() + (currentSignalIndex != -1 ? " [" + currentSignalIndex +
-								"]" : ""), source);
+						ElkElementCreator.createNewLabel(precursor.getSName() + (currentSignalIndex != -1 ?
+								" [" + currentSignalIndex +
+										"]" : ""), source);
 
 				precursor.setSPort(source);
 			} else {
@@ -359,12 +403,12 @@ public class NetnameHandler {
 			}
 		}
 
-		// Source could be somewhere in an unmarked parent
-		// So continue upwards
-
 		if (sink == null) {
 			return;
 		}
+
+		// If the signal occurs in a containing layer and the sink to be routed is not yet connected to the source,
+		// route one layer up. This can occur when a signal occurrence is not marked in the netlist
 
 		if (!sink.getParent().getParent().getParent().getIdentifier().equals("root") && higherUse(precursor) && sink.getIncomingEdges().isEmpty()) {
 			source = precursor.getSPort();
@@ -385,20 +429,23 @@ public class NetnameHandler {
 				}
 
 				if (source == null) {
-					source = createPort(sink.getParent().getParent());
-					source.setDimensions(10, 10);
-					source.setProperty(CoreOptions.PORT_SIDE, PortSide.WEST);
-					source.setProperty(FEntwumSOptions.PORT_GROUP_NAME, sink.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
+					source = ElkElementCreator.createNewPort(sink.getParent().getParent(), PortSide.WEST);
+					source.setProperty(FEntwumSOptions.PORT_GROUP_NAME,
+							sink.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
 
 					currentSignalIndex = precursor.getIndexInSignal();
 
 					ElkLabel sourceLabel;
 
 					if (precursor.getSVisited()) {
-						sourceLabel = ElkElementCreator.createNewLabel(precursor.getSName() + (currentSignalIndex != -1 ? " [" + currentSignalIndex +
-								"]" : ""), source);
+						sourceLabel =
+								ElkElementCreator.createNewLabel(precursor.getSName() + (currentSignalIndex != -1 ?
+										" " +
+												"[" + currentSignalIndex +
+												"]" : ""), source);
 					} else {
-						sourceLabel = ElkElementCreator.createNewLabel(String.valueOf(currentSignalTree.getSId()), source);
+						sourceLabel = ElkElementCreator.createNewLabel(String.valueOf(currentSignalTree.getSId()),
+								source);
 					}
 
 					precursor.setSPort(source);
@@ -425,7 +472,7 @@ public class NetnameHandler {
 			linkSignalNodes(currentSignalNode, precursor);
 		}
 
-		// Check if source is located in unmarked child
+		// If the current layer (directly or indirectly) contains the source but is not marked, route the signal there
 		String possibleSourceBelow = getSourceBelow(precursor);
 		if (!possibleSourceBelow.isEmpty()) {
 			String[] possibleSourceBelowSplit = possibleSourceBelow.split(" ");
@@ -451,20 +498,31 @@ public class NetnameHandler {
 			}
 		}
 
-		if (precursor.getHParent().getHParent() != null) {
+		if (precursor.getHParent().getHParent() != null && source != null && !source.getIncomingEdges().isEmpty()) {
 			routeSink(currentSignalTree, precursor);
 		}
 	}
 
+	/**
+	 * Route signal downwards towards its source
+	 *
+	 * @param currentSignalTree The signal tree defining the current signal
+	 * @param precursor         The signal node representing the signal occurrence in the layer where the sink for
+	 *                          this part of route is located
+	 * @param pathSplit         The relative path of the source node in the hierarchy. Relative to the signal node
+	 *                          from which this route descends
+	 * @param depth             The current depth relative to the signal node from which this route descends
+	 */
 	private void routeSourceBelow(SignalTree currentSignalTree, SignalNode precursor, String[] pathSplit,
 								  int depth) {
 		SignalNode child;
 		ElkPort source, sink;
 
-
+		// Get the child node where the source for the current part of the source of the current path lies
 		child = precursor.getHChildren().get(pathSplit[depth]);
 
 		if (depth < pathSplit.length - 1) {
+			// First descend towards the source, then route up from there
 			routeSourceBelow(currentSignalTree, child, pathSplit, depth + 1);
 		}
 
@@ -473,14 +531,13 @@ public class NetnameHandler {
 			sink = precursor.getSPort();
 
 			if (sink == null) {
-				sink = createPort(source.getParent().getParent());
-				sink.setDimensions(10, 10);
-				sink.setProperty(CoreOptions.PORT_SIDE, PortSide.EAST);
+				sink = ElkElementCreator.createNewPort(source.getParent().getParent(), PortSide.EAST);
 				sink.setProperty(FEntwumSOptions.PORT_GROUP_NAME, source.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
 
 				precursor.setSPort(sink);
 
-				ElkLabel sinkLabel = ElkElementCreator.createNewLabel(String.valueOf(currentSignalTree.getSId()), sink);
+				ElkLabel sinkLabel = ElkElementCreator.createNewLabel(String.valueOf(currentSignalTree.getSId()),
+						sink);
 			}
 
 			if (sink.getProperty(CoreOptions.PORT_SIDE) == PortSide.WEST) {
@@ -499,16 +556,30 @@ public class NetnameHandler {
 		}
 	}
 
+	/**
+	 * Searches for source of the current signal (the signal represented by the signal tree that precursor is a part
+	 * of)
+	 *
+	 * @param precursor Signal node in the layer above the layer to be searched
+	 * @return Returns the path of the found source relative to the first precursor or an empty string if no source
+	 * could be found
+	 */
 	private String getSourceBelow(SignalNode precursor) {
 		String ret = "";
 		SignalNode child;
+
+		// Check all nodes in current layer
 
 		for (String candidate : precursor.getHChildren().keySet()) {
 			child = precursor.getHChildren().get(candidate);
 
 			if (child.getIsSource()) {
+				// return if source is found
+
 				return candidate;
 			} else {
+				// continue search
+
 				ret = " " + getSourceBelow(child);
 			}
 
@@ -520,7 +591,17 @@ public class NetnameHandler {
 		return "";
 	}
 
+	/**
+	 * Checks if a connection already exists between source and sink; If that is not the case, create a new
+	 * connection, else return null
+	 *
+	 * @param source The source port for the connection
+	 * @param sink   The sink port for the connection
+	 * @param sink   The sink port for the connection
+	 * @return The created connection or null, if no connection was created
+	 */
 	private ElkEdge createEdgeIfNotExists(ElkPort source, ElkPort sink) {
+		// Check if any edges outgoing from source connect to sink; If any such edge exists, return null
 		for (ElkEdge edge : source.getOutgoingEdges()) {
 			for (ElkConnectableShape target : edge.getTargets()) {
 				if (target.equals(sink)) {
@@ -540,6 +621,13 @@ public class NetnameHandler {
 		return newEdge;
 	}
 
+
+	/**
+	 * Links two signal nodes to create a graph containing the routes of the signal described by the containing signal tree
+	 *
+	 * @param child The child node in the graph to be created -> The sink of this part of the route
+	 * @param parent The parent node in the graph to be created -> The source of this part of the route
+	 */
 	private void linkSignalNodes(SignalNode child, SignalNode parent) {
 		String key = "";
 
@@ -561,12 +649,18 @@ public class NetnameHandler {
 		parent.getSChildren().put(key, child);
 	}
 
+	/**
+	 * Checks the layers containing the current layer for the source of the signal
+	 *
+	 * @param startNode Node where search is to start
+	 * @return True if a source is in a parent layer, else false
+	 */
 	private boolean higherUse(SignalNode startNode) {
 		SignalNode parent = startNode.getHParent();
 
 		if (parent == null) {
 			return false;
-		} else if (parent.getHChildren().keySet().size() > 1 || parent.getIsSource()) {
+		} else if (parent.getHChildren().size() > 1 || parent.getIsSource()) {
 			return true;
 		} else {
 			return higherUse(parent);

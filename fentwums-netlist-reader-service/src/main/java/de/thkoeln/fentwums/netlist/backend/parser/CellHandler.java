@@ -19,6 +19,15 @@ public class CellHandler {
 	public CellHandler() {
 	}
 
+	/**
+	 * This method uses the data contained in the "cells"-section of the netlist to create their representations for layouting
+	 *
+	 * @param cells         Hashmap containing all cells inside the toplevel entity
+	 * @param modulename    Name of the top level entity
+	 * @param toplevel      Graph node representing the top level entity
+	 * @param signalMap     Hashmap for storing all signals and the hierarchy levels where they exist
+	 * @param hierarchyTree Tree for storing the hierarchy of the whole design (entities and cells)
+	 */
 	@SuppressWarnings("unchecked")
 	public void createCells(HashMap<String, Object> cells, String modulename, ElkNode toplevel, HashMap<Integer, SignalTree> signalMap, HierarchyTree hierarchyTree) {
 		HashMap<String, Object> currentCell;
@@ -115,7 +124,7 @@ public class CellHandler {
 
 			celltype = ((String) currentCell.get("type")).replaceAll("\\$", "");
 
-			if(currentCellAttributes.containsKey("src")) {
+			if (currentCellAttributes.containsKey("src")) {
 				srcLocation = (String) currentCellAttributes.get("src");
 			}
 
@@ -208,6 +217,17 @@ public class CellHandler {
 		}
 	}
 
+	/**
+	 * Adds an occurance of a given signal to the relevant signal tree
+	 *
+	 * @param signalTree    The signal tree of the signal
+	 * @param hierarchyPath Path where the occurance is located
+	 * @param modulename    Name of the top level entity
+	 * @param isSource      True if the occurance is the source of the signal
+	 * @param sPort         The representation of the port where the signal occured
+	 * @param portname      The name of the port
+	 * @param index         The signals index inside the containing vector (-1 if the signal is not contained in a vector)
+	 */
 	public void updateSignalTree(SignalTree signalTree, String[] hierarchyPath, String modulename, boolean isSource, ElkPort sPort, String portname, int index) {
 		SignalNode currentNode = signalTree.getHRoot().getHChildren().get(modulename);
 
@@ -235,6 +255,17 @@ public class CellHandler {
 		return new SignalNode(nodename, parent, new HashMap(), null, new HashMap(), false, sPort);
 	}
 
+	/**
+	 * Creates constant drivers for a port group
+	 *
+	 * @param parent         The containing graph node
+	 * @param constNodes     HashMap containing a subset of existing constant drivers
+	 * @param constantValues Hashmap containing the indices and values of the constant signals of the relevant cell
+	 * @param side           The side of the port at the cell (west for input, east for output)
+	 * @param portname       Name of the port
+	 * @param driverIndex    Index of the port group for which the constant drivers are to be created
+	 * @param maxSignalIndex Index of the signal with the highest index in the port group
+	 */
 	private void createConstantSignals(ElkNode parent, HashMap<String, ElkNode> constNodes, HashMap<Integer, String> constantValues, PortSide side, String portname, int driverIndex, int maxSignalIndex) {
 		int cRangeStart = -2, cRangeEnd = cRangeStart;
 		StringBuilder constantValueBuilder = new StringBuilder();

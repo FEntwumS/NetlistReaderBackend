@@ -108,7 +108,7 @@ public class GraphCreator {
 		logger.info("Successfully created nets");
 
 		logger.info("Start recreating signal paths");
-		netHandler.recreateHierarchy(signalMap, modulename);
+		netHandler.recreateSignals(signalMap, modulename);
 		logger.info("Successfully recreated signal paths");
 
 		OutputReverser reverser = new OutputReverser();
