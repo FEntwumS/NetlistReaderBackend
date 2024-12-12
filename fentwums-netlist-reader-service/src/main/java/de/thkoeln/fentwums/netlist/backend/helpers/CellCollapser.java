@@ -13,163 +13,156 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 public class CellCollapser {
-    private HierarchyTree hierarchy;
-    private ElkNode groundTruth;
-    private static Logger logger = LoggerFactory.getLogger(CellCollapser.class);
+	private HierarchyTree hierarchy;
+	private ElkNode groundTruth;
+	private static Logger logger = LoggerFactory.getLogger(CellCollapser.class);
 
-    public CellCollapser() {
-    }
+	public CellCollapser() {
+	}
 
-    public void setHierarchy(HierarchyTree hierarchy) {
-        this.hierarchy = hierarchy;
-    }
+	public void setHierarchy(HierarchyTree hierarchy) {
+		this.hierarchy = hierarchy;
+	}
 
-    public HierarchyTree getHierarchy() {
-        return hierarchy;
-    }
+	public HierarchyTree getHierarchy() {
+		return hierarchy;
+	}
 
-    public void setGroundTruth(ElkNode graph) {
-        this.groundTruth = graph;
-    }
+	public void setGroundTruth(ElkNode graph) {
+		this.groundTruth = graph;
+	}
 
-    public ElkNode getGroundTruth() {
-        return groundTruth;
-    }
+	public ElkNode getGroundTruth() {
+		return groundTruth;
+	}
 
-    public void collapseCellAt(String cellPath) {
-        collapseCell(findNode(cellPath));
+	public void collapseCellAt(String cellPath) {
+		collapseCell(findNode(cellPath));
 
-        // path should contain modulename as first parameter, but we can ignore it here
-        // paths longer than 1 point to nodes below the toplevel, paths with length 1 point to the toplevel
-        // will clearing a nodes children lead to loss of them? what will the gc do?
-        // also need to create deep copy of tree (or is it not necessary?)
+		// path should contain modulename as first parameter, but we can ignore it here
+		// paths longer than 1 point to nodes below the toplevel, paths with length 1 point to the toplevel
+	}
 
-        // just store references to children and contained nodes in new parameters of the hierarchyTree
-        // all references will be kept, and we can easily clear the lists
-    }
+	public void collapseAllCells() {
+		// stores the children and contained edges of each node in the hierarchyTree and clears the respective
+		// ElkNodes' lists
 
-    public void collapseAllCells() {
-        // stores the children and contained edges of each node in the hierarchyTree and clears the respective
-        // ElkNodes' lists
+		collapseRecursively(hierarchy.getRoot());
+	}
 
-        // just use recursion to traverse the tree
+	public void collapseRecursively(HierarchicalNode hNode) {
+		collapseCell(hNode);
 
-        collapseRecursively(hierarchy.getRoot());
-    }
+		for (String hChild : hNode.getChildren().keySet()) {
+			collapseRecursively(hNode.getChildren().get(hChild));
+		}
+	}
 
-    public void collapseRecursively(HierarchicalNode hNode) {
-        collapseCell(hNode);
+	public void collapseCell(HierarchicalNode hNode) {
+		ElkNode currentGraphNode = hNode.getNode();
 
-        for (String hChild : hNode.getChildren().keySet()) {
-            collapseRecursively(hNode.getChildren().get(hChild));
-        }
-    }
+		if (hNode.getChildList() == null) {
+			hNode.setChildList(new ArrayList<>());
+		}
 
-    public void collapseCell(HierarchicalNode hNode) {
-        ElkNode currentGraphNode = hNode.getNode();
+		if(hNode.getChildList().isEmpty()) {
+			hNode.getChildList().addAll(currentGraphNode.getChildren());
+		}
 
-        if (hNode.getChildList() == null) {
-            hNode.setChildList(new ArrayList<>());
-        }
+		currentGraphNode.getChildren().clear();
 
-        if(hNode.getChildList().isEmpty()) {
-            hNode.getChildList().addAll(currentGraphNode.getChildren());
-        }
+		if (hNode.getEdgeList() == null) {
+			hNode.setEdgeList(new ArrayList<ElkEdge>());
+		}
 
-        currentGraphNode.getChildren().clear();
+		if (hNode.getEdgeList().isEmpty()) {
+			hNode.getEdgeList().addAll(currentGraphNode.getContainedEdges());
+		}
 
-        if (hNode.getEdgeList() == null) {
-            hNode.setEdgeList(new ArrayList<ElkEdge>());
-        }
+		currentGraphNode.getContainedEdges().clear();
 
-        if (hNode.getEdgeList().isEmpty()) {
-            hNode.getEdgeList().addAll(currentGraphNode.getContainedEdges());
-        }
+		resetDimensionRecursively(currentGraphNode);
+	}
 
-        currentGraphNode.getContainedEdges().clear();
+	public void expandAllCells() {
+		expandRecursively(hierarchy.getRoot());
+	}
 
-        resetDimensionRecursively(currentGraphNode);
-    }
+	public void expandRecursively(HierarchicalNode hNode) {
+		expandCell(hNode);
 
-    public void expandAllCells() {
-        expandRecursively(hierarchy.getRoot());
-    }
+		for (String hChild : hNode.getChildren().keySet()) {
+			expandRecursively(hNode.getChildren().get(hChild));
+		}
+	}
 
-    public void expandRecursively(HierarchicalNode hNode) {
-        expandCell(hNode);
+	public void expandCellAt(String cellPath) {
+		expandCell(findNode(cellPath));
+		// find layer in hierarchy, then restore children and edges from hierarchyTree
+		// allows  storing of state of collapsed nodes inside the node pointed to by cellPath without additional code
+	}
 
-        for (String hChild : hNode.getChildren().keySet()) {
-            expandRecursively(hNode.getChildren().get(hChild));
-        }
-    }
+	public void expandCell(HierarchicalNode hNode) {
+		ElkNode currentGraphNode = hNode.getNode();
+		EList<ElkNode> graphChildren = currentGraphNode.getChildren();
+		EList<ElkEdge> graphContainedEdges = currentGraphNode.getContainedEdges();
 
-    public void expandCellAt(String cellPath) {
-        expandCell(findNode(cellPath));
-        // find layer in hierarchy, then restore children and edges from hierarchyTree
-        // allows of storing state of collapsed nodes inside the node pointed to by cellPath without additional code
-    }
+		if (!graphChildren.isEmpty() || !graphContainedEdges.isEmpty()) {
+			return;
+		}
 
-    public void expandCell(HierarchicalNode hNode) {
-        ElkNode currentGraphNode = hNode.getNode();
-        EList<ElkNode> graphChildren = currentGraphNode.getChildren();
-        EList<ElkEdge> graphContainedEdges = currentGraphNode.getContainedEdges();
+		ArrayList<ElkNode> storedChildren = hNode.getChildList();
+		ArrayList<ElkEdge> storedEdges = hNode.getEdgeList();
 
-        if (!graphChildren.isEmpty() || !graphContainedEdges.isEmpty()) {
-            return;
-        }
+		graphChildren.addAll(storedChildren);
 
-        ArrayList<ElkNode> storedChildren = hNode.getChildList();
-        ArrayList<ElkEdge> storedEdges = hNode.getEdgeList();
+		graphContainedEdges.addAll(storedEdges);
 
-        graphChildren.addAll(storedChildren);
+		resetDimensionRecursively(currentGraphNode);
+	}
 
-        graphContainedEdges.addAll(storedEdges);
+	private HierarchicalNode findNode(String cellPath) {
+		String[] cellPathSplit = cellPath.trim().split(" ");
 
-        resetDimensionRecursively(currentGraphNode);
-    }
+		HierarchicalNode currentNode = hierarchy.getRoot();
+		HierarchicalNode nextNode;
 
-    private HierarchicalNode findNode(String cellPath) {
-        String[] cellPathSplit = cellPath.trim().split(" ");
+		for (String fragment : cellPathSplit) {
+			currentNode = currentNode.getChildren().get(fragment);
 
-        HierarchicalNode currentNode = hierarchy.getRoot();
-        HierarchicalNode nextNode;
+			if(currentNode == null) {
+				logger.atError().setMessage("Could not find cell {} from cellpath {}").addArgument(fragment).addArgument(cellPath).log();
 
-        for (String fragment : cellPathSplit) {
-            currentNode = currentNode.getChildren().get(fragment);
+				return null;
+			}
+		}
 
-            if(currentNode == null) {
-                logger.atError().setMessage("Could not find cell {} from cellpath {}").addArgument(fragment).addArgument(cellPath).log();
+		return currentNode;
+	}
 
-                return null;
-            }
-        }
+	public void toggleCollapsed(String cellPath) {
+		HierarchicalNode node = findNode(cellPath);
 
-        return currentNode;
-    }
+		if (!node.getEdgeList().isEmpty() || !node.getChildList().isEmpty()) {
+			// node can have child elements
 
-    public void toggleCollapsed(String cellPath) {
-        HierarchicalNode node = findNode(cellPath);
+			if (!node.getNode().getChildren().isEmpty() || !node.getNode().getContainedEdges().isEmpty()) {
+				collapseCell(node);
+			} else {
+				expandCell(node);
+			}
+		} else {
+			logger.atInfo().setMessage("Cell with path {} does not contain any children and can therefore neither be expanded nor collapsed").addArgument(cellPath).log();
+		}
+	}
 
-        if (!node.getEdgeList().isEmpty() || !node.getChildList().isEmpty()) {
-            // node can have child elements
+	private void resetDimensionRecursively(ElkNode node) {
+		if (node.getParent() != null) {
+			node.setProperty(CoreOptions.NODE_SIZE_MINIMUM, null);
+			node.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.allOf(SizeConstraint.class));
+			node.setDimensions(0, 0);
 
-            if (!node.getNode().getChildren().isEmpty() || !node.getNode().getContainedEdges().isEmpty()) {
-                collapseCell(node);
-            } else {
-                expandCell(node);
-            }
-        } else {
-            logger.atInfo().setMessage("Cell with path {} does not contain any children and can therefore neither be expanded nor collapsed").addArgument(cellPath).log();
-        }
-    }
-
-    private void resetDimensionRecursively(ElkNode node) {
-        if (node.getParent() != null) {
-            node.setProperty(CoreOptions.NODE_SIZE_MINIMUM, null);
-            node.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.allOf(SizeConstraint.class));
-            node.setDimensions(0, 0);
-
-            resetDimensionRecursively(node.getParent());
-        }
-    }
+			resetDimensionRecursively(node.getParent());
+		}
+	}
 }

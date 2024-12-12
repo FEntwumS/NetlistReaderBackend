@@ -17,11 +17,10 @@ import java.util.HashMap;
 import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
 
 public class NetnameHandler {
-	ElkElementCreator creator;
 	private static Logger logger = LoggerFactory.getLogger(NetnameHandler.class);
 
 	public NetnameHandler() {
-		creator = new ElkElementCreator();
+
 	}
 
 	public void handleNetnames(HashMap<String, Object> netnames, String modulename,
@@ -66,9 +65,6 @@ public class NetnameHandler {
 				//currentNetPath = formatter.format(currentNetName);
 			}
 
-			// TODO find better solution
-			//
-			// Ignore hdlname attribute for now until better mechanism to distinguish its validity is found
 			currentNetPath = formatter.format(currentNetPath);
 
 			currentNetPathSplit = currentNetPath.split(" ");
@@ -130,8 +126,6 @@ public class NetnameHandler {
 				}
 
 				if (currentSignalNode == null) {
-					// TODO check if this is true when a nonsensical user construct exists
-
 					logger.atDebug().setMessage("Unknown cell; Bit {}").addArgument((int) bit).log();
 
 					continue;
@@ -205,20 +199,6 @@ public class NetnameHandler {
 			findSinks(currentSignalTree, null);
 		}
 	}
-
-	// Two cases exist:
-	// 1. sRoot is leaf
-	// 2. sRoot is not leaf
-	//
-	// if case 1:
-	// start at sroot, create signal up to common ancestor
-	// then join up all other leaves
-	// then check if hierarchy extends even higher (output signal)
-	//
-	// if case 2:
-	// just join up leaves
-	//
-	// TODO check for loops or other nonsensical user-generated constructs
 
 	private void routeSource(SignalTree currentSignalTree, SignalNode precursor) {
 		SignalNode currentNode = precursor.getHParent();
@@ -316,7 +296,7 @@ public class NetnameHandler {
 
 		sink = currentSignalNode.getSPort();
 
-		// else source should be in same layer; search there for signal source (check port side)
+		// source is most likely in same layer; search there for signal source (check port side)
 		for (String candidate : precursor.getHChildren().keySet()) {
 			sourceNode = precursor.getHChildren().get(candidate);
 
@@ -381,10 +361,6 @@ public class NetnameHandler {
 
 		// Source could be somewhere in an unmarked parent
 		// So continue upwards
-		//
-		// TODO find better names for these signals
-		// as they are not named, maybe use the portname in conjunction with the port descriptor from the netlist?
-		// Then add each layer as the signals traverses boundaries?
 
 		if (sink == null) {
 			return;
@@ -595,23 +571,5 @@ public class NetnameHandler {
 		} else {
 			return higherUse(parent);
 		}
-	}
-
-	private int highestUse(SignalNode currentSignalNode) {
-		SignalNode nextNode = currentSignalNode.getHParent();
-
-		int layersAbove = 0;
-		int currentLayer = 0;
-
-		while (nextNode != null) {
-			currentLayer++;
-			if (nextNode.getSVisited()) {
-				layersAbove = currentLayer;
-			}
-
-			nextNode = nextNode.getHParent();
-		}
-
-		return layersAbove;
 	}
 }

@@ -12,22 +12,22 @@ import java.util.Collections;
 import java.util.List;
 
 public class OutputReverser {
-    public OutputReverser() {}
+	public OutputReverser() {}
 
-    public void reversePorts(ElkNode node) {
-        int index = node.getPorts().size() - 1;
+	public void reversePorts(ElkNode node) {
+		int index = node.getPorts().size() - 1;
 
-        for (ElkPort port : node.getPorts()) {
-            if (port.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST) {
-                port.setProperty(CoreOptions.PORT_INDEX, index);
-            } else {
-                port.setProperty(CoreOptions.PORT_INDEX, node.getPorts().size() + (node.getPorts().size() - index));
-            }
-            index--;
-        }
+		for (ElkPort port : node.getPorts()) {
+			if (port.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST) {
+				port.setProperty(CoreOptions.PORT_INDEX, index);
+			} else {
+				port.setProperty(CoreOptions.PORT_INDEX, node.getPorts().size() + (node.getPorts().size() - index));
+			}
+			index--;
+		}
 
-        for (ElkNode child : node.getChildren()) {
-            reversePorts(child);
-        }
-    }
+		for (ElkNode child : node.getChildren()) {
+			reversePorts(child);
+		}
+	}
 }
