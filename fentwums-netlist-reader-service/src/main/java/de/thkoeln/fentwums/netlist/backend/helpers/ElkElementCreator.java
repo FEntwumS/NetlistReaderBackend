@@ -9,9 +9,21 @@ import java.util.EnumSet;
 
 import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
 
+/**
+ * Utility class for creating elk elements. Provides creation methods for all currently used elk elements and sets
+ * the relevant options to reduce bloat
+ */
 public class ElkElementCreator {
-	public ElkElementCreator() {}
+	public ElkElementCreator() {
+	}
 
+	/**
+	 * Creates a new child node with standardised options
+	 *
+	 * @param parent     The parent node of the node to be created
+	 * @param identifier The identifier of the node to be created
+	 * @return The created child node
+	 */
 	public static ElkNode createNewNode(ElkNode parent, String identifier) {
 		ElkNode newNode = createNode(parent);
 		newNode.setIdentifier(identifier);
@@ -28,6 +40,13 @@ public class ElkElementCreator {
 		return newNode;
 	}
 
+	/**
+	 * Creates a new ElkEdge from source to sink
+	 *
+	 * @param sink   The sink of the connection
+	 * @param source The source of the connection
+	 * @return The created edge
+	 */
 	public static ElkEdge createNewEdge(ElkConnectableShape sink, ElkConnectableShape source) {
 		ElkEdge newEdge = createSimpleEdge(source, sink);
 
@@ -37,6 +56,13 @@ public class ElkElementCreator {
 		return newEdge;
 	}
 
+	/**
+	 * Creates a new ElkPort
+	 *
+	 * @param parent The ElkNode to which the port is to be attached
+	 * @param side   The side on which the port is to be attached
+	 * @return the creted port
+	 */
 	public static ElkPort createNewPort(ElkNode parent, PortSide side) {
 		ElkPort newPort = createPort(parent);
 		newPort.setDimensions(10, 10);
@@ -46,17 +72,33 @@ public class ElkElementCreator {
 		return newPort;
 	}
 
+	/**
+	 * Creates a new ElkLabel and automatically sets its dimensions.
+	 *
+	 * @param content The content to be displayed in the label
+	 * @param parent  The element to which the label is to be attached
+	 * @return The created label
+	 */
 	public static ElkLabel createNewLabel(String content, ElkGraphElement parent) {
 		if (parent.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)) {
 			content += " ";
 		}
 
 		ElkLabel newLabel = createLabel(content, parent);
+
+		//Since ELK does not know about the font size (and the font itself for that matter), the computed dimensions
+		// are dependent on this hardcoded formula
 		newLabel.setDimensions(content.length() * 5.75 + 1, 10);
 
 		return newLabel;
 	}
 
+	/**
+	 * Creates an ElkNode that can be used as a constant driver
+	 *
+	 * @param parent The parent node
+	 * @return The created node
+	 */
 	public static ElkNode createNewConstantDriver(ElkNode parent) {
 		ElkNode newNode = createNode(parent);
 
