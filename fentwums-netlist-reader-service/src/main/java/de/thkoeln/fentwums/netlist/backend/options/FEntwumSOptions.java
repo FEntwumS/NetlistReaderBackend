@@ -8,62 +8,93 @@ import org.eclipse.elk.graph.properties.Property;
 import java.util.ArrayList;
 import java.util.EnumSet;
 
+/**
+ * Custom options provider
+ */
 public class FEntwumSOptions implements ILayoutMetaDataProvider {
 
+	/**
+	 * The name of the signal
+	 */
 	public static final IProperty<String> SIGNAL_NAME = new Property<String>(
 			"de.thkoeln.fentwums.netlist.backend.signalname",
 			"");
 
+	/**
+	 * The bitindex of the signal
+	 */
 	public final static IProperty<Integer> SIGNAL_INDEX = new Property<Integer>(
 			"de.thkoeln.fentwums.netlist.backend.signalindex",
 			0
 	);
 
-	public final static IProperty<String> VECTOR_SIGNALS = new Property<String>(
-			"de.thkoeln.fentwums.netlist.backend.vector-signals",
-			""
-	);
-
+	/**
+	 * The name of the cell
+	 */
 	public final static IProperty<String> CELL_NAME = new Property<String>(
 			"de.thkoeln.fentwums.netlist.backend.cellname",
 			""
 	);
 
+	/**
+	 * The type of the cell. Constant drivers get assigned the type "Constant driver"
+	 */
 	public final static IProperty<String> CELL_TYPE = new Property<String>(
 			"de.thkoeln.fentwums.netlist.backend.celltype",
 			""
 	);
 
+	/**
+	 * The location of the cell inside the hierarchy
+	 */
 	public final static IProperty<String> LOCATION_PATH = new Property<String>(
 			"de.thkoeln.fentwums.netlist.backend.location-path",
 			""
 	);
 
+	/**
+	 * The source file and line of code that led to the creation of this cell
+	 */
 	public static final IProperty<String> SRC_LOCATION = new Property<String>(
 			"de.thkoeln.fentwums.netlist.backend.src-location",
 			""
 	);
 
-	public static final IProperty<String> SIGNAL_VALUE = new Property<String >(
+	/**
+	 * The value of the associated signal
+	 */
+	public static final IProperty<String> SIGNAL_VALUE = new Property<String>(
 			"de.thkoeln.fentwums.netlist.backend.signalvalue",
 			""
 	);
 
+	/**
+	 * The bit's index in the containing signal
+	 */
 	public static final IProperty<Integer> INDEX_IN_SIGNAL = new Property<Integer>(
 			"de.thkoeln.fentwums.netlist.backend.index-in-signal",
 			0
 	);
 
+	/**
+	 * The signal type
+	 */
 	public static final IProperty<SignalType> SIGNAL_TYPE = new Property<SignalType>(
 			"de.thkoeln.fentwums.netlist.backend.signaltype",
 			SignalType.UNDEFINED
 	);
 
+	/**
+	 * The name of the port's containing port group
+	 */
 	public static final IProperty<String> PORT_GROUP_NAME = new Property<String>(
 			"de.thkoeln.fentwums.netlist.backend.port-group-name",
 			""
 	);
 
+	/**
+	 * The bitindices of bundled signals contained in the containing edge
+	 */
 	public static final IProperty<ArrayList<Integer>> BUNDLED_SIGNALS = new Property<ArrayList<Integer>>(
 			"de.thkoeln.fentwums.netlist.backend.bundled-signals",
 			null
@@ -86,16 +117,6 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 				.defaultValue(0)
 				.type(LayoutOptionData.Type.INT)
 				.optionClass(Integer.class)
-				.targets(EnumSet.of(LayoutOptionData.Target.EDGES))
-				.visibility(LayoutOptionData.Visibility.VISIBLE)
-				.create()
-		);
-
-		registry.register(new LayoutOptionData.Builder()
-				.id("de.thkoeln.fentwums.netlist.backend.vector-signals")
-				.defaultValue("")
-				.type(LayoutOptionData.Type.STRING)
-				.optionClass(String.class)
 				.targets(EnumSet.of(LayoutOptionData.Target.EDGES))
 				.visibility(LayoutOptionData.Visibility.VISIBLE)
 				.create()
