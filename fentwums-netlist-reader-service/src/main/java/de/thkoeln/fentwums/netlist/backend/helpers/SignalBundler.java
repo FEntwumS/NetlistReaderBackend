@@ -12,6 +12,13 @@ import org.eclipse.elk.graph.ElkPort;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * The signal bundler uses the previously stored information from the "netnames" section of the json netlist to
+ * automatically bundle a given signal. A signal may only be bundled on all layers or unbundled on all layers. A
+ * signal that is bundled on certain layers and not on others where it could be bundled is not intended. Whether a
+ * signal can be bundled is determined by the <code>possibleBundles</code>-field of the relevant
+ * <code>HierarchicalNode</code>
+ */
 public class SignalBundler {
 	private HashMap<Integer, SignalTree> treeMap;
 	private HierarchyTree hierarchy;
@@ -19,12 +26,25 @@ public class SignalBundler {
 	public SignalBundler() {
 	}
 
+	/**
+	 * Convenience method that allows bundling of a given signal with only the signals bitindex
+	 *
+	 * @param sId The bitindex of the signal to be bundled
+	 */
 	public void bundleSignalWithId(int sId) {
 		SignalNode sRoot = treeMap.get(sId).getSRoot();
 
 		bundleRecursively(sRoot, sId);
 	}
 
+	/**
+	 * Determines the bits that may be bundled around the signal occurrence described by <code>sNode</code>, then
+	 * continues along the signal route(-s). The found bundle is handed off to <code>bundlePorts</code> for the actual
+	 * bundling
+	 *
+	 * @param sNode The node describing the signal occurence
+	 * @param sId   The bitindex of the signal to be bundled
+	 */
 	public void bundleRecursively(SignalNode sNode, int sId) {
 		SignalNode nextNode;
 		SignalNode bundleNode;
@@ -54,7 +74,7 @@ public class SignalBundler {
 		}
 
 		// then bundle the signal
-		bundleLayer(nodesToBundle, toBundle, hNode, sId);
+		bundleLayer(nodesToBundle, toBundle, hNode);
 
 		// bundle the children
 		for (String child : sNode.getSChildren().keySet()) {
@@ -66,6 +86,13 @@ public class SignalBundler {
 		}
 	}
 
+	/**
+	 * Bundles the ports of the signal occurrences in <code>nodesToBundle</code> into one single port. Updates the
+	 * relevant edges and creates appropriate label(-s)
+	 *
+	 * @param nodesToBundle The signal occurrences which are to be bundled. each signal node must be at the same
+	 *                      position in the hierarchy
+	 */
 	private void bundlePorts(ArrayList<SignalNode> nodesToBundle) {
 		ArrayList<Integer> currentSignalRange;
 		ElkPort currentPort, bundlePort;
@@ -93,9 +120,13 @@ public class SignalBundler {
 			// check if the node this port is attached to already has a bundle port
 			containingNode = currentPort.getParent();
 
+			// each port group gets its own bundling port. this prevents input and outputs ports to be bundled
+			// together and improves clarity if a bundle contains bits that are used in eg two separate input port
+			// groups
 			if (bundlePortMap.containsKey(containingNode)) {
 				if (bundlePortMap.get(containingNode).containsKey(currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME))) {
-					currentInfo = bundlePortMap.get(containingNode).get(currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
+					currentInfo =
+							bundlePortMap.get(containingNode).get(currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
 					bundlePort = currentInfo.port();
 				} else {
 					bundlePort = currentPort;
@@ -104,7 +135,8 @@ public class SignalBundler {
 
 					currentInfo.containedSignals().add(currentIndexInSignal);
 
-					bundlePortMap.get(containingNode).put(currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME), currentInfo);
+					bundlePortMap.get(containingNode).put(currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME),
+							currentInfo);
 
 					continue;
 				}
@@ -115,7 +147,7 @@ public class SignalBundler {
 				removeEdgeList.clear();
 
 
-				// transfer edges to the bundle port
+				// bundle sinks of incoming edges
 
 				for (ElkEdge incoming : currentPort.getIncomingEdges()) {
 					needEdge = true;
@@ -126,6 +158,9 @@ public class SignalBundler {
 
 					for (ElkEdge edge : bundlePort.getIncomingEdges()) {
 						if (((ElkPort) edge.getSources().getFirst()).getParent().equals(((ElkPort) incoming.getSources().getFirst()).getParent())) {
+							// if any incoming edge of the bundle port and any incoming edge of the port that is
+							// currently being checked have the same source, it is marked removal
+
 							needEdge = false;
 
 							incoming.getContainingNode().getContainedEdges().remove(incoming);
@@ -136,23 +171,30 @@ public class SignalBundler {
 					}
 
 					if (needEdge) {
+						// if the edge has not been marked for removal, it is instead marked for rework
 						bundlePort.getIncomingEdges().add(incoming);
 						reworkEdgeList.add(incoming);
 					}
 				}
 
 				for (ElkEdge edge : reworkEdgeList) {
+					// rework the edge to point to the bundle port instead of its old sink
 					edge.getTargets().clear();
 					edge.getTargets().add(bundlePort);
 
+					// update the edge thickness for better layouting
 					edge.setProperty(CoreOptions.EDGE_THICKNESS, 2.8d);
 
+					// remove the edge from its old sink
 					currentPort.getIncomingEdges().remove(edge);
 				}
 
 				for (ElkEdge edge : removeEdgeList) {
+					// remove the edge from its source and target
 					edge.getTargets().getFirst().getIncomingEdges().remove(edge);
 					edge.getSources().getFirst().getOutgoingEdges().remove(edge);
+
+					// remove the targets and sources of the edge
 					edge.getTargets().clear();
 					edge.getSources().clear();
 
@@ -162,6 +204,8 @@ public class SignalBundler {
 				reworkEdgeList.clear();
 				removeEdgeList.clear();
 
+				// bundle sources of outgoing edges
+				// the sources of any edge actually going somewhere can be bundled
 				for (ElkEdge outgoing : currentPort.getOutgoingEdges()) {
 
 					if (outgoing.getTargets().isEmpty()) {
@@ -170,7 +214,6 @@ public class SignalBundler {
 
 					bundlePort.getOutgoingEdges().add(outgoing);
 					reworkEdgeList.add(outgoing);
-
 				}
 
 				for (ElkEdge edge : reworkEdgeList) {
@@ -196,7 +239,8 @@ public class SignalBundler {
 				currentInfo = new BundlingInformation(currentPort, signalName, new ArrayList<>());
 				currentInfo.containedSignals().add(currentIndexInSignal);
 
-				bundlePortMap.get(containingNode).put(currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME), currentInfo);
+				bundlePortMap.get(containingNode).put(currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME),
+						currentInfo);
 
 				bundlePort = currentPort;
 			}
@@ -205,6 +249,12 @@ public class SignalBundler {
 		}
 
 		// now update labels
+		//
+		// contiguous ranges of bit indeces are shortened to the start of the range and the end of the range,
+		// separated by a colon
+		// a range containing only a single index does not get transformed or shortened
+		// if a bundle contains multiple ranges, the ranges are concatenated with a semicolon followed by space as
+		// separator
 		for (ElkNode key : bundlePortMap.keySet()) {
 			for (String portgroup : bundlePortMap.get(key).keySet()) {
 				currentInfo = bundlePortMap.get(key).get(portgroup);
@@ -227,7 +277,8 @@ public class SignalBundler {
 
 				for (int value : currentSignalRange) {
 					if (value - cRangeEnd > 1) {
-						// skip, therefore start new range
+						// if the current bit index were to be added to the range, it would no longer be contiguous.
+						// therefore, a new range is started
 
 						signalRange.append(cRangeStart);
 
@@ -261,7 +312,14 @@ public class SignalBundler {
 		}
 	}
 
-	private void bundleLayer(ArrayList<SignalNode> toBundle, Bundle bundle, HierarchicalNode currentHNode, int sId) {
+	/**
+	 * Checks if the layer that is to be bundled is already bundled. If not, bundles the layer, else it just returns
+	 *
+	 * @param toBundle     The signal nodes describing the signal occurrences that are to be bundled
+	 * @param bundle       The signal indices and the corresponding bit indices
+	 * @param currentHNode The current position in the hierarchy
+	 */
+	private void bundleLayer(ArrayList<SignalNode> toBundle, Bundle bundle, HierarchicalNode currentHNode) {
 		// return early if the signal is already bundled
 		for (int bId : bundle.getBundleSignalMap().keySet()) {
 			if (currentHNode.getCurrentlyBundledSignals().contains(bId)) {
@@ -277,27 +335,55 @@ public class SignalBundler {
 	}
 
 	public void debundleSignalAt(String path) {
+		throw new RuntimeException("Not implemented yet");
 	}
 
 	public void debundleSignalRecursively(SignalNode sNode, HierarchicalNode hNode) {
+		throw new RuntimeException("Not implemented yet");
 	}
 
+	/**
+	 * Gets the HashMap containing all signal trees
+	 *
+	 * @return The HashMap containing all signal trees
+	 */
 	public HashMap<Integer, SignalTree> getTreeMap() {
 		return treeMap;
 	}
 
+	/**
+	 * Sets the HashMap containing all signal trees
+	 *
+	 * @param treeMap The HashMap containing all signal trees
+	 */
 	public void setTreeMap(HashMap<Integer, SignalTree> treeMap) {
 		this.treeMap = treeMap;
 	}
 
+	/**
+	 * Gets the hierarchy of the current netlist
+	 *
+	 * @return The hierarchy of the current netlist
+	 */
 	public HierarchyTree getHierarchy() {
 		return hierarchy;
 	}
 
+	/**
+	 * Sets the hierarchy of the current netlist
+	 *
+	 * @param hierarchy The hierarchy of the current netlist
+	 */
 	public void setHierarchy(HierarchyTree hierarchy) {
 		this.hierarchy = hierarchy;
 	}
 
+	/**
+	 * Checks whether the given <code>ElkNode</code> is in any way a child of the root node
+	 *
+	 * @param node The node that is to be tested
+	 * @return True if root is reachable, else false
+	 */
 	private boolean isRootReachable(ElkNode node) {
 		if (node.getIdentifier().equals("root")) {
 			return true;
