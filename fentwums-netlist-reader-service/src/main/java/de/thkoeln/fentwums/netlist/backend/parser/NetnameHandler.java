@@ -16,6 +16,10 @@ import java.util.HashMap;
 
 import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
 
+/**
+ * Handles the data contained in the "netnames" section of the netlist. Creates ports for entities as needed,
+ * populates the signal trees, extracts possible bundles, creates connections between the cells
+ */
 public class NetnameHandler {
 	private static Logger logger = LoggerFactory.getLogger(NetnameHandler.class);
 
@@ -623,9 +627,10 @@ public class NetnameHandler {
 
 
 	/**
-	 * Links two signal nodes to create a graph containing the routes of the signal described by the containing signal tree
+	 * Links two signal nodes to create a graph containing the routes of the signal described by the containing signal
+	 * tree
 	 *
-	 * @param child The child node in the graph to be created -> The sink of this part of the route
+	 * @param child  The child node in the graph to be created -> The sink of this part of the route
 	 * @param parent The parent node in the graph to be created -> The source of this part of the route
 	 */
 	private void linkSignalNodes(SignalNode child, SignalNode parent) {

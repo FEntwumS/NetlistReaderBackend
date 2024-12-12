@@ -22,6 +22,10 @@ import java.util.HashMap;
 
 import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
 
+/**
+ * Helper class abstracting away the tedious aspects of graph creation. Calls the handlers for the different sections
+ * of the netlist in order, applies post-processing (eg signal bundling) and calls the layouter
+ */
 public class GraphCreator {
 	private ElkNode root;
 	private HierarchyTree hierarchy;
@@ -40,15 +44,29 @@ public class GraphCreator {
 		root = createGraph();
 		ElkNode toplevelNode = createNode(root);
 		toplevelNode.setIdentifier("cell");
-		createLabel(toplevelName,  toplevelNode);
+		createLabel(toplevelName, toplevelNode);
 	}
 
+	/**
+	 * Gets the root of the layoutable graph
+	 *
+	 * @return The root
+	 */
 	public ElkNode getGraph() {
 		return root;
 	}
 
+	/**
+	 * Create a layoutable graph for a given module. Uses the different handlers and post-processing providers to
+	 * transform the module into an ELK graph which can then be layouted. Also registers custom options with the
+	 * layout provider to allow for data transfer of relevant attributes inside the graph
+	 *
+	 * @param module     The module containing the top level entity that is to be laid out
+	 * @param modulename The name of the top level entity
+	 */
 	@SuppressWarnings("unchecked")
 	public void createGraphFromNetlist(HashMap<String, Object> module, String modulename) {
+		// Register custom ELK options
 		LayoutMetaDataService service = LayoutMetaDataService.getInstance();
 		service.registerLayoutMetaDataProviders(new FEntwumSOptions());
 
@@ -60,7 +78,7 @@ public class GraphCreator {
 		if (root.getChildren().isEmpty()) {
 			ElkNode toplevelNode = createNode(root);
 			toplevelNode.setIdentifier(modulename);
-			ElkLabel toplevelLabel = ElkElementCreator.createNewLabel(modulename,  toplevelNode);
+			ElkLabel toplevelLabel = ElkElementCreator.createNewLabel(modulename, toplevelNode);
 			toplevelNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_ORDER);
 			//toplevelNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
 			toplevelNode.setProperty(CoreOptions.ALGORITHM, "layered");
@@ -71,14 +89,13 @@ public class GraphCreator {
 		}
 
 		try {
+			// Perform simple netlist completeness check
 			checkModuleCompleteness(module);
 		} catch (Exception e) {
 			logger.error("Netlist is not complete", e);
 
 			throw new RuntimeException("Netlist is not complete", e);
 		}
-
-
 
 		HashMap<String, Object> ports = (HashMap<String, Object>) module.get("ports");
 		HashMap<String, Object> cells = (HashMap<String, Object>) module.get("cells");
@@ -88,6 +105,7 @@ public class GraphCreator {
 		HierarchyTree hierarchyTree = new HierarchyTree(new HierarchicalNode(toplevel.getIdentifier(), null,
 				new HashMap<>(), new ArrayList<>(), new HashMap<>(), toplevel));
 
+		// Use the different handlers to create the layoutable graph
 
 		PortHandler portHandler = new PortHandler();
 
@@ -111,12 +129,16 @@ public class GraphCreator {
 		netHandler.recreateSignals(signalMap, modulename);
 		logger.info("Successfully recreated signal paths");
 
+		// Apply post-processing to optimise layout
+
+		// Reversing the order of output ports significantly reduces the number of edge crossings
 		OutputReverser reverser = new OutputReverser();
 
 		logger.info("Start reversing order of output ports");
 		reverser.reversePorts(toplevel);
 		logger.info("Successfully reversed order of output ports");
 
+		// Bundling bundleable signals reduces visual clutter and improves the ordering of nodes in the final layout
 		SignalBundler bundler = new SignalBundler();
 		bundler.setHierarchy(hierarchyTree);
 		bundler.setTreeMap(signalMap);
@@ -127,6 +149,7 @@ public class GraphCreator {
 		}
 		logger.info("Successfully bundled signals");
 
+		// Check the graph for any obvious mistakes
 		SanityChecker checker = new SanityChecker();
 
 		checker.checkGraph(root);
@@ -134,6 +157,11 @@ public class GraphCreator {
 		this.hierarchy = hierarchyTree;
 	}
 
+	/**
+	 * Simple completeness check that ensures that the module contains all the relevant sections
+	 *
+	 * @param module The module containing the top level entity
+	 */
 	public void checkModuleCompleteness(HashMap<String, Object> module) {
 		if (module == null) {
 			throw new NullPointerException("module is null");
@@ -151,6 +179,11 @@ public class GraphCreator {
 		}
 	}
 
+	/**
+	 * Layout the graph
+	 *
+	 * @return JSON string containing a representation of the layouted graph
+	 */
 	public String layoutGraph() {
 		RecursiveGraphLayoutEngine engine = new RecursiveGraphLayoutEngine();
 		BasicProgressMonitor monitor = new BasicProgressMonitor();
@@ -165,10 +198,20 @@ public class GraphCreator {
 				.omitZeroPositions(true).shortLayoutOptionKeys(true).prettyPrint(false).toJson();
 	}
 
+	/**
+	 * Gets the hierarchy
+	 *
+	 * @return The hierarchy
+	 */
 	public HierarchyTree getHierarchyTree() {
 		return hierarchy;
 	}
 
+	/**
+	 * Gets the HashMap containing all signal trees
+	 *
+	 * @return all signal trees
+	 */
 	public HashMap<Integer, SignalTree> getSignalTreeMap() {
 		return signalMap;
 	}

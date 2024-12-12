@@ -20,7 +20,10 @@ import java.util.HashMap;
 
 import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
 
-
+/**
+ * Handles the data contained in the "ports" section of the netlist. Creates the input and output ports of the
+ * toplevel entity as well as associated constant drivers
+ */
 public class PortHandler {
 	public PortHandler() {
 	}
