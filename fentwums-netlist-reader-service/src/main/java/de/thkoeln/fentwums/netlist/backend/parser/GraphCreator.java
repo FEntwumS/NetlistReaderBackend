@@ -6,6 +6,7 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchyTree;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
 import de.thkoeln.fentwums.netlist.backend.helpers.*;
 import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
+import org.eclipse.elk.alg.layered.options.LayeredOptions;
 import org.eclipse.elk.core.RecursiveGraphLayoutEngine;
 import org.eclipse.elk.core.data.LayoutMetaDataService;
 import org.eclipse.elk.core.options.*;
@@ -69,6 +70,7 @@ public class GraphCreator {
 		// Register custom ELK options
 		LayoutMetaDataService service = LayoutMetaDataService.getInstance();
 		service.registerLayoutMetaDataProviders(new FEntwumSOptions());
+        service.registerLayoutMetaDataProviders(new LayeredOptions());  // https://github.com/eclipse/elk/issues/654#issuecomment-656184498
 
 		logger.info("Successfully registered options");
 
@@ -191,7 +193,7 @@ public class GraphCreator {
 		try {
 			engine.layout(root, monitor);
 		} catch (Exception e) {
-
+            logger.error("Error during layout", e);
 		}
 
 		return ElkGraphJson.forGraph(root).omitLayout(false).omitZeroDimension(true)
