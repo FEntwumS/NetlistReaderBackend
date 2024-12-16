@@ -24,7 +24,11 @@ mvn clean package spring-boot:repackage
 ```
 
 in the root directory, an über-JAR containing all dependencies can be created. The resulting jar under
-fentwums-netlist-reader-server/target can then be executed using java -jar <jar-name>
+'fentwums-netlist-reader-server/target' can then be executed using 
+
+```
+java -jar fentwums-netlist-reader-server-1.0-SNAPSHOT-fentwums-netlist-reader-service.jar
+```
 # Notes
 
 This is a beta release. Bugs are to be expected. If you notice any issues, please submit bug reports to help us improve
