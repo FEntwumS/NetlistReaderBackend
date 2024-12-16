@@ -502,7 +502,7 @@ public class NetnameHandler {
 			}
 		}
 
-		if (precursor.getHParent().getHParent() != null && source != null && !source.getIncomingEdges().isEmpty()) {
+		if (precursor.getHParent().getHParent() != null) {
 			routeSink(currentSignalTree, precursor);
 		}
 	}
