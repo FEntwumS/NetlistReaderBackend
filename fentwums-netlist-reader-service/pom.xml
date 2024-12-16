@@ -5,6 +5,14 @@
     <properties>
         <encoding>UTF-8</encoding>
     </properties>
+
+    <licenses>
+        <license>
+            <name>MIT</name>
+            <url>https://spdx.org/licenses/MIT.html</url>
+        </license>
+    </licenses>
+
     <parent>
         <groupId>fentwums.th-koeln.de</groupId>
         <artifactId>fentwums-parent</artifactId>

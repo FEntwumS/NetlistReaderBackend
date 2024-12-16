@@ -10,6 +10,13 @@
 
 	<artifactId>fentwums-netlist-reader-server</artifactId>
 
+	<licenses>
+		<license>
+			<name>MIT</name>
+			<url>https://spdx.org/licenses/MIT.html</url>
+		</license>
+	</licenses>
+
 	<dependencies>
 		<!-- Spring Boot -->
 		<dependency>
@@ -152,6 +159,7 @@
 							<licenseName>mit</licenseName>
 							<organizationName>TH Koeln</organizationName>
 							<projectName>NetlistReaderBackend</projectName>
+							<generateBundle>true</generateBundle>
 						</configuration>
 					</execution>
 				</executions>
