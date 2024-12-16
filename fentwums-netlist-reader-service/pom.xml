@@ -20,6 +20,29 @@
                     <target>${java.version}</target>
                 </configuration>
             </plugin>
+
+            <!-- Attribution -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>2.5.0</version>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>
+                                update-project-license
+                            </goal>
+                        </goals>
+                        <configuration>
+                            <inceptionYear>2024</inceptionYear>
+                            <licenseName>mit</licenseName>
+                            <organizationName>TH Koeln</organizationName>
+                            <projectName>NetlistReaderBackend</projectName>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 

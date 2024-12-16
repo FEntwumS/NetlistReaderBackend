@@ -20,7 +20,7 @@
 			<!-- Import dependency management from Spring Boot -->
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-dependencies</artifactId>
-			<version>${dependency.version.spring}</version>
+			<version>${dependency.version.spring.spring-boot}</version>
 			<type>pom</type>
 			<scope>import</scope>
 		</dependency>
@@ -28,30 +28,30 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter</artifactId>
-			<version>${dependency.version.spring}</version>
+			<version>${dependency.version.spring.spring-boot}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
 			<scope>runtime</scope>
 			<optional>true</optional>
-			<version>${dependency.version.spring}</version>
+			<version>${dependency.version.spring.spring-boot}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
-			<version>${dependency.version.spring}</version>
+			<version>${dependency.version.spring.spring-boot}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
-			<version>${dependency.version.spring}</version>
+			<version>${dependency.version.spring.spring-boot}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
-			<version>${dependency.version.spring}</version>
+			<version>${dependency.version.spring.spring-boot}</version>
 		</dependency>
 
 
@@ -85,7 +85,57 @@
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<mainClass>de.thkoeln.fentwums.netlist.backend.netlistreaderbackendspringboot.NetlistReaderBackendSpringBootApplication</mainClass>
+					<jvmArguments>
+						-Xmx256g
+						-Xms8096m
+						-verbose:gc
+						-XX:+UseStringDeduplication
+						-XX:+UseZGC
+						-XX:+ZGenerational
+					</jvmArguments>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>
+								repackage
+							</goal>
+						</goals>
+						<configuration>
+							<classifier>fentwums-netlist-reader-service</classifier>
+							<executable>true</executable>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
+			<!-- Attribution -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>2.5.0</version>
+				<executions>
+					<execution>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>
+								update-project-license
+							</goal>
+						</goals>
+						<configuration>
+							<inceptionYear>2024</inceptionYear>
+							<licenseName>mit</licenseName>
+							<organizationName>TH Koeln</organizationName>
+							<projectName>NetlistReaderBackend</projectName>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 

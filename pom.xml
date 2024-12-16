@@ -2,7 +2,6 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-        
     <modelVersion>4.0.0</modelVersion>
     <groupId>fentwums.th-koeln.de</groupId>
     <artifactId>fentwums-parent</artifactId>
@@ -11,18 +10,21 @@
 
     <modules>
         <module>fentwums-netlist-reader-service</module>
+        <module>fentwums-netlist-reader-server</module>
     </modules>
 
     <properties>
         <!-- Definieren von Properties -->
         <java.version>21</java.version>
         <encoding>UTF-8</encoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
         <!-- Dependencies Properties -->
         <dependency.version.eclipse.elk>0.9.1</dependency.version.eclipse.elk>
         <dependency.version.fasterxml.jackson>2.18.1</dependency.version.fasterxml.jackson>
+        <dependency.version.spring.spring-boot>3.4.0</dependency.version.spring.spring-boot>
     </properties>
 
     <dependencyManagement>
@@ -58,6 +60,14 @@
                 <version>${dependency.version.fasterxml.jackson}</version>
             </dependency>
 
+            <!-- GSON -->
+            <!-- Fixes https://github.com/spring-projects/spring-boot/issues/43442 -->
+            <dependency>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>2.11.0</version>
+            </dependency>
+
             <!-- Logging -->
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
@@ -89,26 +99,13 @@
                 </configuration>
             </plugin>
 
-            <!-- Attribution -->
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>license-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>
-                                update-project-license
-                            </goal>
-                        </goals>
-                        <configuration>
-                            <inceptionYear>2024</inceptionYear>
-                            <licenseName>mit</licenseName>
-                            <organizationName>TH Koeln</organizationName>
-                            <projectName>NetlistReaderBackend</projectName>
-                        </configuration>
-                    </execution>
-                </executions>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${dependency.version.spring.spring-boot}</version>
+                <configuration>
+
+                </configuration>
             </plugin>
         </plugins>
     </build>
