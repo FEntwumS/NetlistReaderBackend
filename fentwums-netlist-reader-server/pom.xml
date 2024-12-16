@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>fentwums.th-koeln.de</groupId>
+		<artifactId>fentwums-parent</artifactId>
+		<version>1.0-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>fentwums-netlist-reader-server</artifactId>
+
+
+	<properties>
+		<encoding>UTF-8</encoding>
+	</properties>
+	<dependencies>
+		<!-- Spring Boot -->
+		<dependency>
+			<!-- Import dependency management from Spring Boot -->
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-dependencies</artifactId>
+			<version>${dependency.version.spring}</version>
+			<type>pom</type>
+			<scope>import</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+			<version>${dependency.version.spring}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+			<version>${dependency.version.spring}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+			<version>${dependency.version.spring}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+			<version>${dependency.version.spring}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+			<version>${dependency.version.spring}</version>
+		</dependency>
+
+
+		<!-- FEntwumS dependencies -->
+		<dependency>
+			<groupId>fentwums.th-koeln.de</groupId>
+			<artifactId>fentwums-netlist-reader-service</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+
+
+		<!-- ELK -->
+		<dependency>
+			<groupId>org.eclipse.elk</groupId>
+			<artifactId>org.eclipse.elk.core</artifactId>
+			<version>${dependency.version.eclipse.elk}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.eclipse.elk/org.eclipse.elk.alg.layered -->
+		<dependency>
+			<groupId>org.eclipse.elk</groupId>
+			<artifactId>org.eclipse.elk.alg.layered</artifactId>
+			<version>${dependency.version.eclipse.elk}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.eclipse.elk/org.eclipse.elk.graph.json -->
+		<dependency>
+			<groupId>org.eclipse.elk</groupId>
+			<artifactId>org.eclipse.elk.graph.json</artifactId>
+			<version>${dependency.version.eclipse.elk}</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+
+		</plugins>
+	</build>
+
+</project>
