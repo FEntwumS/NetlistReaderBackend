@@ -25,6 +25,7 @@
         <dependency.version.eclipse.elk>0.9.1</dependency.version.eclipse.elk>
         <dependency.version.fasterxml.jackson>2.18.1</dependency.version.fasterxml.jackson>
         <dependency.version.spring.spring-boot>3.4.0</dependency.version.spring.spring-boot>
+        <dependency.version.ch.qos.logback>1.5.12</dependency.version.ch.qos.logback>
     </properties>
 
     <dependencyManagement>
@@ -70,24 +71,29 @@
 
             <!-- Logging -->
             <dependency>
-                <groupId>org.apache.logging.log4j</groupId>
-                <artifactId>log4j-api</artifactId>
-                <version>2.24.1</version>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${dependency.version.ch.qos.logback}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.logging.log4j</groupId>
-                <artifactId>log4j-core</artifactId>
-                <version>2.24.1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.logging.log4j</groupId>
-                <artifactId>log4j-slf4j2-impl</artifactId>
-                <version>2.24.1</version>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-core</artifactId>
+                <version>${dependency.version.ch.qos.logback}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
 
     <build>
+        <resources>
+            <resource>
+                <directory>${project.basedir}/fentwums-netlist-reader-server/target/generated-resources/</directory>
+                <includes>
+                    <include>licenses/*</include>
+                    <include>licenses.xml</include>
+                </includes>
+            </resource>
+        </resources>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

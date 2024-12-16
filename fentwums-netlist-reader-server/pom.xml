@@ -10,10 +10,6 @@
 
 	<artifactId>fentwums-netlist-reader-server</artifactId>
 
-
-	<properties>
-		<encoding>UTF-8</encoding>
-	</properties>
 	<dependencies>
 		<!-- Spring Boot -->
 		<dependency>
@@ -81,9 +77,30 @@
 			<artifactId>org.eclipse.elk.graph.json</artifactId>
 			<version>${dependency.version.eclipse.elk}</version>
 		</dependency>
+
+		<!-- Logging -->
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-core</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>
+
+		<resources>
+			<resource>
+				<directory>${project.build.outputDirectory}/generated-resources/</directory>
+				<includes>
+					<include>licenses/*</include>
+					<include>licenses.xml</include>
+				</includes>
+			</resource>
+		</resources>
+
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
@@ -123,6 +140,9 @@
 					<execution>
 						<phase>prepare-package</phase>
 						<goals>
+							<goal>
+								download-licenses
+							</goal>
 							<goal>
 								update-project-license
 							</goal>
