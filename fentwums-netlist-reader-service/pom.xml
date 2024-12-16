@@ -2,6 +2,9 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
+    <properties>
+        <encoding>UTF-8</encoding>
+    </properties>
     <parent>
         <groupId>fentwums.th-koeln.de</groupId>
         <artifactId>fentwums-parent</artifactId>
@@ -24,6 +27,7 @@
     <artifactId>fentwums-netlist-reader-service</artifactId>
 
     <dependencies>
+        <!-- Eclipse Layout Kernel -->
         <dependency>
             <groupId>org.eclipse.elk</groupId>
             <artifactId>org.eclipse.elk.core</artifactId>
@@ -33,16 +37,18 @@
             <artifactId>org.eclipse.elk.alg.layered</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.eclipse.elk</groupId>
+            <artifactId>org.eclipse.elk.graph.json</artifactId>
+        </dependency>
+
+        <!-- Jackson -->
+        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.elk</groupId>
-            <artifactId>org.eclipse.elk.graph.json</artifactId>
         </dependency>
 
         <!-- Logging -->
