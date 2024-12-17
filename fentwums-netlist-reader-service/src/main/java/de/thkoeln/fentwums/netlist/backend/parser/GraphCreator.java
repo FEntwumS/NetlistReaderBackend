@@ -133,6 +133,9 @@ public class GraphCreator {
 
 		// Apply post-processing to optimise layout
 
+		SelectInputRepositioner repositioner = new SelectInputRepositioner();
+		repositioner.repositionSelect(toplevel);
+
 		// Reversing the order of output ports significantly reduces the number of edge crossings
 		OutputReverser reverser = new OutputReverser();
 
