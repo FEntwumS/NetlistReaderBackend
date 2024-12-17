@@ -76,8 +76,6 @@ public class NetnameHandler {
 				currentNetPath = "";
 
 				logger.atInfo().setMessage("Net {} contains no associated scope").addArgument(currentNetName).log();
-				//throw new RuntimeException("Net contains neither hdlname nor scopename attribute. Aborting");
-				//currentNetPath = formatter.format(currentNetName);
 			}
 
 			currentNetPath = formatter.format(currentNetPath);

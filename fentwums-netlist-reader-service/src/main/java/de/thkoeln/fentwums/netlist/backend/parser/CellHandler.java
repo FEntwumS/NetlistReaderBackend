@@ -78,7 +78,8 @@ public class CellHandler {
 				currentCellPath = (String) currentCellAttributes.get("scopename") + addendum;
 			} else {
 				currentCellPath = cellname;
-				//throw new RuntimeException("Cell contains neither hdlname nor scopename attribute. Aborting!");
+
+				logger.atInfo().setMessage("Cell {} contains no scope").addArgument(cellname).log();
 			}
 
 			currentHierarchyPosition = hierarchyTree.getRoot();
