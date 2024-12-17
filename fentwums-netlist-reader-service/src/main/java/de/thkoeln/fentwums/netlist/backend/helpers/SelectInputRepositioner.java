@@ -19,7 +19,7 @@ public class SelectInputRepositioner {
 	public void repositionSelect(ElkNode currentGraphNode) {
 		for (ElkPort port : currentGraphNode.getPorts()) {
 			if (port.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST) && port.getProperty(FEntwumSOptions.PORT_GROUP_NAME).equals("S")
-					&& port.getParent().getProperty(FEntwumSOptions.CELL_TYPE).matches("pmux|mux")) {
+					&& port.getParent().getProperty(FEntwumSOptions.CELL_TYPE).matches("(b|bw|de|p)?mux")) {
 				port.setProperty(CoreOptions.PORT_SIDE, PortSide.SOUTH);
 			}
 		}
