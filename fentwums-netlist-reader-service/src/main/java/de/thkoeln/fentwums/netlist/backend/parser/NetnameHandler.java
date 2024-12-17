@@ -34,9 +34,10 @@ public class NetnameHandler {
 	 * @param modulename    Name of the top level entity
 	 * @param signalMap     HashMap containing all signal trees
 	 * @param hierarchyTree Tree of the hierarchical netlist structure
+	 * @param NetInformationHashMap Stores the connections between signal names and the associated scopes and bitindices
 	 */
 	public void handleNetnames(HashMap<String, Object> netnames, String modulename,
-							   HashMap<Integer, SignalTree> signalMap, HierarchyTree hierarchyTree) {
+							   HashMap<Integer, SignalTree> signalMap, HierarchyTree hierarchyTree, HashMap<String, NetInformation> NetInformationHashMap) {
 		HashMap<String, Object> currentNet;
 		HashMap<String, Object> currentNetAttributes;
 		String currentNetPath;
@@ -73,6 +74,8 @@ public class NetnameHandler {
 				currentNetPath = (String) currentNetAttributes.get("scopename");
 			} else {
 				currentNetPath = "";
+
+				logger.atInfo().setMessage("Net {} contains no associated scope").addArgument(currentNetName).log();
 				//throw new RuntimeException("Net contains neither hdlname nor scopename attribute. Aborting");
 				//currentNetPath = formatter.format(currentNetName);
 			}
@@ -184,6 +187,8 @@ public class NetnameHandler {
 					currentSignalNode.setIsSource(true);
 				}
 			}
+
+			NetInformationHashMap.put(currentNetName, new NetInformation(currentNetPath, cleanedBitMap.keySet()));
 		}
 	}
 

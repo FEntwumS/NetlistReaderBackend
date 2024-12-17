@@ -1,5 +1,9 @@
 package de.thkoeln.fentwums.netlist.backend.netlistreaderbackendspringboot;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationConfig;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import de.thkoeln.fentwums.netlist.backend.helpers.CellCollapser;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
 import de.thkoeln.fentwums.netlist.backend.helpers.SignalBundler;
@@ -253,6 +257,48 @@ public class NetlistReaderBackendSpringBootApplication {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		} else {
 			return new ResponseEntity<>(expandedGraph, headers, HttpStatus.OK);
+		}
+	}
+
+	@RequestMapping(value = "/get-net-information", method = RequestMethod.POST)
+	public ResponseEntity<String> getNetInformation(@RequestParam(value = "hash") String hash) {
+		NetlistInformation currentNetlist;
+		String serializedNetInformation = "";
+
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(SerializationFeature.WRAP_ROOT_VALUE, true);
+		ObjectWriter writer = mapper.writer().withRootName("signals");
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
+
+		mapLock.readLock().lock();
+		try {
+			if (currentNets.containsKey(Long.parseUnsignedLong(hash))) {
+				currentNets.get(Long.parseUnsignedLong(hash)).lock.lock();
+
+				try {
+					currentNetlist = currentNets.get(Long.parseUnsignedLong(hash));
+
+					serializedNetInformation = writer.writeValueAsString(currentNetlist.getCreator().getNetInformationMap());
+				} catch (Exception e) {
+					logger.error("Error expanding cell", e);
+
+					return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+				} finally {
+					currentNets.get(Long.parseUnsignedLong(hash)).lock.unlock();
+				}
+			} else {
+				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			}
+		} finally {
+			mapLock.readLock().unlock();
+		}
+
+		if (serializedNetInformation.isEmpty()) {
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		} else {
+			return new ResponseEntity<>(serializedNetInformation, headers, HttpStatus.OK);
 		}
 	}
 

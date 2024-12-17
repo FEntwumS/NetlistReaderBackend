@@ -3,6 +3,7 @@ package de.thkoeln.fentwums.netlist.backend.parser;
 import de.thkoeln.fentwums.netlist.backend.Main;
 import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchicalNode;
 import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchyTree;
+import de.thkoeln.fentwums.netlist.backend.datatypes.NetInformation;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
 import de.thkoeln.fentwums.netlist.backend.helpers.*;
 import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
@@ -31,6 +32,7 @@ public class GraphCreator {
 	private ElkNode root;
 	private HierarchyTree hierarchy;
 	private HashMap<Integer, SignalTree> signalMap;
+	private HashMap<String, NetInformation> NetInformationMap;
 	private static Logger logger = LoggerFactory.getLogger(GraphCreator.class);
 
 	public GraphCreator() {
@@ -70,7 +72,7 @@ public class GraphCreator {
 		// Register custom ELK options
 		LayoutMetaDataService service = LayoutMetaDataService.getInstance();
 		service.registerLayoutMetaDataProviders(new FEntwumSOptions());
-        service.registerLayoutMetaDataProviders(new LayeredOptions());  // https://github.com/eclipse/elk/issues/654#issuecomment-656184498
+		service.registerLayoutMetaDataProviders(new LayeredOptions());  // https://github.com/eclipse/elk/issues/654#issuecomment-656184498
 
 		logger.info("Successfully registered options");
 
@@ -102,6 +104,7 @@ public class GraphCreator {
 		HashMap<String, Object> ports = (HashMap<String, Object>) module.get("ports");
 		HashMap<String, Object> cells = (HashMap<String, Object>) module.get("cells");
 		HashMap<String, Object> netnames = (HashMap<String, Object>) module.get("netnames");
+		NetInformationMap = new HashMap<String, NetInformation>();
 
 		ElkNode toplevel = root.getChildren().getFirst();
 		HierarchyTree hierarchyTree = new HierarchyTree(new HierarchicalNode(toplevel.getIdentifier(), null,
@@ -124,7 +127,7 @@ public class GraphCreator {
 		NetnameHandler netHandler = new NetnameHandler();
 
 		logger.info("Start creating nets");
-		netHandler.handleNetnames(netnames, modulename, signalMap, hierarchyTree);
+		netHandler.handleNetnames(netnames, modulename, signalMap, hierarchyTree, NetInformationMap);
 		logger.info("Successfully created nets");
 
 		logger.info("Start recreating signal paths");
@@ -196,7 +199,7 @@ public class GraphCreator {
 		try {
 			engine.layout(root, monitor);
 		} catch (Exception e) {
-            logger.error("Error during layout", e);
+			logger.error("Error during layout", e);
 		}
 
 		return ElkGraphJson.forGraph(root).omitLayout(false).omitZeroDimension(true)
@@ -219,5 +222,14 @@ public class GraphCreator {
 	 */
 	public HashMap<Integer, SignalTree> getSignalTreeMap() {
 		return signalMap;
+	}
+
+	/**
+	 * Gets the HashMap connecting the signal names to the associated scopes and bitindices
+	 *
+	 * @return The HashMap
+	 */
+	public HashMap<String, NetInformation> getNetInformationMap() {
+		return NetInformationMap;
 	}
 }
