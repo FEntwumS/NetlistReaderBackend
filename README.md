@@ -37,7 +37,7 @@ build your own frontend.
 By running
 
 ```
-mvn clean package spring-boot:repackage
+mvn clean package spring-boot:repackage install
 ```
 
 in the root directory, an über-JAR containing all dependencies can be created. The resulting jar under
