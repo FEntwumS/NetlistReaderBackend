@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>fentwums.th-koeln.de</groupId>
 		<artifactId>fentwums-parent</artifactId>
-		<version>1.0-SNAPSHOT</version>
+		<version>0.5.1</version>
 	</parent>
 
 	<artifactId>fentwums-netlist-reader-server</artifactId>
@@ -62,7 +62,7 @@
 		<dependency>
 			<groupId>fentwums.th-koeln.de</groupId>
 			<artifactId>fentwums-netlist-reader-service</artifactId>
-			<version>1.0-SNAPSHOT</version>
+			<version>${parent.version}</version>
 		</dependency>
 
 
@@ -147,9 +147,8 @@
 							</goal>
 						</goals>
 						<configuration>
-							<classifier>fentwums-netlist-reader-service</classifier>
+							<classifier>exec</classifier>
 							<executable>true</executable>
-							<includes></includes>
 						</configuration>
 					</execution>
 				</executions>
