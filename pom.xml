@@ -84,16 +84,6 @@
     </dependencyManagement>
 
     <build>
-        <resources>
-            <resource>
-                <directory>${project.basedir}/fentwums-netlist-reader-server/target/generated-resources/</directory>
-                <includes>
-                    <include>licenses/*</include>
-                    <include>licenses.xml</include>
-                </includes>
-            </resource>
-        </resources>
-
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
