@@ -100,7 +100,8 @@
 
 		<resources>
 			<resource>
-				<directory>${project.build.outputDirectory}/generated-resources/</directory>
+				<directory>${project.build.directory}/generated-resources</directory>
+				<filtering>true</filtering>
 				<includes>
 					<include>licenses/*</include>
 					<include>licenses.xml</include>
@@ -122,6 +123,13 @@
 						-XX:+UseZGC
 						-XX:+ZGenerational
 					</jvmArguments>
+					<generatedResources>
+						<directory>${project.build.outputDirectory}/generated-resources</directory>
+					</generatedResources>
+					<generatedSources>
+						<directory>${project.build.outputDirectory}/generated-sources</directory>
+					</generatedSources>
+					<addResources>false</addResources>
 				</configuration>
 				<executions>
 					<execution>
@@ -133,6 +141,7 @@
 						<configuration>
 							<classifier>fentwums-netlist-reader-service</classifier>
 							<executable>true</executable>
+							<includes></includes>
 						</configuration>
 					</execution>
 				</executions>
@@ -145,7 +154,7 @@
 				<version>2.5.0</version>
 				<executions>
 					<execution>
-						<phase>prepare-package</phase>
+						<phase>generate-resources</phase>
 						<goals>
 							<goal>
 								download-licenses
@@ -164,6 +173,32 @@
 					</execution>
 				</executions>
 			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>3.6.0</version>
+				<executions>
+					<execution>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>add-resource</goal>
+						</goals>
+						<configuration>
+							<resources>
+								<resource>
+									<directory>${project.build.directory}/generated-resources</directory>
+									<targetPath>META-INF/THIRD-PARTY-LICENSES</targetPath>
+								</resource>
+								<!--
+								<resource>${project.build.outputDirectory}/generated-resources/licenses</resource>
+								-->
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
 		</plugins>
 	</build>
 
