@@ -31,7 +31,7 @@ public class GraphCreator {
 	private ElkNode root;
 	private HierarchyTree hierarchy;
 	private HashMap<Integer, SignalTree> signalMap;
-	private static Logger logger = LoggerFactory.getLogger(Main.class);
+	private static Logger logger = LoggerFactory.getLogger(GraphCreator.class);
 
 	public GraphCreator() {
 		root = createGraph();
