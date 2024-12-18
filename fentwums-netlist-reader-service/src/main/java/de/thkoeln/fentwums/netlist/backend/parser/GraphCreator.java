@@ -69,13 +69,6 @@ public class GraphCreator {
 	 */
 	@SuppressWarnings("unchecked")
 	public void createGraphFromNetlist(HashMap<String, Object> module, String modulename) {
-		// Register custom ELK options
-		LayoutMetaDataService service = LayoutMetaDataService.getInstance();
-		service.registerLayoutMetaDataProviders(new FEntwumSOptions());
-		service.registerLayoutMetaDataProviders(new LayeredOptions());  // https://github.com/eclipse/elk/issues/654#issuecomment-656184498
-
-		logger.info("Successfully registered options");
-
 		root.setIdentifier("root");
 		root.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
 
