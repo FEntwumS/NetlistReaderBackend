@@ -32,12 +32,14 @@ jobs:
     - name: Create staging directory
       run: mkdir fentwums-netlist-reader && cp fentwums-netlist-reader-server/target/*exec.jar fentwums-netlist-reader
     - name: Create tar
-      run: tar -czf ${{ github.ref_name }}.tar.gz fentwums-netlist-reader/*
+      run: tar -czf fentwums-netlist-reader-server-${{ github.ref_name }}.tar.gz fentwums-netlist-reader/*
+    - name: Check for existence of archive
+      run: ls -lsha && ls -lsha fentwums-netlist-reader
     - name: Release artifact
       uses: ncipollo/release-action@v1
       with:
         allowUpdates: True
-        artifacts: fentwums-netlist-reader/${{ github.ref_name }}.tar.gz
+        artifacts: fentwums-netlist-reader-server-${{ github.ref_name }}.tar.gz
 
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
     # - name: Update dependency graph
