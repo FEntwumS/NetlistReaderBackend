@@ -29,8 +29,8 @@ build your own frontend.
 
 # Can I use the backend separately from the frontend?
 
-**IMPORTANT**: The connection between client and server is currently not encrypted or otherwise protected, therefore
-anybody on your network may read and modify the data exchanged between client and server.
+&#x26A0;**IMPORTANT**&#x26A0;: The connection between client and server is currently not encrypted or otherwise
+protected, therefore anybody on your network may read and modify the data exchanged between client and server.
 
 Yes, you can use our precompiled jar file from the latest release or build your own jar. The jar itself contains
 everything the server needs to start and run. Use `java -jar <name-of-jar>` to start the server. The server can be shut
