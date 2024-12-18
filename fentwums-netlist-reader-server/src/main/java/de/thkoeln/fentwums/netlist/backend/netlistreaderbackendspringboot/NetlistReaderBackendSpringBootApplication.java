@@ -309,4 +309,9 @@ public class NetlistReaderBackendSpringBootApplication {
 		int exitCode = SpringApplication.exit(context, (ExitCodeGenerator) () -> 0);
 		System.exit(exitCode);
 	}
+
+	@GetMapping("/server-active")
+	public ResponseEntity<String> serverActive() {
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
 }
