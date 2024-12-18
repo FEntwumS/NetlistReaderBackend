@@ -9,13 +9,13 @@
   <appender name="FILE" class="FileAppender">
     <file>NetlistReaderBackend.log</file>
     <encoder class="PatternLayoutEncoder">
-      <pattern>%date{"yyyy-MM-dd'T'HH:mm:ss,SSSZZ"} %level [%thread] %logger{10} [%file:%line] -%kvp- %msg%n</pattern>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} -%kvp- %msg%n</pattern>
     </encoder>
   </appender>
 
   <appender name="STDOUT" class="ConsoleAppender">
     <encoder class="PatternLayoutEncoder">
-      <pattern>%date{"yyyy-MM-dd'T'HH:mm:ss,SSSZZ"} %level %logger{10} -%kvp- %msg%n</pattern>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} -%kvp- %msg%n</pattern>
     </encoder>
   </appender>
 
@@ -23,13 +23,13 @@
   <appender name="ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>NetlistReaderBackend.rolling.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- rollover monthly -->
+            <!-- rollover daily -->
             <fileNamePattern>system-%d{yyyy-MM-dd, UTC}.log.zip</fileNamePattern>
             <maxHistory>30</maxHistory>
             <totalSizeCap>1MB</totalSizeCap>
         </rollingPolicy>
         <encoder>
-            <pattern>%date{"yyyy-MM-dd'T'HH:mm:ss,SSSZZ"} %level [%thread] %logger{35} [%file:%line] -%kvp- %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} -%kvp- %msg%n</pattern>
         </encoder>
     </appender>
 
