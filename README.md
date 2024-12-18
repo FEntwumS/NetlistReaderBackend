@@ -27,6 +27,15 @@ a designated frontend such as our OneWare Studio
 Plugin [Oneware.NetlistReaderFrontend](https://github.com/FEntwumS/Oneware.NetlistReaderFrontend) or you can always
 build your own frontend.
 
+# Can I use the backend separately from the frontend?
+
+**IMPORTANT**: The connection between client and server is currently not encrypted or otherwise protected, therefore
+anybody on your network may read and modify the data exchanged between client and server.
+
+Yes, you can use our precompiled jar file from the latest release or build your own jar. The jar itself contains
+everything the server needs to start and run. Use `java -jar <name-of-jar>` to start the server. The server can be shut
+down by accessing `<server-ip>:<server-port>/shutdown-backend` e.g. from your browser.
+
 # Prerequisites
 
 - Minimum Java Version: 21
@@ -44,7 +53,7 @@ in the root directory, an über-JAR containing all dependencies can be created. 
 `fentwums-netlist-reader-server/target` can then be executed using
 
 ```
-java -jar fentwums-netlist-reader-server-1.0-SNAPSHOT-fentwums-netlist-reader-service.jar
+java -jar fentwums-netlist-reader-server-0.5.4-fentwums-netlist-reader-service.jar
 ```
 
 # Notes
@@ -58,3 +67,8 @@ Depending on the size of the netlists that are to be layouted, the backend can u
 all the necessary information. Therefore, it is important to provide an appropriate amount of RAM to the server. The
 software itself is currently configured to use up to 1.000 GB of system memory, but this limit can be raised to 4 TB if
 desired.
+
+## Log generation
+
+The backend automatically stores its logs in directory where the jar is located. Older log files automatically get
+deleted.
