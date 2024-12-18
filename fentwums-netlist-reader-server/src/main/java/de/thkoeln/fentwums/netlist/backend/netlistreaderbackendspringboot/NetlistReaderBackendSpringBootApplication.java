@@ -11,6 +11,8 @@ import de.thkoeln.fentwums.netlist.backend.netlistreaderbackendspringboot.types.
 import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
 import de.thkoeln.fentwums.netlist.backend.parser.GraphCreator;
 import de.thkoeln.fentwums.netlist.backend.parser.NetlistParser;
+import org.eclipse.elk.alg.layered.options.LayeredOptions;
+import org.eclipse.elk.core.data.LayoutMetaDataService;
 import org.eclipse.elk.graph.json.ElkGraphJson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +43,13 @@ public class NetlistReaderBackendSpringBootApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(NetlistReaderBackendSpringBootApplication.class, args);
+
+		// Register custom ELK options
+		LayoutMetaDataService service = LayoutMetaDataService.getInstance();
+		service.registerLayoutMetaDataProviders(new FEntwumSOptions());
+		service.registerLayoutMetaDataProviders(new LayeredOptions());  // https://github.com/eclipse/elk/issues/654#issuecomment-656184498
+
+		logger.info("Successfully registered options");
 	}
 
 	@GetMapping("/hello")
@@ -144,6 +153,8 @@ public class NetlistReaderBackendSpringBootApplication {
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
+
+		logger.info("Used memory: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
 
 		return new ResponseEntity<>(layoutedGraph, headers, HttpStatus.OK);
 	}
@@ -302,7 +313,6 @@ public class NetlistReaderBackendSpringBootApplication {
 		}
 	}
 
-
 	// Inspired by: https://stackoverflow.com/a/55196987
 	@GetMapping("/shutdown-backend")
 	public void shutdownBackend() {
@@ -312,6 +322,34 @@ public class NetlistReaderBackendSpringBootApplication {
 
 	@GetMapping("/server-active")
 	public ResponseEntity<String> serverActive() {
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+
+	@RequestMapping(value = "/close-netlist", method = RequestMethod.POST)
+	public ResponseEntity<String> closeNetlist(@RequestParam(value = "hash") String hash) {
+
+		mapLock.writeLock().lock();
+		try {
+			if (currentNets.containsKey(Long.parseUnsignedLong(hash))) {
+				try {
+					currentNets.remove(Long.parseUnsignedLong(hash));
+				} catch (Exception e) {
+					logger.error("Error closing netlist", e);
+
+					return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+			} else {
+				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			}
+		} finally {
+			mapLock.writeLock().unlock();
+		}
+
+		System.gc();
+		System.gc();
+
+		logger.info("Used memory after GC: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
+
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 }
