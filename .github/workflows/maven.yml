@@ -30,12 +30,14 @@ jobs:
     - name: Build with Maven
       run: mvn -B package spring-boot:repackage install --file pom.xml
     - name: Create staging directory
-      run: mkdir staging && cp fentwums-netlist-reader-server/target/*exec.jar staging
+      run: mkdir fentwums-netlist-reader && cp fentwums-netlist-reader-server/target/*exec.jar fentwums-netlist-reader
+    - name: Create tar
+      run: tar -czf ${{ github.ref_name }}.tar.gz fentwums-netlist-reader/*
     - name: Release artifact
       uses: ncipollo/release-action@v1
       with:
         allowUpdates: True
-        artifacts: staging/*
+        artifacts: fentwums-netlist-reader/${{ github.ref_name }}.tar.gz
 
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
     # - name: Update dependency graph
