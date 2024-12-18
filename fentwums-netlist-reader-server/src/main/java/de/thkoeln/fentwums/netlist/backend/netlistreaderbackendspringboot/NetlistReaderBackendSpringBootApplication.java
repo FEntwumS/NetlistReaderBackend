@@ -52,11 +52,6 @@ public class NetlistReaderBackendSpringBootApplication {
 		logger.info("Successfully registered options");
 	}
 
-	@GetMapping("/hello")
-	public String hello(@RequestParam(value = "name", defaultValue = "World") String name) {
-		return String.format("Hello %s!", name);
-	}
-
 	@RequestMapping(value = "/graphLocalFile", method = RequestMethod.POST)
 	public ResponseEntity<String> createNetlistGraphFromLocalFile(@RequestParam(value = "filename", defaultValue = "C" +
 			":\\Users\\Florian\\Documents\\Semester\\7\\Praxisphase\\NetlistReaderBackend\\fentwums-netlist-reader" +
