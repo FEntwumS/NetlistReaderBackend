@@ -92,7 +92,7 @@ public class NetlistReaderBackendSpringBootApplication {
 		return graphNetlist(creator, parser, Long.parseUnsignedLong(hash));
 	}
 
-	public ResponseEntity<String> graphNetlist(GraphCreator creator, NetlistParser parser, long hash) {
+	private ResponseEntity<String> graphNetlist(GraphCreator creator, NetlistParser parser, long hash) {
 		CellCollapser collapser = new CellCollapser();
 		SignalBundler bundler = new SignalBundler();
 
