@@ -148,6 +148,12 @@ public class CellHandler {
 			currentCellPortDirections = (HashMap<String, Object>) currentCell.get("port_directions");
 			currentCellConnections = (HashMap<String, Object>) currentCell.get("connections");
 
+			// Check for blackbox cell; We currently cannot handle those
+			if (currentCellPortDirections == null || currentCellAttributes.containsKey("module_not_derived")) {
+				logger.atError().setMessage("Cell {} is a blackbox cell. Aborting...").addArgument(cellname).log();
+				throw new RuntimeException("Cell " + cellname + " is a blackbox cell. Aborting...");
+			}
+
 			// get max number of signals
 			maxSignals = 0;
 
