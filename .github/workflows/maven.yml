@@ -35,11 +35,7 @@ jobs:
     - name: Create staging directory
       run: mkdir fentwums-netlist-reader
     - name: Move assets to staging directory
-      run: |
-        cp fentwums-netlist-reader-server/target/*exec.jar fentwums-netlist-reader
-        && mkdir fentwums-netlist-reader/THIRD-PARTY-LICENSES
-        && cp fentwums-netlist-reader-server/target/generated-resources/licenses/* fentwums-netlist-reader/THIRD-PARTY-LICENSES
-        && cp fentwums-netlist-reader-server/target/generated-sources/THIRD-PARTY-LICENSES/META-INF/*.txt fentwums-netlist-reader
+      run: cp fentwums-netlist-reader-server/target/*exec.jar fentwums-netlist-reader && mkdir fentwums-netlist-reader/THIRD-PARTY-LICENSES && cp fentwums-netlist-reader-server/target/generated-resources/licenses/* fentwums-netlist-reader/THIRD-PARTY-LICENSES && cp fentwums-netlist-reader-server/target/generated-sources/THIRD-PARTY-LICENSES/META-INF/*.txt fentwums-netlist-reader
     - name: Create tar
       run: tar -czf fentwums-netlist-reader-server-${{ github.ref_name }}.tar.gz fentwums-netlist-reader/*
     - name: Check for existence of archive
