@@ -1,0 +1,15 @@
+{
+  "CC_PLL": {
+    "CLK_REF": "input",
+    "USR_CLK_REF": "input",
+    "CLK_FEEDBACK": "input",
+    "USR_LOCKED_STDY_RST": "input",
+    "USR_PLL_LOCKED_STDY": "output",
+    "USR_PLL_LOCKED": "output",
+    "CLK0": "output",
+    "CLK90": "output",
+    "CLK180": "output",
+    "CLK270": "output",
+    "CLK_REF_OUT": "output"
+  }
+}
