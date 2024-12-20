@@ -27,9 +27,10 @@ public class CellHandler {
 	 * @param toplevel      Graph node representing the top level entity
 	 * @param signalMap     Hashmap for storing all signals and the hierarchy levels where they exist
 	 * @param hierarchyTree Tree for storing the hierarchy of the whole design (entities and cells)
+	 * @param blackboxes 	HashMap containing the port directions for blackbox cells
 	 */
 	@SuppressWarnings("unchecked")
-	public void createCells(HashMap<String, Object> cells, String modulename, ElkNode toplevel, HashMap<Integer, SignalTree> signalMap, HierarchyTree hierarchyTree) {
+	public void createCells(HashMap<String, Object> cells, String modulename, ElkNode toplevel, HashMap<Integer, SignalTree> signalMap, HierarchyTree hierarchyTree, HashMap<String, Object> blackboxes) {
 		HashMap<String, Object> currentCell;
 		HashMap<String, Object> currentCellAttributes;
 		String currentCellPath;
@@ -150,8 +151,15 @@ public class CellHandler {
 
 			// Check for blackbox cell; We currently cannot handle those
 			if (currentCellPortDirections == null || currentCellAttributes.containsKey("module_not_derived")) {
-				logger.atError().setMessage("Cell {} is a blackbox cell. Aborting...").addArgument(cellname).log();
-				throw new RuntimeException("Cell " + cellname + " is a blackbox cell. Aborting...");
+				// logger.atError().setMessage("Cell {} is a blackbox cell. Aborting...").addArgument(cellname).log();
+				// throw new RuntimeException("Cell " + cellname + " is a blackbox cell. Aborting...");
+
+				if (blackboxes.containsKey(celltype)) {
+					currentCellPortDirections = (HashMap<String, Object>) blackboxes.get(celltype);
+				} else {
+					 logger.atError().setMessage("Cell {} is a blackbox cell. Aborting...").addArgument(cellname).log();
+					 throw new RuntimeException("Cell " + cellname + " is a blackbox cell. Aborting...");
+				}
 			}
 
 			// get max number of signals

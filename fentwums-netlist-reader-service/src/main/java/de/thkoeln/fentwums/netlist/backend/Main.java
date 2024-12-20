@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashMap;
 
 
 public class Main {
@@ -33,10 +34,11 @@ public class Main {
 
 		start = Instant.now();
 		logger.atInfo().setMessage("{}").addArgument(parser.getToplevelName()).log();
-		graphCreator.createGraphFromNetlist(parser.getModuleToParse(), parser.getToplevelName());
+		graphCreator.createGraphFromNetlist(parser.getModuleToParse(), parser.getToplevelName(),new HashMap<String, Object>());
 		end = Instant.now();
 
-		logger.atInfo().setMessage("Graph creation time: {} ms").addArgument(Duration.between(start, end).toMillis()).log();
+		logger.atInfo().setMessage("Graph creation time: {} ms").addArgument(Duration.between(start, end).toMillis())
+		.log();
 
 		RecursiveGraphLayoutEngine layouter = new RecursiveGraphLayoutEngine();
 		BasicProgressMonitor monitor = new BasicProgressMonitor();
@@ -49,7 +51,8 @@ public class Main {
 		}
 		end = Instant.now();
 
-		logger.atInfo().setMessage("Graph layouting time: {} ms").addArgument(Duration.between(start, end).toMillis()).log();
+		logger.atInfo().setMessage("Graph layouting time: {} ms").addArgument(Duration.between(start, end).toMillis())
+		.log();
 
 		String jsongraph =
 				ElkGraphJson.forGraph(graphCreator.getGraph()).omitLayout(false).omitZeroDimension(true)

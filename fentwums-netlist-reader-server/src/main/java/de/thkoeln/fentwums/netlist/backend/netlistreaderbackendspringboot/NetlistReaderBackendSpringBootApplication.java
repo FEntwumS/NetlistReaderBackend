@@ -1,11 +1,10 @@
 package de.thkoeln.fentwums.netlist.backend.netlistreaderbackendspringboot;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.SerializationConfig;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import de.thkoeln.fentwums.netlist.backend.helpers.CellCollapser;
-import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
 import de.thkoeln.fentwums.netlist.backend.helpers.SignalBundler;
 import de.thkoeln.fentwums.netlist.backend.netlistreaderbackendspringboot.types.NetlistInformation;
 import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
@@ -29,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @SpringBootApplication
@@ -116,16 +116,25 @@ public class NetlistReaderBackendSpringBootApplication {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
+		HashMap<String, Object> blackboxmap = null;
+
+		try {
+			ObjectMapper mapper = new ObjectMapper();
+			final TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {};
+
+			blackboxmap = mapper.readValue(getClass().getResource("/CCGM1A1.json"), typeRef);
+		} catch (Exception e) {
+			logger.error("Error reading blackboxes", e);
+		}
+
 		logger.info("Start creating graph");
-		creator.createGraphFromNetlist(parser.getModuleToParse(), parser.getToplevelName());
+		creator.createGraphFromNetlist(parser.getModuleToParse(), parser.getToplevelName(), blackboxmap);
 		logger.info("Graph created successfully");
 
 		collapser.setHierarchy(creator.getHierarchyTree());
 
 		bundler.setHierarchy(creator.getHierarchyTree());
 		bundler.setTreeMap(creator.getSignalTreeMap());
-
-//		collapser.collapseRecursively(creator.getHierarchyTree().getRoot());
 
 		for (String child : creator.getHierarchyTree().getRoot().getChildren().keySet()) {
 			collapser.collapseRecursively(creator.getHierarchyTree().getRoot().getChildren().get(child));

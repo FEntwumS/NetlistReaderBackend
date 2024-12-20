@@ -66,9 +66,10 @@ public class GraphCreator {
 	 *
 	 * @param module     The module containing the top level entity that is to be laid out
 	 * @param modulename The name of the top level entity
+	 * @param blackboxes HashMap containing the port directions of blackbox cells
 	 */
 	@SuppressWarnings("unchecked")
-	public void createGraphFromNetlist(HashMap<String, Object> module, String modulename) {
+	public void createGraphFromNetlist(HashMap<String, Object> module, String modulename, HashMap<String, Object> blackboxes) {
 		root.setIdentifier("root");
 		root.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
 
@@ -114,7 +115,7 @@ public class GraphCreator {
 		CellHandler cellHandler = new CellHandler();
 
 		logger.info("Start creating cells");
-		cellHandler.createCells(cells, modulename, toplevel, signalMap, hierarchyTree);
+		cellHandler.createCells(cells, modulename, toplevel, signalMap, hierarchyTree, blackboxes);
 		logger.info("Successfully created cells");
 
 		NetnameHandler netHandler = new NetnameHandler();
