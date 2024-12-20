@@ -3,6 +3,22 @@
 This is a beta release. Bugs are to be expected. If you notice any issues, please submit bug reports to help us improve
 the software.
 
+# Limitations
+
+## Blackbox cells
+
+The backend currently is not able to process netlists containing blackbox cells due to them missing port directions. We
+are currently working on a solution.
+
+## Netlist layout
+
+The backend can only process a subset of all possible netlist layouts. It is recommended to generate the input netlist
+by running the following command after first reading the HDL code:
+
+```
+yosys -p "hierarchy -top <toplevel name>; proc; memory -nomap; flatten -scopename; write_json -compat-int netlist.json"
+```
+
 # Structure
 
 This repository contains two modules that together represent the backend component of the FEntwumS Netlist Viewer.
@@ -57,6 +73,12 @@ java -jar fentwums-netlist-reader-server-0.5.4-fentwums-netlist-reader-service.j
 ```
 
 # Notes
+
+## FEntwumS
+
+This project is part of the [DI-FEntwumS research project](https://www.elektronikforschung.de/projekte/di-fentwums).
+This project aims to establish an Open-Source IDE for FPGA development. The FEntwumS Netlist Viewer is a component in
+the visualisation and simulation software that is to be developed.
 
 ## System requirements
 
