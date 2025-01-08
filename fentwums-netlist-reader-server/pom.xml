@@ -127,6 +127,23 @@
 				<includes>
 					<include>*.json</include>
 				</includes>
+				<targetPath>META-INF/blackbox-descriptions</targetPath>
+			</resource>
+			<resource>
+				<directory>${project.basedir}/src/main/resources/blackbox-descriptions</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>*.json</include>
+				</includes>
+				<targetPath>META-INF</targetPath>
+			</resource>
+			<resource>
+				<directory>${project.basedir}/src/main/resources/blackbox-descriptions</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>*.json</include>
+				</includes>
+				<targetPath>${project.build.directory}/blackbox-descriptions</targetPath>
 			</resource>
 		</resources>
 
