@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.system.ApplicationHome;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -27,8 +28,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Objects;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @SpringBootApplication
@@ -53,9 +54,16 @@ public class NetlistReaderBackendSpringBootApplication {
 	}
 
 	@RequestMapping(value = "/graphLocalFile", method = RequestMethod.POST)
-	public ResponseEntity<String> createNetlistGraphFromLocalFile(@RequestParam(value = "filename", defaultValue = "C" +
-			":\\Users\\Florian\\Documents\\Semester\\7\\Praxisphase\\NetlistReaderBackend\\fentwums-netlist-reader" +
-			"-service\\src\\main\\resources\\optimal-info2.json") String filename,
+	public ResponseEntity<String> createNetlistGraphFromLocalFile(@RequestParam(value = "filename", defaultValue =
+																		  "C" +
+																				  ":\\Users\\Florian\\Documents" +
+																				  "\\Semester\\7" +
+																				  "\\Praxisphase" +
+																				  "\\NetlistReaderBackend" +
+																				  "\\fentwums-netlist-reader" +
+																				  "-service\\src\\main\\resources" +
+																				  "\\optimal" +
+																				  "-info2.json") String filename,
 																  @RequestParam(value = "hash") String hash) {
 		GraphCreator creator = new GraphCreator();
 		NetlistParser parser = new NetlistParser();
@@ -116,13 +124,43 @@ public class NetlistReaderBackendSpringBootApplication {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
-		HashMap<String, Object> blackboxmap = null;
+		HashMap<String, Object> blackboxmap = new HashMap<>();
 
 		try {
 			ObjectMapper mapper = new ObjectMapper();
-			final TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {};
+			final TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
+			};
 
-			blackboxmap = mapper.readValue(getClass().getResource("/CCGM1A1.json"), typeRef);
+			ApplicationHome home = new ApplicationHome(NetlistReaderBackendSpringBootApplication.class);
+
+			File dir = new File(home.getDir().getAbsolutePath() + "/blackbox-descriptions");
+			File[] files = dir.listFiles();
+
+			for (File file : files) {
+				logger.atInfo().log("Reading blackbox description file: " + file.getAbsolutePath());
+				HashMap<String, Object> map = mapper.readValue(file, typeRef);
+				ArrayList<String> keyRemovalList = new ArrayList<>();
+
+				for (String key : map.keySet()) {
+					if (blackboxmap.containsKey(key)) {
+						keyRemovalList.add(key);
+
+						logger.atWarn().setMessage("Blackbox description file {} contains the previously defined cell" +
+								" " +
+								"{}").addArgument(file.getName()).addArgument(key).log();
+						logger.atWarn().setMessage("Full path of blackbox description file containing the conflicting " +
+								"definition: {}").addArgument(file.getAbsolutePath()).log();
+					}
+				}
+
+				for (String key : keyRemovalList) {
+					map.remove(key);
+				}
+
+				blackboxmap.putAll(map);
+			}
+
+			//blackboxmap = mapper.readValue(dir, typeRef);
 		} catch (Exception e) {
 			logger.error("Error reading blackboxes", e);
 		}
@@ -253,7 +291,7 @@ public class NetlistReaderBackendSpringBootApplication {
 
 					expandedGraph =
 							ElkGraphJson.forGraph(currentNetlist.getCreator().getGraph()).omitLayout(false).omitZeroDimension(true)
-							.omitZeroPositions(true).shortLayoutOptionKeys(true).prettyPrint(false).toJson();
+									.omitZeroPositions(true).shortLayoutOptionKeys(true).prettyPrint(false).toJson();
 				} catch (Exception e) {
 					logger.error("Error expanding cell", e);
 
@@ -295,7 +333,8 @@ public class NetlistReaderBackendSpringBootApplication {
 				try {
 					currentNetlist = currentNets.get(Long.parseUnsignedLong(hash));
 
-					serializedNetInformation = writer.writeValueAsString(currentNetlist.getCreator().getNetInformationMap());
+					serializedNetInformation =
+							writer.writeValueAsString(currentNetlist.getCreator().getNetInformationMap());
 				} catch (Exception e) {
 					logger.error("Error expanding cell", e);
 
