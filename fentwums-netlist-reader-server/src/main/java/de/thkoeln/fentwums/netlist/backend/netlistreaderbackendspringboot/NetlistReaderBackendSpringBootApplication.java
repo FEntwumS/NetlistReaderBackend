@@ -16,6 +16,7 @@ import org.eclipse.elk.graph.json.ElkGraphJson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -42,6 +43,11 @@ public class NetlistReaderBackendSpringBootApplication {
 	@Autowired
 	private ApplicationContext context;
 
+	@Value("${JAVA_HOME}")
+	private static String javaHome;
+
+	static HashMap<String, Object> blackboxmap = new HashMap<>();
+
 	public static void main(String[] args) {
 		SpringApplication.run(NetlistReaderBackendSpringBootApplication.class, args);
 
@@ -51,6 +57,48 @@ public class NetlistReaderBackendSpringBootApplication {
 		service.registerLayoutMetaDataProviders(new LayeredOptions());  // https://github.com/eclipse/elk/issues/654#issuecomment-656184498
 
 		logger.info("Successfully registered options");
+
+		logger.info("Start reading blackbox description files");
+
+		try {
+			ObjectMapper mapper = new ObjectMapper();
+			final TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
+			};
+
+			ApplicationHome home = new ApplicationHome(NetlistReaderBackendSpringBootApplication.class);
+
+			File dir = new File(home.getDir().getAbsolutePath() + "/blackbox-descriptions");
+			File[] files = dir.listFiles();
+
+			logger.info("Start reading bundled blackbox description files");
+
+			for (File file : files) {
+				logger.atInfo().setMessage("JAVA_HOME: {}").addArgument(javaHome).log();
+				logger.atInfo().log("Reading blackbox description file: " + file.getAbsolutePath());
+				HashMap<String, Object> map = mapper.readValue(file, typeRef);
+				ArrayList<String> keyRemovalList = new ArrayList<>();
+
+				for (String key : map.keySet()) {
+					if (blackboxmap.containsKey(key)) {
+						keyRemovalList.add(key);
+
+						logger.atWarn().setMessage("Blackbox description file {} contains the previously defined cell" +
+								" " +
+								"{}").addArgument(file.getName()).addArgument(key).log();
+						logger.atWarn().setMessage("Full path of blackbox description file containing the conflicting " +
+								"definition: {}").addArgument(file.getAbsolutePath()).log();
+					}
+				}
+
+				for (String key : keyRemovalList) {
+					map.remove(key);
+				}
+
+				blackboxmap.putAll(map);
+			}
+		} catch (Exception e) {
+			logger.error("Error reading blackboxes", e);
+		}
 	}
 
 	@RequestMapping(value = "/graphLocalFile", method = RequestMethod.POST)
@@ -122,47 +170,6 @@ public class NetlistReaderBackendSpringBootApplication {
 			logger.error("Error reading netlist", e);
 
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-
-		HashMap<String, Object> blackboxmap = new HashMap<>();
-
-		try {
-			ObjectMapper mapper = new ObjectMapper();
-			final TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
-			};
-
-			ApplicationHome home = new ApplicationHome(NetlistReaderBackendSpringBootApplication.class);
-
-			File dir = new File(home.getDir().getAbsolutePath() + "/blackbox-descriptions");
-			File[] files = dir.listFiles();
-
-			for (File file : files) {
-				logger.atInfo().log("Reading blackbox description file: " + file.getAbsolutePath());
-				HashMap<String, Object> map = mapper.readValue(file, typeRef);
-				ArrayList<String> keyRemovalList = new ArrayList<>();
-
-				for (String key : map.keySet()) {
-					if (blackboxmap.containsKey(key)) {
-						keyRemovalList.add(key);
-
-						logger.atWarn().setMessage("Blackbox description file {} contains the previously defined cell" +
-								" " +
-								"{}").addArgument(file.getName()).addArgument(key).log();
-						logger.atWarn().setMessage("Full path of blackbox description file containing the conflicting " +
-								"definition: {}").addArgument(file.getAbsolutePath()).log();
-					}
-				}
-
-				for (String key : keyRemovalList) {
-					map.remove(key);
-				}
-
-				blackboxmap.putAll(map);
-			}
-
-			//blackboxmap = mapper.readValue(dir, typeRef);
-		} catch (Exception e) {
-			logger.error("Error reading blackboxes", e);
 		}
 
 		logger.info("Start creating graph");
