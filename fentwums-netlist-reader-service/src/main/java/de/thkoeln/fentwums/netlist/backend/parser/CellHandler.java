@@ -150,15 +150,18 @@ public class CellHandler {
 			currentCellConnections = (HashMap<String, Object>) currentCell.get("connections");
 
 			// Check for blackbox cell; We currently cannot handle those
-			if (currentCellPortDirections == null || currentCellAttributes.containsKey("module_not_derived")) {
-				// logger.atError().setMessage("Cell {} is a blackbox cell. Aborting...").addArgument(cellname).log();
-				// throw new RuntimeException("Cell " + cellname + " is a blackbox cell. Aborting...");
+			if (currentCellAttributes.containsKey("module_not_derived")) {
 
-				if (blackboxes.containsKey(celltype)) {
-					currentCellPortDirections = (HashMap<String, Object>) blackboxes.get(celltype);
+				if (currentCellPortDirections != null) {
+					logger.atInfo().setMessage("Cell {} is a blackbox. Using yosys description to add input/output information").addArgument(cellname).log();
 				} else {
-					 logger.atError().setMessage("Cell {} is a blackbox cell. Aborting...").addArgument(cellname).log();
-					 throw new RuntimeException("Cell " + cellname + " is a blackbox cell. Aborting...");
+					if (blackboxes.containsKey(celltype)) {
+						logger.atInfo().setMessage("Using description from external file for cell {}").addArgument(cellname).log();
+						currentCellPortDirections = (HashMap<String, Object>) blackboxes.get(celltype);
+					} else {
+						logger.atError().setMessage("Cell {} is a blackbox cell. Aborting...").addArgument(cellname).log();
+						throw new RuntimeException("Cell " + cellname + " is a blackbox cell. Aborting...");
+					}
 				}
 			}
 
