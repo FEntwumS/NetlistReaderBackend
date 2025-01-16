@@ -70,31 +70,34 @@ public class NetlistReaderBackendSpringBootApplication {
 			File dir = new File(home.getDir().getAbsolutePath() + "/blackbox-descriptions");
 			File[] files = dir.listFiles();
 
-			logger.info("Start reading bundled blackbox description files");
+			if (files != null) {
 
-			for (File file : files) {
-				logger.atInfo().setMessage("JAVA_HOME: {}").addArgument(javaHome).log();
-				logger.atInfo().log("Reading blackbox description file: " + file.getAbsolutePath());
-				HashMap<String, Object> map = mapper.readValue(file, typeRef);
-				ArrayList<String> keyRemovalList = new ArrayList<>();
+				logger.info("Start reading bundled blackbox description files");
 
-				for (String key : map.keySet()) {
-					if (blackboxmap.containsKey(key)) {
-						keyRemovalList.add(key);
+				for (File file : files) {
+					logger.atInfo().setMessage("JAVA_HOME: {}").addArgument(javaHome).log();
+					logger.atInfo().log("Reading blackbox description file: " + file.getAbsolutePath());
+					HashMap<String, Object> map = mapper.readValue(file, typeRef);
+					ArrayList<String> keyRemovalList = new ArrayList<>();
 
-						logger.atWarn().setMessage("Blackbox description file {} contains the previously defined cell" +
-								" " +
-								"{}").addArgument(file.getName()).addArgument(key).log();
-						logger.atWarn().setMessage("Full path of blackbox description file containing the conflicting " +
-								"definition: {}").addArgument(file.getAbsolutePath()).log();
+					for (String key : map.keySet()) {
+						if (blackboxmap.containsKey(key)) {
+							keyRemovalList.add(key);
+
+							logger.atWarn().setMessage("Blackbox description file {} contains the previously defined cell" +
+									" " +
+									"{}").addArgument(file.getName()).addArgument(key).log();
+							logger.atWarn().setMessage("Full path of blackbox description file containing the conflicting " +
+									"definition: {}").addArgument(file.getAbsolutePath()).log();
+						}
 					}
-				}
 
-				for (String key : keyRemovalList) {
-					map.remove(key);
-				}
+					for (String key : keyRemovalList) {
+						map.remove(key);
+					}
 
-				blackboxmap.putAll(map);
+					blackboxmap.putAll(map);
+				}
 			}
 		} catch (Exception e) {
 			logger.error("Error reading blackboxes", e);

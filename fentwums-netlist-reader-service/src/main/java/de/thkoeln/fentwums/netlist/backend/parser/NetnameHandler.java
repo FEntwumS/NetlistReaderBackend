@@ -368,6 +368,10 @@ public class NetnameHandler {
 			}
 		}
 
+		if (sink == null) {
+			return;
+		}
+
 		// check if signal came from parent, construct port as necessary
 		if (precursor.getHParent().getSVisited() && sink.getIncomingEdges().isEmpty()) {
 			// check if precursor source port exists
@@ -408,10 +412,6 @@ public class NetnameHandler {
 				// update signal tree
 				linkSignalNodes(currentSignalNode, precursor);
 			}
-		}
-
-		if (sink == null) {
-			return;
 		}
 
 		// If the signal occurs in a containing layer and the sink to be routed is not yet connected to the source,

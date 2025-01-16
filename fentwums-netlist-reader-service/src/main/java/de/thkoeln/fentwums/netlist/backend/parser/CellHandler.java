@@ -74,14 +74,16 @@ public class CellHandler {
 			}
 
 			if (currentCellAttributes.containsKey("hdlname")) {
-				currentCellPath = (String) currentCellAttributes.get("hdlname") + addendum;
+				currentCellPath = (String) currentCellAttributes.get("hdlname");
 			} else if (currentCellAttributes.containsKey("scopename")) {
-				currentCellPath = (String) currentCellAttributes.get("scopename") + addendum;
+				currentCellPath = (String) currentCellAttributes.get("scopename");
 			} else {
 				currentCellPath = cellname;
 
 				logger.atInfo().setMessage("Cell {} contains no scope").addArgument(cellname).log();
 			}
+
+			currentCellPath += addendum;
 
 			currentHierarchyPosition = hierarchyTree.getRoot();
 
@@ -127,7 +129,7 @@ public class CellHandler {
 			celltype = ((String) currentCell.get("type")).replaceAll("\\$", "");
 
 			if (currentCellAttributes.containsKey("src")) {
-				srcLocation = (String) currentCellAttributes.get("src");
+				srcLocation = currentCellAttributes.get("src").toString();
 			}
 
 			// now that the hierarchy has been created, the actual cells can be constructed
