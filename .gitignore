@@ -111,3 +111,9 @@ fabric.properties
 /fentwums-netlist-reader-service/dependency-reduced-pom.xml
 /fentwums-netlist-reader-server/NetlistReaderBackend.rolling.log
 /fentwums-netlist-reader-server/NetlistReaderBackend.log
+/fentwums-netlist-reader-server/fentwums-netlist-reader-server.iml
+
+
+# Log files
+*.log
+*.log.zip
