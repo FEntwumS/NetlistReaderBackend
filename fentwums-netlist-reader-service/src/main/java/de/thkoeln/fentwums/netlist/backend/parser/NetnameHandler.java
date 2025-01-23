@@ -68,15 +68,7 @@ public class NetnameHandler {
 			currentNetAttributes = (HashMap<String, Object>) currentNet.get("attributes");
 			currentBitIndex = 0;
 
-			if (currentNetAttributes.containsKey("hdlname")) {
-				currentNetPath = (String) currentNetAttributes.get("hdlname");
-			} else if (currentNetAttributes.containsKey("scopename")) {
-				currentNetPath = (String) currentNetAttributes.get("scopename");
-			} else {
-				currentNetPath = "";
-
-				logger.atInfo().setMessage("Net {} contains no associated scope").addArgument(currentNetName).log();
-			}
+			currentNetPath = currentNetName;
 
 			currentNetPath = formatter.format(currentNetPath);
 

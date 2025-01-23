@@ -70,24 +70,7 @@ public class CellHandler {
 				continue;
 			}
 
-			/*if (cellname.startsWith("$flatten")) {
-				currentCellPathSplit = cellname.split("\\$");
-				addendum = " " + currentCellPathSplit[currentCellPathSplit.length - 1];
-			} else {
-				addendum = "";
-			}
-
-			if (currentCellAttributes.containsKey("hdlname")) {
-				currentCellPath = (String) currentCellAttributes.get("hdlname");
-			} else if (currentCellAttributes.containsKey("scopename")) {
-				currentCellPath = (String) currentCellAttributes.get("scopename");
-			} else {
-				currentCellPath = cellname;
-
-				logger.atInfo().setMessage("Cell {} contains no scope").addArgument(cellname).log();
-			}
-
-			currentCellPath += addendum;
+			currentCellPath = cellname;
 
 			currentHierarchyPosition = hierarchyTree.getRoot();
 
