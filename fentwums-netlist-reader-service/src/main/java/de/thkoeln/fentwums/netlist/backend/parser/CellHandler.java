@@ -66,7 +66,11 @@ public class CellHandler {
 			currentCell = (HashMap<String, Object>) cells.get(cellname);
 			currentCellAttributes = (HashMap<String, Object>) currentCell.get("attributes");
 
-			if (cellname.startsWith("$flatten")) {
+			if (currentCellAttributes.containsKey("module") || currentCellAttributes.containsKey("module_src")) {
+				continue;
+			}
+
+			/*if (cellname.startsWith("$flatten")) {
 				currentCellPathSplit = cellname.split("\\$");
 				addendum = " " + currentCellPathSplit[currentCellPathSplit.length - 1];
 			} else {
