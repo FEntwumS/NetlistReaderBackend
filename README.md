@@ -3,6 +3,10 @@
 This is a beta release. Bugs are to be expected. If you notice any issues, please submit bug reports to help us improve
 the software.
 
+## System requirements
+
+The system running this backend needs to have Java 21 or higher installed.
+
 # Limitations
 
 ## Blackbox cells
