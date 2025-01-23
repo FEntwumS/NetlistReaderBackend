@@ -40,6 +40,8 @@ jobs:
       run: tar -czf fentwums-netlist-reader-server-${{ github.ref_name }}.tar.gz fentwums-netlist-reader/*
     - name: Check for existence of archive
       run: ls -lsha && ls -lsha fentwums-netlist-reader
+    - name: Show archive contents
+      run : tar -tvf fentwums-netlist-reader-server-${{ github.ref_name }}.tar.gz
     - name: Release artifact
       uses: ncipollo/release-action@v1
       with:
