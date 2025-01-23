@@ -17,18 +17,18 @@ public class CellPathFormatter {
 	public String format(String input) {
 		String output;
 
-		input = input.replaceAll("\\.\\$auto\\$ghdl\\.cc", " ghdl")
+		input = input.replaceAll("\\$auto\\$ghdl\\.cc", " ghdl")
 				.replaceAll("\\$auto\\$ghdl\\.cc", "ghdl")
 				.replaceAll("\\$auto\\$opt_dff\\.cc", "opt_dff")
 				.replaceAll("\\$auto\\$ff\\.cc", "auto_ff")
 				.replaceAll("\\$auto\\$opt_reduce\\.cc", "opt_reduce");
 
 		if (input.startsWith("$flatten")) {
-			output = input.replaceAll("\\$flatten\\\\", "").replaceAll("\\.\\\\", " ");
+			output = input.replaceAll("\\$flatten\\\\", "");
 		} else {
 			output = input;
 		}
 
-		return output.replaceAll("\\\\", "");
+		return output.replaceAll("/", " ").replaceAll("\\\\", "");
 	}
 }
