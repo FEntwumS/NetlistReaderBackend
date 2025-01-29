@@ -105,16 +105,7 @@ public class NetlistReaderBackendSpringBootApplication {
 	}
 
 	@RequestMapping(value = "/graphLocalFile", method = RequestMethod.POST)
-	public ResponseEntity<String> createNetlistGraphFromLocalFile(@RequestParam(value = "filename", defaultValue =
-																		  "C" +
-																				  ":\\Users\\Florian\\Documents" +
-																				  "\\Semester\\7" +
-																				  "\\Praxisphase" +
-																				  "\\NetlistReaderBackend" +
-																				  "\\fentwums-netlist-reader" +
-																				  "-service\\src\\main\\resources" +
-																				  "\\optimal" +
-																				  "-info2.json") String filename,
+	public ResponseEntity<String> createNetlistGraphFromLocalFile(@RequestParam(value = "filename") String filename,
 																  @RequestParam(value = "hash") String hash) {
 		GraphCreator creator = new GraphCreator();
 		NetlistParser parser = new NetlistParser();
