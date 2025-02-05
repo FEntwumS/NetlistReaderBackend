@@ -100,6 +100,11 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 			null
 	);
 
+	public static final IProperty<Double> FONT_SIZE = new Property<Double>(
+			"de.thkoeln.fentwums.netlist.backend.font-size",
+			0.0d
+	);
+
 	@Override
 	public void apply(Registry registry) {
 		registry.register(new LayoutOptionData.Builder()
@@ -211,5 +216,15 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 				.visibility(LayoutOptionData.Visibility.VISIBLE)
 				.create()
 		);
+
+		registry.register(new LayoutOptionData.Builder()
+				.id("de.thkoeln.fentwums.netlist.backend.font-size")
+				.defaultValue(0.0d)
+				.type(LayoutOptionData.Type.DOUBLE)
+				.optionClass(Double.class)
+				.targets(EnumSet.of(LayoutOptionData.Target.LABELS))
+				.visibility(LayoutOptionData.Visibility.VISIBLE)
+				.create()
+			);
 	}
 }

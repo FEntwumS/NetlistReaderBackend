@@ -87,9 +87,11 @@ public class ElkElementCreator {
 
 		ElkLabel newLabel = createLabel(content, parent);
 
-		//Since ELK does not know about the font size (and the font itself for that matter), the computed dimensions
+		// Since ELK does not know about the font size (and the font itself for that matter), the computed dimensions
 		// are dependent on this hardcoded formula
 		newLabel.setDimensions(content.length() * 5.75 + 1, fontsize);
+
+		newLabel.setProperty(FEntwumSOptions.FONT_SIZE, fontsize);
 
 		return newLabel;
 	}
