@@ -33,7 +33,8 @@ public class ElkElementCreator {
 				NodeLabelPlacement.V_TOP, NodeLabelPlacement.OUTSIDE));
 		newNode.setProperty(CoreOptions.PORT_LABELS_PLACEMENT,
 				EnumSet.of(PortLabelPlacement.INSIDE));
-		newNode.setProperty(CoreOptions.SPACING_LABEL_PORT_HORIZONTAL, 3.0d);
+		newNode.setProperty(CoreOptions.SPACING_LABEL_PORT_HORIZONTAL, 4.0d);
+		newNode.setProperty(CoreOptions.SPACING_LABEL_PORT_VERTICAL, 3.0d);
 		newNode.setProperty(CoreOptions.SPACING_EDGE_LABEL, 3.0d);
 		newNode.setProperty(CoreOptions.SPACING_LABEL_NODE, 4.0d);
 
@@ -73,24 +74,49 @@ public class ElkElementCreator {
 	}
 
 	/**
-	 * Creates a new ElkLabel and automatically sets its dimensions.
+	 * Creates a new ElkLabel with the given font size and automatically sets its dimensions.
 	 *
-	 * @param content The content to be displayed in the label
-	 * @param parent  The element to which the label is to be attached
-	 * @return The created label
+	 * @param content	The content to be displayed in the label
+	 * @param parent	The element to which the element is to be attached
+	 * @param fontsize	The font size to be used
+	 * @return	The created label
 	 */
-	public static ElkLabel createNewLabel(String content, ElkGraphElement parent) {
+	public static ElkLabel createNewLabel(String content, ElkGraphElement parent, double fontsize) {
 		if (parent.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)) {
 			content += " ";
 		}
 
 		ElkLabel newLabel = createLabel(content, parent);
 
-		//Since ELK does not know about the font size (and the font itself for that matter), the computed dimensions
+		// Since ELK does not know about the font size (and the font itself for that matter), the computed dimensions
 		// are dependent on this hardcoded formula
-		newLabel.setDimensions(content.length() * 5.75 + 1, 10);
+		newLabel.setDimensions(content.length() * 0.575d * fontsize + 1, fontsize);
+
+		newLabel.setProperty(FEntwumSOptions.FONT_SIZE, fontsize);
 
 		return newLabel;
+	}
+
+	/**
+	 * Creates a new normal-sized ElkLabel and automatically sets its dimensions.
+	 *
+	 * @param content The content to be displayed in the label
+	 * @param parent  The element to which the label is to be attached
+	 * @return The created label
+	 */
+	public static ElkLabel createNewLabel(String content, ElkGraphElement parent) {
+		return createNewLabel(content, parent, 10.0d);
+	}
+
+	/**
+	 * Creates a new title-sized ElkLabel and automatically sets its dimensions
+	 *
+	 * @param content	The content to be displayed in the label
+	 * @param parent	The element to which the label is to be attached
+	 * @return	The created label
+	 */
+	public static ElkLabel createNewEntityLabel(String content, ElkGraphElement parent) {
+		return createNewLabel(content, parent, 20.0d);
 	}
 
 	/**

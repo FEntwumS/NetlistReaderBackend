@@ -16,7 +16,7 @@
     <parent>
         <groupId>fentwums.th-koeln.de</groupId>
         <artifactId>fentwums-parent</artifactId>
-        <version>0.6.0</version>
+        <version>0.6.1</version>
     </parent>
     <build>
         <plugins>
