@@ -100,7 +100,7 @@ public class CellHandler {
 
 						newElkNode.setProperty(FEntwumSOptions.LOCATION_PATH, intermediateCellPath.toString());
 
-						ElkLabel newElkNodeLabel = ElkElementCreator.createNewLabel(pathFragment, newElkNode, 20);
+						ElkLabel newElkNodeLabel = ElkElementCreator.createNewEntityLabel(pathFragment, newElkNode);
 
 						HierarchicalNode newHierarchyNode = new HierarchicalNode(pathFragment, currentHierarchyPosition, new HashMap<String, HierarchicalNode>(), new ArrayList<>(), new HashMap<>(), newElkNode);
 

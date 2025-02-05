@@ -76,7 +76,7 @@ public class GraphCreator {
 		if (root.getChildren().isEmpty()) {
 			ElkNode toplevelNode = createNode(root);
 			toplevelNode.setIdentifier(modulename);
-			ElkLabel toplevelLabel = ElkElementCreator.createNewLabel(modulename, toplevelNode);
+			ElkLabel toplevelLabel = ElkElementCreator.createNewEntityLabel(modulename, toplevelNode);
 			toplevelNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_ORDER);
 			//toplevelNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
 			toplevelNode.setProperty(CoreOptions.ALGORITHM, "layered");
