@@ -36,7 +36,7 @@ public class ElkElementCreator {
 		newNode.setProperty(CoreOptions.SPACING_LABEL_PORT_HORIZONTAL, 4.0d);
 		newNode.setProperty(CoreOptions.SPACING_LABEL_PORT_VERTICAL, 3.0d);
 		newNode.setProperty(CoreOptions.SPACING_EDGE_LABEL, 3.0d);
-		newNode.setProperty(CoreOptions.SPACING_LABEL_NODE, 4.0d);
+		newNode.setProperty(CoreOptions.SPACING_LABEL_NODE, 6.0d);
 
 		return newNode;
 	}
@@ -104,6 +104,7 @@ public class ElkElementCreator {
 	 * @param parent  The element to which the label is to be attached
 	 * @return The created label
 	 */
+	@Deprecated
 	public static ElkLabel createNewLabel(String content, ElkGraphElement parent) {
 		return createNewLabel(content, parent, 10.0d);
 	}
@@ -116,7 +117,51 @@ public class ElkElementCreator {
 	 * @return	The created label
 	 */
 	public static ElkLabel createNewEntityLabel(String content, ElkGraphElement parent) {
-		return createNewLabel(content, parent, 20.0d);
+		return createNewLabel(content, parent, 25.0d);
+	}
+
+	/**
+	 * Creates a new subtitle-sized ElkLabel and automatically sets its dimensions
+	 *
+	 * @param content	The content to be displayed in the label
+	 * @param parent	The element to which the label is to be attached
+	 * @return	The created label
+	 */
+	public static ElkLabel createNewCellLabel(String content, ElkGraphElement parent) {
+		return createNewLabel(content, parent, 15.0d);
+	}
+
+	/**
+	 * Creates a new normal-sized ElkLabel and automatically sets its dimensions
+	 *
+	 * @param content	The content to be displayed in the label
+	 * @param parent	The element to which the label is to be attached
+	 * @return	The created label
+	 */
+	public static ElkLabel createNewEdgeLabel(String content, ElkGraphElement parent) {
+		return createNewLabel(content, parent, 10.0d);
+	}
+
+	/**
+	 * Creates a new normal-sized ElkLabel and automatically sets its dimensions
+	 *
+	 * @param content	The content to be displayed in the label
+	 * @param parent	The element to which the label is to be attached
+	 * @return	The created label
+	 */
+	public static ElkLabel createNewPortLabel(String content, ElkGraphElement parent) {
+		return createNewLabel(content, parent, 10.0d);
+	}
+
+	/**
+	 * Creates a new normal-sized ElkLabel and automatically sets its dimensions
+	 *
+	 * @param content	The content to be displayed in the label
+	 * @param parent	The element to which the label is to be attached
+	 * @return	The created label
+	 */
+	public static ElkLabel createNewConstantDriverLabel(String content, ElkGraphElement parent) {
+		return createNewLabel(content, parent, 10.0d);
 	}
 
 	/**

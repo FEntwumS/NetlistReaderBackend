@@ -128,7 +128,7 @@ public class CellHandler {
 			newCellNode.setProperty(FEntwumSOptions.LOCATION_PATH, currentCellPath);
 			newCellNode.setProperty(FEntwumSOptions.SRC_LOCATION, srcLocation);
 
-			ElkLabel newCellNodeLabel = ElkElementCreator.createNewLabel(celltype, newCellNode);
+			ElkLabel newCellNodeLabel = ElkElementCreator.createNewCellLabel(celltype, newCellNode);
 
 			// update hierarchy to include the new node
 			newHNode = new HierarchicalNode(currentCellPathSplit[currentCellPathSplit.length - 1], currentHierarchyPosition, new HashMap<String, HierarchicalNode>(), new ArrayList<Vector>(), new HashMap<Integer, Bundle>(), newCellNode);
@@ -189,7 +189,7 @@ public class CellHandler {
 						cellPort.setProperty(CoreOptions.PORT_INDEX, currentDriverIndex * maxSignals + currentPortDriverIndex);
 						cellPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portname);
 
-						ElkLabel cellPortLabel = ElkElementCreator.createNewLabel(portname + (currentCellConnectionDrivers.size() == 1 ? "" : " [" + currentPortDriverIndex + "]"), cellPort);
+						ElkLabel cellPortLabel = ElkElementCreator.createNewPortLabel(portname + (currentCellConnectionDrivers.size() == 1 ? "" : " [" + currentPortDriverIndex + "]"), cellPort);
 
 						cellPort.setIdentifier(currentCellPathSplit[currentCellPathSplit.length - 1] + (int) driver);
 
@@ -295,7 +295,7 @@ public class CellHandler {
 						// create driver
 						constantNode = ElkElementCreator.createNewConstantDriver(parent.getParent());
 
-						constantNodeLabel = ElkElementCreator.createNewLabel(constantValueBuilder.toString(), constantNode);
+						constantNodeLabel = ElkElementCreator.createNewConstantDriverLabel(constantValueBuilder.toString(), constantNode);
 
 						constantNodePort = ElkElementCreator.createNewPort(constantNode, side == PortSide.WEST ? PortSide.EAST : PortSide.WEST);
 
@@ -311,7 +311,7 @@ public class CellHandler {
 						if (constantNode == null) {
 							constantNode = ElkElementCreator.createNewConstantDriver(parent.getParent());
 
-							constantNodeLabel = ElkElementCreator.createNewLabel((String) constantValues.get(key), constantNode);
+							constantNodeLabel = ElkElementCreator.createNewConstantDriverLabel((String) constantValues.get(key), constantNode);
 
 							constantNodePort = ElkElementCreator.createNewPort(constantNode, side == PortSide.WEST ? PortSide.EAST : PortSide.WEST);
 
@@ -325,8 +325,8 @@ public class CellHandler {
 						constantEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.CONSTANT);
 					}
 
-					ElkElementCreator.createNewLabel(constantLabelBuilder.toString(), newPort);
-					ElkLabel constantEdgeLabel = ElkElementCreator.createNewLabel(constantValueBuilder.toString(), constantEdge);
+					ElkElementCreator.createNewPortLabel(constantLabelBuilder.toString(), newPort);
+					ElkLabel constantEdgeLabel = ElkElementCreator.createNewEdgeLabel(constantValueBuilder.toString(), constantEdge);
 					constantEdgeLabel.setProperty(CoreOptions.EDGE_LABELS_PLACEMENT, EdgeLabelPlacement.HEAD);
 				}
 
@@ -354,7 +354,7 @@ public class CellHandler {
 			// create driver
 			constantNode = ElkElementCreator.createNewConstantDriver(parent.getParent());
 
-			constantNodeLabel = ElkElementCreator.createNewLabel(constantValueBuilder.toString(), constantNode);
+			constantNodeLabel = ElkElementCreator.createNewConstantDriverLabel(constantValueBuilder.toString(), constantNode);
 
 			constantNodePort = ElkElementCreator.createNewPort(constantNode, side == PortSide.WEST ? PortSide.EAST : PortSide.WEST);
 
@@ -370,7 +370,7 @@ public class CellHandler {
 			if (constantNode == null) {
 				constantNode = ElkElementCreator.createNewConstantDriver(parent.getParent());
 
-				constantNodeLabel = ElkElementCreator.createNewLabel((String) constantValues.get(lastKey), constantNode);
+				constantNodeLabel = ElkElementCreator.createNewConstantDriverLabel((String) constantValues.get(lastKey), constantNode);
 
 				constantNodePort = ElkElementCreator.createNewPort(constantNode, side == PortSide.WEST ? PortSide.EAST : PortSide.WEST);
 
@@ -385,13 +385,13 @@ public class CellHandler {
 		}
 
 		if (constantValues.size() == 1) {
-			ElkElementCreator.createNewLabel(portname, newPort);
+			ElkElementCreator.createNewPortLabel(portname, newPort);
 		} else {
-			ElkElementCreator.createNewLabel(constantLabelBuilder.toString(), newPort);
+			ElkElementCreator.createNewPortLabel(constantLabelBuilder.toString(), newPort);
 		}
 		ElkLabel constantEdgeLabel;
 
-		constantEdgeLabel = ElkElementCreator.createNewLabel(constantValueBuilder.toString(), constantEdge);
+		constantEdgeLabel = ElkElementCreator.createNewEdgeLabel(constantValueBuilder.toString(), constantEdge);
 		constantEdgeLabel.setProperty(CoreOptions.EDGE_LABELS_PLACEMENT, EdgeLabelPlacement.HEAD);
 	}
 }

@@ -78,7 +78,7 @@ public class PortHandler {
 
 				// Add label to port
 				ElkLabel toplevelPortLabel =
-						ElkElementCreator.createNewLabel(portname + (currentPortDrivers.size() == 1 ? "" :
+						ElkElementCreator.createNewPortLabel(portname + (currentPortDrivers.size() == 1 ? "" :
 								" [" + currentPortDriverIndex + "]"), toplevelPort);
 
 				// If the port has a constant driver (or is a constant driver), a source (or sink) node needs to be
@@ -103,7 +103,7 @@ public class PortHandler {
 								EnumSet.of(NodeLabelPlacement.H_CENTER, NodeLabelPlacement.V_CENTER,
 										NodeLabelPlacement.INSIDE));
 
-						ElkLabel constTargetLabel = ElkElementCreator.createNewLabel((String) driver, constTarget);
+						ElkLabel constTargetLabel = ElkElementCreator.createNewConstantDriverLabel((String) driver, constTarget);
 
 						ElkPort constTargetPort = ElkElementCreator.createNewPort(constTarget, side);
 
@@ -122,7 +122,7 @@ public class PortHandler {
 
 					constantEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.CONSTANT);
 
-					ElkLabel constantLabel = ElkElementCreator.createNewLabel((String) driver, constantEdge);
+					ElkLabel constantLabel = ElkElementCreator.createNewEdgeLabel((String) driver, constantEdge);
 					constantLabel.setProperty(CoreOptions.EDGE_LABELS_PLACEMENT, EdgeLabelPlacement.TAIL);
 				}
 

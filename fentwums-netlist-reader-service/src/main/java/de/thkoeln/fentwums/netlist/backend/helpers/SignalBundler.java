@@ -307,7 +307,7 @@ public class SignalBundler {
 
 				currentPort.getLabels().remove(currentPortLabel);
 
-				currentPortLabel = ElkElementCreator.createNewLabel(signalName, currentPort);
+				currentPortLabel = ElkElementCreator.createNewPortLabel(signalName, currentPort);
 			}
 		}
 	}

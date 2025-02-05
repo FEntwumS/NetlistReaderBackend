@@ -259,7 +259,7 @@ public class NetnameHandler {
 				currentSignalIndex = currentNode.getIndexInSignal();
 
 				ElkLabel sinkLabel =
-						ElkElementCreator.createNewLabel(currentNode.getSName() + (currentSignalIndex != -1 ?
+						ElkElementCreator.createNewPortLabel(currentNode.getSName() + (currentSignalIndex != -1 ?
 										" [" + currentSignalIndex + "]" : ""),
 								sink);
 			} else {
@@ -381,7 +381,7 @@ public class NetnameHandler {
 				currentSignalIndex = precursor.getIndexInSignal();
 
 				ElkLabel sourceLabel =
-						ElkElementCreator.createNewLabel(precursor.getSName() + (currentSignalIndex != -1 ?
+						ElkElementCreator.createNewPortLabel(precursor.getSName() + (currentSignalIndex != -1 ?
 								" [" + currentSignalIndex +
 										"]" : ""), source);
 
@@ -438,12 +438,12 @@ public class NetnameHandler {
 
 					if (precursor.getSVisited()) {
 						sourceLabel =
-								ElkElementCreator.createNewLabel(precursor.getSName() + (currentSignalIndex != -1 ?
+								ElkElementCreator.createNewPortLabel(precursor.getSName() + (currentSignalIndex != -1 ?
 										" " +
 												"[" + currentSignalIndex +
 												"]" : ""), source);
 					} else {
-						sourceLabel = ElkElementCreator.createNewLabel(String.valueOf(currentSignalTree.getSId()),
+						sourceLabel = ElkElementCreator.createNewPortLabel(String.valueOf(currentSignalTree.getSId()),
 								source);
 					}
 
@@ -535,7 +535,7 @@ public class NetnameHandler {
 
 				precursor.setSPort(sink);
 
-				ElkLabel sinkLabel = ElkElementCreator.createNewLabel(String.valueOf(currentSignalTree.getSId()),
+				ElkLabel sinkLabel = ElkElementCreator.createNewPortLabel(String.valueOf(currentSignalTree.getSId()),
 						sink);
 			}
 
