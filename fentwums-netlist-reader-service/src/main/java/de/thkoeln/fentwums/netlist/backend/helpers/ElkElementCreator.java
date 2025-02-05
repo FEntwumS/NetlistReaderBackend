@@ -33,7 +33,8 @@ public class ElkElementCreator {
 				NodeLabelPlacement.V_TOP, NodeLabelPlacement.OUTSIDE));
 		newNode.setProperty(CoreOptions.PORT_LABELS_PLACEMENT,
 				EnumSet.of(PortLabelPlacement.INSIDE));
-		newNode.setProperty(CoreOptions.SPACING_LABEL_PORT_HORIZONTAL, 3.0d);
+		newNode.setProperty(CoreOptions.SPACING_LABEL_PORT_HORIZONTAL, 4.0d);
+		newNode.setProperty(CoreOptions.SPACING_LABEL_PORT_VERTICAL, 3.0d);
 		newNode.setProperty(CoreOptions.SPACING_EDGE_LABEL, 3.0d);
 		newNode.setProperty(CoreOptions.SPACING_LABEL_NODE, 4.0d);
 
