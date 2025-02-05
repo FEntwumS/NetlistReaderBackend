@@ -73,13 +73,14 @@ public class ElkElementCreator {
 	}
 
 	/**
-	 * Creates a new ElkLabel and automatically sets its dimensions.
+	 * Creates a new ElkLabel with the given font size and automatically sets its dimensions.
 	 *
-	 * @param content The content to be displayed in the label
-	 * @param parent  The element to which the label is to be attached
-	 * @return The created label
+	 * @param content	The content to be displayed in the label
+	 * @param parent	The element to which the element is to be attached
+	 * @param fontsize	The font size to be used
+	 * @return	The created label
 	 */
-	public static ElkLabel createNewLabel(String content, ElkGraphElement parent) {
+	public static ElkLabel createNewLabel(String content, ElkGraphElement parent, double fontsize) {
 		if (parent.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)) {
 			content += " ";
 		}
@@ -88,9 +89,20 @@ public class ElkElementCreator {
 
 		//Since ELK does not know about the font size (and the font itself for that matter), the computed dimensions
 		// are dependent on this hardcoded formula
-		newLabel.setDimensions(content.length() * 5.75 + 1, 10);
+		newLabel.setDimensions(content.length() * 5.75 + 1, fontsize);
 
 		return newLabel;
+	}
+
+	/**
+	 * Creates a new ElkLabel and automatically sets its dimensions.
+	 *
+	 * @param content The content to be displayed in the label
+	 * @param parent  The element to which the label is to be attached
+	 * @return The created label
+	 */
+	public static ElkLabel createNewLabel(String content, ElkGraphElement parent) {
+		return createNewLabel(content, parent, 10.0d);
 	}
 
 	/**
