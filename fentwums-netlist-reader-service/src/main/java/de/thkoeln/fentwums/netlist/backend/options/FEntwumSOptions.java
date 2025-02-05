@@ -219,7 +219,7 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 
 		registry.register(new LayoutOptionData.Builder()
 				.id("de.thkoeln.fentwums.netlist.backend.font-size")
-				.defaultValue(0.0d)
+				.defaultValue(10.0d)
 				.type(LayoutOptionData.Type.DOUBLE)
 				.optionClass(Double.class)
 				.targets(EnumSet.of(LayoutOptionData.Target.LABELS))
