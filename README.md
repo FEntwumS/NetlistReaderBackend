@@ -68,7 +68,7 @@ in the root directory, an über-JAR containing all dependencies can be created. 
 `fentwums-netlist-reader-server/target` can then be executed using
 
 ```
-java -jar fentwums-netlist-reader-server-0.6.2-fentwums-netlist-reader-service.jar
+java -jar fentwums-netlist-reader-server-0.6.2-exec.jar
 ```
 
 # Notes
