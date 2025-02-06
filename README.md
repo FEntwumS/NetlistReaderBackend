@@ -9,11 +9,6 @@ The system running this backend needs to have Java 21 or higher installed.
 
 # Limitations
 
-## Blackbox cells
-
-The backend currently is not able to process netlists containing blackbox cells due to them missing port directions. We
-are currently working on a solution.
-
 ## Netlist layout
 
 The backend can only process a subset of all possible netlist layouts. It is recommended to generate the input netlist
@@ -73,7 +68,7 @@ in the root directory, an über-JAR containing all dependencies can be created. 
 `fentwums-netlist-reader-server/target` can then be executed using
 
 ```
-java -jar fentwums-netlist-reader-server-0.5.4-fentwums-netlist-reader-service.jar
+java -jar fentwums-netlist-reader-server-0.6.2-fentwums-netlist-reader-service.jar
 ```
 
 # Notes
