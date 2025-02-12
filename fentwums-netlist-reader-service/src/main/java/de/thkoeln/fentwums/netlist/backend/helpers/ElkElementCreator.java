@@ -33,10 +33,10 @@ public class ElkElementCreator {
 				NodeLabelPlacement.V_TOP, NodeLabelPlacement.OUTSIDE));
 		newNode.setProperty(CoreOptions.PORT_LABELS_PLACEMENT,
 				EnumSet.of(PortLabelPlacement.INSIDE));
-		newNode.setProperty(CoreOptions.SPACING_LABEL_PORT_HORIZONTAL, 4.0d);
-		newNode.setProperty(CoreOptions.SPACING_LABEL_PORT_VERTICAL, 3.0d);
+		newNode.setProperty(CoreOptions.SPACING_LABEL_PORT_HORIZONTAL, 1.0d);
+		newNode.setProperty(CoreOptions.SPACING_LABEL_PORT_VERTICAL, 1.0d);
 		newNode.setProperty(CoreOptions.SPACING_EDGE_LABEL, 3.0d);
-		newNode.setProperty(CoreOptions.SPACING_LABEL_NODE, 6.0d);
+		newNode.setProperty(CoreOptions.SPACING_LABEL_NODE, 3.0d);
 
 		return newNode;
 	}
@@ -82,15 +82,13 @@ public class ElkElementCreator {
 	 * @return	The created label
 	 */
 	public static ElkLabel createNewLabel(String content, ElkGraphElement parent, double fontsize) {
-		if (parent.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)) {
-			content += " ";
-		}
+		content = content.trim();
 
 		ElkLabel newLabel = createLabel(content, parent);
 
 		// Since ELK does not know about the font size (and the font itself for that matter), the computed dimensions
 		// are dependent on this hardcoded formula
-		newLabel.setDimensions(content.length() * 0.575d * fontsize + 1, fontsize);
+		newLabel.setDimensions(content.length() * 0.7d * fontsize + 3, fontsize + 5);
 
 		newLabel.setProperty(FEntwumSOptions.FONT_SIZE, fontsize);
 

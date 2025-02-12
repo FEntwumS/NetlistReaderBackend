@@ -97,7 +97,7 @@ public class PortHandler {
 					} else {
 						side = side == PortSide.WEST ? PortSide.EAST : PortSide.WEST;
 
-						constTarget = createNode(toplevel.getParent());
+						constTarget = ElkElementCreator.createNewConstantDriver(toplevel.getParent());
 						constTarget.setDimensions(20d, 20d);
 						constTarget.setProperty(CoreOptions.NODE_LABELS_PLACEMENT,
 								EnumSet.of(NodeLabelPlacement.H_CENTER, NodeLabelPlacement.V_CENTER,
