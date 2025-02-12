@@ -1,5 +1,6 @@
 package de.thkoeln.fentwums.netlist.backend.helpers;
 
+import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
 import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
 import de.thkoeln.fentwums.netlist.backend.options.SignalType;
 import org.eclipse.elk.core.options.*;
@@ -76,10 +77,10 @@ public class ElkElementCreator {
 	/**
 	 * Creates a new ElkLabel with the given font size and automatically sets its dimensions.
 	 *
-	 * @param content	The content to be displayed in the label
-	 * @param parent	The element to which the element is to be attached
-	 * @param fontsize	The font size to be used
-	 * @return	The created label
+	 * @param content  The content to be displayed in the label
+	 * @param parent   The element to which the element is to be attached
+	 * @param fontsize The font size to be used
+	 * @return The created label
 	 */
 	public static ElkLabel createNewLabel(String content, ElkGraphElement parent, double fontsize) {
 		content = content.trim();
@@ -110,56 +111,76 @@ public class ElkElementCreator {
 	/**
 	 * Creates a new title-sized ElkLabel and automatically sets its dimensions
 	 *
-	 * @param content	The content to be displayed in the label
-	 * @param parent	The element to which the label is to be attached
-	 * @return	The created label
+	 * @param content The content to be displayed in the label
+	 * @param parent  The element to which the label is to be attached
+	 * @return The created label
 	 */
-	public static ElkLabel createNewEntityLabel(String content, ElkGraphElement parent) {
+	public static ElkLabel createNewEntityLabel(String content, ElkGraphElement parent,
+												NetlistCreationSettings settings) {
 		return createNewLabel(content, parent, 25.0d);
 	}
 
 	/**
 	 * Creates a new subtitle-sized ElkLabel and automatically sets its dimensions
 	 *
-	 * @param content	The content to be displayed in the label
-	 * @param parent	The element to which the label is to be attached
-	 * @return	The created label
+	 * @param content The content to be displayed in the label
+	 * @param parent  The element to which the label is to be attached
+	 * @return The created label
 	 */
-	public static ElkLabel createNewCellLabel(String content, ElkGraphElement parent) {
-		return createNewLabel(content, parent, 15.0d);
+	public static ElkLabel createNewCellLabel(String content, ElkGraphElement parent,
+											  NetlistCreationSettings settings) {
+		if (settings == null) {
+			return createNewLabel(content, parent, 15.0d);
+		} else {
+			return createNewLabel(content, parent, settings.getCellLabelFontSize());
+		}
 	}
 
 	/**
 	 * Creates a new normal-sized ElkLabel and automatically sets its dimensions
 	 *
-	 * @param content	The content to be displayed in the label
-	 * @param parent	The element to which the label is to be attached
-	 * @return	The created label
+	 * @param content The content to be displayed in the label
+	 * @param parent  The element to which the label is to be attached
+	 * @return The created label
 	 */
-	public static ElkLabel createNewEdgeLabel(String content, ElkGraphElement parent) {
-		return createNewLabel(content, parent, 10.0d);
+	public static ElkLabel createNewEdgeLabel(String content, ElkGraphElement parent,
+											  NetlistCreationSettings settings) {
+		if (settings == null) {
+			return createNewLabel(content, parent, 10.0d);
+		} else {
+			return createNewLabel(content, parent, settings.getEdgeLabelFontSize());
+		}
 	}
 
 	/**
 	 * Creates a new normal-sized ElkLabel and automatically sets its dimensions
 	 *
-	 * @param content	The content to be displayed in the label
-	 * @param parent	The element to which the label is to be attached
-	 * @return	The created label
+	 * @param content The content to be displayed in the label
+	 * @param parent  The element to which the label is to be attached
+	 * @return The created label
 	 */
-	public static ElkLabel createNewPortLabel(String content, ElkGraphElement parent) {
-		return createNewLabel(content, parent, 10.0d);
+	public static ElkLabel createNewPortLabel(String content, ElkGraphElement parent,
+											  NetlistCreationSettings settings) {
+		if (settings == null) {
+			return createNewLabel(content, parent, 10.0d);
+		} else {
+			return createNewLabel(content, parent, settings.getPortLabelFontSize());
+		}
 	}
 
 	/**
 	 * Creates a new normal-sized ElkLabel and automatically sets its dimensions
 	 *
-	 * @param content	The content to be displayed in the label
-	 * @param parent	The element to which the label is to be attached
-	 * @return	The created label
+	 * @param content The content to be displayed in the label
+	 * @param parent  The element to which the label is to be attached
+	 * @return The created label
 	 */
-	public static ElkLabel createNewConstantDriverLabel(String content, ElkGraphElement parent) {
-		return createNewLabel(content, parent, 10.0d);
+	public static ElkLabel createNewConstantDriverLabel(String content, ElkGraphElement parent, NetlistCreationSettings settings) {
+		if (settings == null) {
+			return createNewLabel(content, parent, 10.0d);
+		} else {
+			return createNewLabel(content, parent, settings.getPortLabelFontSize());
+		}
 	}
 
 	/**
