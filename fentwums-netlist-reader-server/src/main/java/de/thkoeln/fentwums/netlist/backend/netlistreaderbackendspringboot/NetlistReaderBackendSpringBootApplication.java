@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
 import de.thkoeln.fentwums.netlist.backend.helpers.CellCollapser;
 import de.thkoeln.fentwums.netlist.backend.helpers.SignalBundler;
 import de.thkoeln.fentwums.netlist.backend.netlistreaderbackendspringboot.types.NetlistInformation;
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -84,10 +86,13 @@ public class NetlistReaderBackendSpringBootApplication {
 						if (blackboxmap.containsKey(key)) {
 							keyRemovalList.add(key);
 
-							logger.atWarn().setMessage("Blackbox description file {} contains the previously defined cell" +
+							logger.atWarn().setMessage("Blackbox description file {} contains the previously defined" +
+									" " +
+									"cell" +
 									" " +
 									"{}").addArgument(file.getName()).addArgument(key).log();
-							logger.atWarn().setMessage("Full path of blackbox description file containing the conflicting " +
+							logger.atWarn().setMessage("Full path of blackbox description file containing the " +
+									"conflicting " +
 									"definition: {}").addArgument(file.getAbsolutePath()).log();
 						}
 					}
@@ -106,28 +111,46 @@ public class NetlistReaderBackendSpringBootApplication {
 
 	@RequestMapping(value = "/graphLocalFile", method = RequestMethod.POST)
 	public ResponseEntity<String> createNetlistGraphFromLocalFile(@RequestParam(value = "filename") String filename,
-																  @RequestParam(value = "hash") String hash) {
+																  @RequestParam(value = "hash") String hash,
+																  @RequestParam(value = "EntityLabelFontSize",
+																		  defaultValue = "25") int entityLabelFontSize,
+																  @RequestParam(value = "CellLabelFontSize",
+																		  defaultValue = "15") int cellLabelFontSize,
+																  @RequestParam(value = "EdgeLabelFontSize",
+																		  defaultValue = "10") int edgeLabelFontSize,
+																  @RequestParam(value = "PortLabelFontSize",
+																		  defaultValue = "10") int portLabelFontSize) {
 		GraphCreator creator = new GraphCreator();
 		NetlistParser parser = new NetlistParser();
 
-		logger.info(filename);
-		logger.info(hash);
+		NetlistCreationSettings settings = new NetlistCreationSettings(entityLabelFontSize, cellLabelFontSize,
+				edgeLabelFontSize, portLabelFontSize);
+
+		logger.atInfo().setMessage("Filename: {}").addArgument(filename).log();
 
 		parser.setNetlistFile(new File(filename));
 		// TODO remove
 		parser.setNetlistStream(null);
 
-		return graphNetlist(creator, parser, Long.parseUnsignedLong(hash));
+		return graphNetlist(creator, parser, Long.parseUnsignedLong(hash), settings);
 	}
 
 	@RequestMapping(value = "/graphRemoteFile", method = RequestMethod.POST)
 	public ResponseEntity<String> createNetlistGraphFromRemoteFile(@RequestParam("file") MultipartFile file,
-																   @RequestParam(value = "hash") String hash) {
+																   @RequestParam(value = "hash") String hash,
+																   @RequestParam(value = "EntityLabelFontSize",
+																		   defaultValue = "25") int entityLabelFontSize,
+																   @RequestParam(value = "CellLabelFontSize",
+																		   defaultValue = "15") int cellLabelFontSize,
+																   @RequestParam(value = "EdgeLabelFontSize",
+																		   defaultValue = "10") int edgeLabelFontSize,
+																   @RequestParam(value = "PortLabelFontSize",
+																		   defaultValue = "10") int portLabelFontSize) {
 		GraphCreator creator = new GraphCreator();
 		NetlistParser parser = new NetlistParser();
 
-		logger.info("Max heap size: " + Runtime.getRuntime().maxMemory());
-		logger.info(hash);
+		NetlistCreationSettings settings = new NetlistCreationSettings(entityLabelFontSize, cellLabelFontSize,
+				edgeLabelFontSize, portLabelFontSize);
 
 		try {
 			parser.setNetlistStream(file.getInputStream());
@@ -139,12 +162,21 @@ public class NetlistReaderBackendSpringBootApplication {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
-		return graphNetlist(creator, parser, Long.parseUnsignedLong(hash));
+		return graphNetlist(creator, parser, Long.parseUnsignedLong(hash), settings);
 	}
 
-	private ResponseEntity<String> graphNetlist(GraphCreator creator, NetlistParser parser, long hash) {
+	private ResponseEntity<String> graphNetlist(GraphCreator creator, NetlistParser parser, long hash,
+												NetlistCreationSettings settings) {
 		CellCollapser collapser = new CellCollapser();
 		SignalBundler bundler = new SignalBundler();
+
+		logger.atInfo().setMessage("Font sizes: Entity = {}; Cell = {}; Edge = {}; Port = {}")
+				.addArgument(settings.getEntityLabelFontSize())
+				.addArgument(settings.getCellLabelFontSize())
+				.addArgument(settings.getEdgeLabelFontSize())
+				.addArgument(settings.getPortLabelFontSize()).log();
+
+		logger.atInfo().setMessage("Netlist hash: {}").addArgument(hash).log();
 
 		try {
 			logger.info("Start reading netlist file");
