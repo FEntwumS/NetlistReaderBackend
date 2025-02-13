@@ -117,7 +117,11 @@ public class ElkElementCreator {
 	 */
 	public static ElkLabel createNewEntityLabel(String content, ElkGraphElement parent,
 												NetlistCreationSettings settings) {
-		return createNewLabel(content, parent, 25.0d);
+		if (settings == null) {
+			return createNewLabel(content, parent, 25.0d);
+		} else {
+			return createNewLabel(content, parent, settings.getEntityLabelFontSize());
+		}
 	}
 
 	/**
