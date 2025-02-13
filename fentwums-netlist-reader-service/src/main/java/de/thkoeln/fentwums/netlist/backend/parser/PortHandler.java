@@ -1,5 +1,6 @@
 package de.thkoeln.fentwums.netlist.backend.parser;
 
+import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalNode;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
@@ -39,7 +40,7 @@ public class PortHandler {
 	 */
 	@SuppressWarnings("unchecked")
 	public HashMap<Integer, SignalTree> createPorts(HashMap<String, Object> ports, String modulename,
-													ElkNode toplevel) {
+													ElkNode toplevel, NetlistCreationSettings settings) {
 		HashMap<Integer, SignalTree> signalMap = new HashMap<>(ports.size());
 		HashMap<String, Object> currentPort;
 		ArrayList<Object> currentPortDrivers;
@@ -79,7 +80,7 @@ public class PortHandler {
 				// Add label to port
 				ElkLabel toplevelPortLabel =
 						ElkElementCreator.createNewPortLabel(portname + (currentPortDrivers.size() == 1 ? "" :
-								" [" + currentPortDriverIndex + "]"), toplevelPort);
+								" [" + currentPortDriverIndex + "]"), toplevelPort, settings);
 
 				// If the port has a constant driver (or is a constant driver), a source (or sink) node needs to be
 				// created
@@ -103,7 +104,8 @@ public class PortHandler {
 								EnumSet.of(NodeLabelPlacement.H_CENTER, NodeLabelPlacement.V_CENTER,
 										NodeLabelPlacement.INSIDE));
 
-						ElkLabel constTargetLabel = ElkElementCreator.createNewConstantDriverLabel((String) driver, constTarget);
+						ElkLabel constTargetLabel = ElkElementCreator.createNewConstantDriverLabel((String) driver,
+								constTarget, settings);
 
 						ElkPort constTargetPort = ElkElementCreator.createNewPort(constTarget, side);
 
@@ -122,7 +124,8 @@ public class PortHandler {
 
 					constantEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.CONSTANT);
 
-					ElkLabel constantLabel = ElkElementCreator.createNewEdgeLabel((String) driver, constantEdge);
+					ElkLabel constantLabel = ElkElementCreator.createNewEdgeLabel((String) driver, constantEdge,
+							settings);
 					constantLabel.setProperty(CoreOptions.EDGE_LABELS_PLACEMENT, EdgeLabelPlacement.TAIL);
 				}
 

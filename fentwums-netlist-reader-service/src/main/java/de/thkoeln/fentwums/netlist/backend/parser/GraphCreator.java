@@ -1,10 +1,7 @@
 package de.thkoeln.fentwums.netlist.backend.parser;
 
 import de.thkoeln.fentwums.netlist.backend.Main;
-import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchicalNode;
-import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchyTree;
-import de.thkoeln.fentwums.netlist.backend.datatypes.NetInformation;
-import de.thkoeln.fentwums.netlist.backend.datatypes.SignalTree;
+import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import de.thkoeln.fentwums.netlist.backend.helpers.*;
 import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
 import org.eclipse.elk.alg.layered.options.LayeredOptions;
@@ -69,14 +66,14 @@ public class GraphCreator {
 	 * @param blackboxes HashMap containing the port directions of blackbox cells
 	 */
 	@SuppressWarnings("unchecked")
-	public void createGraphFromNetlist(HashMap<String, Object> module, String modulename, HashMap<String, Object> blackboxes) {
+	public void createGraphFromNetlist(HashMap<String, Object> module, String modulename, HashMap<String, Object> blackboxes, NetlistCreationSettings settings) {
 		root.setIdentifier("root");
 		root.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
 
 		if (root.getChildren().isEmpty()) {
 			ElkNode toplevelNode = createNode(root);
 			toplevelNode.setIdentifier(modulename);
-			ElkLabel toplevelLabel = ElkElementCreator.createNewEntityLabel(modulename, toplevelNode);
+			ElkLabel toplevelLabel = ElkElementCreator.createNewEntityLabel(modulename, toplevelNode, settings);
 			toplevelNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_ORDER);
 			//toplevelNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
 			toplevelNode.setProperty(CoreOptions.ALGORITHM, "layered");
@@ -109,29 +106,31 @@ public class GraphCreator {
 		PortHandler portHandler = new PortHandler();
 
 		logger.info("Start creating ports");
-		signalMap = portHandler.createPorts(ports, modulename, toplevel);
+		signalMap = portHandler.createPorts(ports, modulename, toplevel, settings);
 		logger.info("Successfully created ports");
 
 		CellHandler cellHandler = new CellHandler();
 
 		logger.info("Start creating cells");
-		cellHandler.createCells(cells, modulename, toplevel, signalMap, hierarchyTree, blackboxes);
+		cellHandler.createCells(cells, modulename, toplevel, signalMap, hierarchyTree, blackboxes, settings);
 		logger.info("Successfully created cells");
 
 		NetnameHandler netHandler = new NetnameHandler();
 
 		logger.info("Start creating nets");
-		netHandler.handleNetnames(netnames, modulename, signalMap, hierarchyTree, NetInformationMap);
+		netHandler.handleNetnames(netnames, modulename, signalMap, hierarchyTree, NetInformationMap, settings);
 		logger.info("Successfully created nets");
 
 		logger.info("Start recreating signal paths");
-		netHandler.recreateSignals(signalMap, modulename);
+		netHandler.recreateSignals(signalMap, modulename, settings);
 		logger.info("Successfully recreated signal paths");
 
 		// Apply post-processing to optimise layout
-
 		SelectInputRepositioner repositioner = new SelectInputRepositioner();
+
+		logger.info("Start repositioning of select-cell inputs");
 		repositioner.repositionSelect(toplevel);
+		logger.info("Successfully repositioned select-cell inputs");
 
 		// Reversing the order of output ports significantly reduces the number of edge crossings
 		OutputReverser reverser = new OutputReverser();
@@ -147,7 +146,7 @@ public class GraphCreator {
 
 		logger.info("Start bundling signals");
 		for (int key : signalMap.keySet()) {
-			bundler.bundleSignalWithId(key);
+			bundler.bundleSignalWithId(key, settings);
 		}
 		logger.info("Successfully bundled signals");
 

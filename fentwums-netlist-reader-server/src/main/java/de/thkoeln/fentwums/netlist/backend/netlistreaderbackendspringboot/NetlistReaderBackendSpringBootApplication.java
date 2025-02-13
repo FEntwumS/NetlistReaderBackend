@@ -199,7 +199,7 @@ public class NetlistReaderBackendSpringBootApplication {
 		}
 
 		logger.info("Start creating graph");
-		creator.createGraphFromNetlist(parser.getModuleToParse(), parser.getToplevelName(), blackboxmap);
+		creator.createGraphFromNetlist(parser.getModuleToParse(), parser.getToplevelName(), blackboxmap, settings);
 		logger.info("Graph created successfully");
 
 		collapser.setHierarchy(creator.getHierarchyTree());

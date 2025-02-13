@@ -31,10 +31,10 @@ public class SignalBundler {
 	 *
 	 * @param sId The bitindex of the signal to be bundled
 	 */
-	public void bundleSignalWithId(int sId) {
+	public void bundleSignalWithId(int sId, NetlistCreationSettings settings) {
 		SignalNode sRoot = treeMap.get(sId).getSRoot();
 
-		bundleRecursively(sRoot, sId);
+		bundleRecursively(sRoot, sId, settings);
 	}
 
 	/**
@@ -45,7 +45,7 @@ public class SignalBundler {
 	 * @param sNode The node describing the signal occurence
 	 * @param sId   The bitindex of the signal to be bundled
 	 */
-	public void bundleRecursively(SignalNode sNode, int sId) {
+	public void bundleRecursively(SignalNode sNode, int sId, NetlistCreationSettings settings) {
 		SignalNode nextNode;
 		SignalNode bundleNode;
 
@@ -74,14 +74,14 @@ public class SignalBundler {
 		}
 
 		// then bundle the signal
-		bundleLayer(nodesToBundle, toBundle, hNode);
+		bundleLayer(nodesToBundle, toBundle, hNode, settings);
 
 		// bundle the children
 		for (String child : sNode.getSChildren().keySet()) {
 			nextNode = sNode.getSChildren().get(child);
 
 			if (nextNode.getIsSource() == false) {
-				bundleRecursively(nextNode, sId);
+				bundleRecursively(nextNode, sId, settings);
 			}
 		}
 	}
@@ -93,7 +93,7 @@ public class SignalBundler {
 	 * @param nodesToBundle The signal occurrences which are to be bundled. each signal node must be at the same
 	 *                      position in the hierarchy
 	 */
-	private void bundlePorts(ArrayList<SignalNode> nodesToBundle) {
+	private void bundlePorts(ArrayList<SignalNode> nodesToBundle, NetlistCreationSettings settings) {
 		ArrayList<Integer> currentSignalRange;
 		ElkPort currentPort, bundlePort;
 		ElkNode containingNode;
@@ -307,7 +307,7 @@ public class SignalBundler {
 
 				currentPort.getLabels().remove(currentPortLabel);
 
-				currentPortLabel = ElkElementCreator.createNewPortLabel(signalName, currentPort);
+				currentPortLabel = ElkElementCreator.createNewPortLabel(signalName, currentPort, settings);
 			}
 		}
 	}
@@ -319,7 +319,7 @@ public class SignalBundler {
 	 * @param bundle       The signal indices and the corresponding bit indices
 	 * @param currentHNode The current position in the hierarchy
 	 */
-	private void bundleLayer(ArrayList<SignalNode> toBundle, Bundle bundle, HierarchicalNode currentHNode) {
+	private void bundleLayer(ArrayList<SignalNode> toBundle, Bundle bundle, HierarchicalNode currentHNode, NetlistCreationSettings settings) {
 		// return early if the signal is already bundled
 		for (int bId : bundle.getBundleSignalMap().keySet()) {
 			if (currentHNode.getCurrentlyBundledSignals().contains(bId)) {
@@ -328,7 +328,7 @@ public class SignalBundler {
 		}
 
 		// bundle them
-		bundlePorts(toBundle);
+		bundlePorts(toBundle, settings);
 
 		// store the indexes of the newly bundled signals
 		currentHNode.getCurrentlyBundledSignals().addAll(bundle.getBundleSignalMap().keySet());

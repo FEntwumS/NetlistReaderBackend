@@ -34,7 +34,7 @@ public class Main {
 
 		start = Instant.now();
 		logger.atInfo().setMessage("{}").addArgument(parser.getToplevelName()).log();
-		graphCreator.createGraphFromNetlist(parser.getModuleToParse(), parser.getToplevelName(),new HashMap<String, Object>());
+		graphCreator.createGraphFromNetlist(parser.getModuleToParse(), parser.getToplevelName(),new HashMap<String, Object>(), null);
 		end = Instant.now();
 
 		logger.atInfo().setMessage("Graph creation time: {} ms").addArgument(Duration.between(start, end).toMillis())

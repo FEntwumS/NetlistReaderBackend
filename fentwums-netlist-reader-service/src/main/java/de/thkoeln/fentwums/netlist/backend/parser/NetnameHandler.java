@@ -37,7 +37,7 @@ public class NetnameHandler {
 	 * @param NetInformationHashMap Stores the connections between signal names and the associated scopes and bitindices
 	 */
 	public void handleNetnames(HashMap<String, Object> netnames, String modulename,
-							   HashMap<Integer, SignalTree> signalMap, HierarchyTree hierarchyTree, HashMap<String, NetInformation> NetInformationHashMap) {
+							   HashMap<Integer, SignalTree> signalMap, HierarchyTree hierarchyTree, HashMap<String, NetInformation> NetInformationHashMap, NetlistCreationSettings settings) {
 		HashMap<String, Object> currentNet;
 		HashMap<String, Object> currentNetAttributes;
 		String currentNetPath;
@@ -188,7 +188,7 @@ public class NetnameHandler {
 	 * @param signalMap  HashMap containing all signal trees
 	 * @param modulename name of top level entity
 	 */
-	public void recreateSignals(HashMap<Integer, SignalTree> signalMap, String modulename) {
+	public void recreateSignals(HashMap<Integer, SignalTree> signalMap, String modulename, NetlistCreationSettings settings) {
 		SignalTree currentSignalTree;
 		SignalNode currentSignalNode;
 		int currentSignalIndex = 0;
@@ -205,10 +205,10 @@ public class NetnameHandler {
 			currentSignalNode = currentSignalTree.getSRoot();
 
 			if (currentSignalNode.getHChildren().isEmpty()) {
-				routeSource(currentSignalTree, currentSignalNode);
+				routeSource(currentSignalTree, currentSignalNode, settings);
 			}
 
-			findSinks(currentSignalTree, null);
+			findSinks(currentSignalTree, null, settings);
 		}
 	}
 
@@ -220,7 +220,7 @@ public class NetnameHandler {
 	 * @param currentSignalTree signal tree of the signal that is to be routed
 	 * @param precursor         Signal occurrence in the layer below the layer where the signal will be routed to
 	 */
-	private void routeSource(SignalTree currentSignalTree, SignalNode precursor) {
+	private void routeSource(SignalTree currentSignalTree, SignalNode precursor, NetlistCreationSettings settings) {
 		SignalNode currentNode = precursor.getHParent();
 		ElkNode currentGraphNode;
 		ElkPort sink, source;
@@ -261,7 +261,7 @@ public class NetnameHandler {
 				ElkLabel sinkLabel =
 						ElkElementCreator.createNewPortLabel(currentNode.getSName() + (currentSignalIndex != -1 ?
 										" [" + currentSignalIndex + "]" : ""),
-								sink);
+								sink, settings);
 			} else {
 				sink = currentNode.getSPort();
 			}
@@ -280,7 +280,7 @@ public class NetnameHandler {
 			linkSignalNodes(precursor, currentNode);
 
 			// go up one layer
-			routeSource(currentSignalTree, currentNode);
+			routeSource(currentSignalTree, currentNode, settings);
 		} else {
 			return;
 		}
@@ -295,7 +295,7 @@ public class NetnameHandler {
 	 * @param currentSignalTree Signal tree defining the current signal
 	 * @param currentSignalNode Current position in the signal tree
 	 */
-	private void findSinks(SignalTree currentSignalTree, SignalNode currentSignalNode) {
+	private void findSinks(SignalTree currentSignalTree, SignalNode currentSignalNode, NetlistCreationSettings settings) {
 		SignalNode nextNode;
 		if (currentSignalNode == null) {
 			currentSignalNode = currentSignalTree.getHRoot();
@@ -313,11 +313,11 @@ public class NetnameHandler {
 			if (nextNode.getHChildren().isEmpty() && !nextNode.getHParent().getSName().equals("root")) {
 				// Found sink; Start routing
 
-				routeSink(currentSignalTree, nextNode);
+				routeSink(currentSignalTree, nextNode, settings);
 			} else {
 				// Check a layer lower for sinks
 
-				findSinks(currentSignalTree, nextNode);
+				findSinks(currentSignalTree, nextNode, settings);
 			}
 		}
 	}
@@ -330,7 +330,7 @@ public class NetnameHandler {
 	 * @param currentSignalTree
 	 * @param currentSignalNode
 	 */
-	private void routeSink(SignalTree currentSignalTree, SignalNode currentSignalNode) {
+	private void routeSink(SignalTree currentSignalTree, SignalNode currentSignalNode, NetlistCreationSettings settings) {
 		SignalNode precursor = currentSignalNode.getHParent();
 		ElkPort source = null, sink;
 		SignalNode sourceNode;
@@ -383,7 +383,7 @@ public class NetnameHandler {
 				ElkLabel sourceLabel =
 						ElkElementCreator.createNewPortLabel(precursor.getSName() + (currentSignalIndex != -1 ?
 								" [" + currentSignalIndex +
-										"]" : ""), source);
+										"]" : ""), source, settings);
 
 				precursor.setSPort(source);
 			} else {
@@ -441,10 +441,10 @@ public class NetnameHandler {
 								ElkElementCreator.createNewPortLabel(precursor.getSName() + (currentSignalIndex != -1 ?
 										" " +
 												"[" + currentSignalIndex +
-												"]" : ""), source);
+												"]" : ""), source, settings);
 					} else {
 						sourceLabel = ElkElementCreator.createNewPortLabel(String.valueOf(currentSignalTree.getSId()),
-								source);
+								source, settings);
 					}
 
 					precursor.setSPort(source);
@@ -475,7 +475,7 @@ public class NetnameHandler {
 		String possibleSourceBelow = getSourceBelow(precursor);
 		if (!possibleSourceBelow.isEmpty()) {
 			String[] possibleSourceBelowSplit = possibleSourceBelow.split(" ");
-			routeSourceBelow(currentSignalTree, precursor, possibleSourceBelowSplit, 0);
+			routeSourceBelow(currentSignalTree, precursor, possibleSourceBelowSplit, 0, settings);
 
 			// Add final link
 
@@ -498,7 +498,7 @@ public class NetnameHandler {
 		}
 
 		if (precursor.getHParent().getHParent() != null) {
-			routeSink(currentSignalTree, precursor);
+			routeSink(currentSignalTree, precursor, settings);
 		}
 	}
 
@@ -513,7 +513,7 @@ public class NetnameHandler {
 	 * @param depth             The current depth relative to the signal node from which this route descends
 	 */
 	private void routeSourceBelow(SignalTree currentSignalTree, SignalNode precursor, String[] pathSplit,
-								  int depth) {
+								  int depth, NetlistCreationSettings settings) {
 		SignalNode child;
 		ElkPort source, sink;
 
@@ -522,7 +522,7 @@ public class NetnameHandler {
 
 		if (depth < pathSplit.length - 1) {
 			// First descend towards the source, then route up from there
-			routeSourceBelow(currentSignalTree, child, pathSplit, depth + 1);
+			routeSourceBelow(currentSignalTree, child, pathSplit, depth + 1, settings);
 		}
 
 		if (depth >= 1) {
@@ -536,7 +536,7 @@ public class NetnameHandler {
 				precursor.setSPort(sink);
 
 				ElkLabel sinkLabel = ElkElementCreator.createNewPortLabel(String.valueOf(currentSignalTree.getSId()),
-						sink);
+						sink, settings);
 			}
 
 			if (sink.getProperty(CoreOptions.PORT_SIDE) == PortSide.WEST) {
