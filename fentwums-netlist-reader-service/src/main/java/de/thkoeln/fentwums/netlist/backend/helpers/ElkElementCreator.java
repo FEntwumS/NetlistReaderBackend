@@ -117,7 +117,7 @@ public class ElkElementCreator {
 	 * @return The created label
 	 */
 	private static ElkLabel createNodeLabel(String content, ElkGraphElement parent, double fontsize) {
-		parent.setProperty(CoreOptions.SPACING_LABEL_NODE, fontsize * 0.12);
+		parent.setProperty(CoreOptions.SPACING_LABEL_NODE, (10 / (-(fontsize * 0.0005 + 1))) + 12);
 
 		return createNewLabel(content, parent, fontsize);
 	}
