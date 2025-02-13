@@ -109,6 +109,20 @@ public class ElkElementCreator {
 	}
 
 	/**
+	 * Creates a label for elk nodes and sets the spacing to an appropriate value
+	 *
+	 * @param content  The content to be displayed in the label
+	 * @param parent   The element to which the label is to be attached
+	 * @param fontsize The font size to be used
+	 * @return The created label
+	 */
+	private static ElkLabel createNodeLabel(String content, ElkGraphElement parent, double fontsize) {
+		parent.setProperty(CoreOptions.SPACING_LABEL_NODE, fontsize * 0.12);
+
+		return createNewLabel(content, parent, fontsize);
+	}
+
+	/**
 	 * Creates a new title-sized ElkLabel and automatically sets its dimensions
 	 *
 	 * @param content The content to be displayed in the label
