@@ -112,13 +112,13 @@ public class NetlistReaderBackendSpringBootApplication {
 	@RequestMapping(value = "/graphLocalFile", method = RequestMethod.POST)
 	public ResponseEntity<String> createNetlistGraphFromLocalFile(@RequestParam(value = "filename") String filename,
 																  @RequestParam(value = "hash") String hash,
-																  @RequestParam(value = "EntityLabelFontSize",
+																  @RequestParam(value = "entityLabelFontSize",
 																		  defaultValue = "25") int entityLabelFontSize,
-																  @RequestParam(value = "CellLabelFontSize",
+																  @RequestParam(value = "cellLabelFontSize",
 																		  defaultValue = "15") int cellLabelFontSize,
-																  @RequestParam(value = "EdgeLabelFontSize",
+																  @RequestParam(value = "edgeLabelFontSize",
 																		  defaultValue = "10") int edgeLabelFontSize,
-																  @RequestParam(value = "PortLabelFontSize",
+																  @RequestParam(value = "portLabelFontSize",
 																		  defaultValue = "10") int portLabelFontSize) {
 		GraphCreator creator = new GraphCreator();
 		NetlistParser parser = new NetlistParser();
@@ -138,13 +138,13 @@ public class NetlistReaderBackendSpringBootApplication {
 	@RequestMapping(value = "/graphRemoteFile", method = RequestMethod.POST)
 	public ResponseEntity<String> createNetlistGraphFromRemoteFile(@RequestParam("file") MultipartFile file,
 																   @RequestParam(value = "hash") String hash,
-																   @RequestParam(value = "EntityLabelFontSize",
+																   @RequestParam(value = "entityLabelFontSize",
 																		   defaultValue = "25") int entityLabelFontSize,
-																   @RequestParam(value = "CellLabelFontSize",
+																   @RequestParam(value = "cellLabelFontSize",
 																		   defaultValue = "15") int cellLabelFontSize,
-																   @RequestParam(value = "EdgeLabelFontSize",
+																   @RequestParam(value = "edgeLabelFontSize",
 																		   defaultValue = "10") int edgeLabelFontSize,
-																   @RequestParam(value = "PortLabelFontSize",
+																   @RequestParam(value = "portLabelFontSize",
 																		   defaultValue = "10") int portLabelFontSize) {
 		GraphCreator creator = new GraphCreator();
 		NetlistParser parser = new NetlistParser();
