@@ -109,6 +109,7 @@ public class NetlistReaderBackendSpringBootApplication {
 		}
 	}
 
+	@Deprecated
 	@RequestMapping(value = "/graphLocalFile", method = RequestMethod.POST)
 	public ResponseEntity<String> createNetlistGraphFromLocalFile(@RequestParam(value = "filename") String filename,
 																  @RequestParam(value = "hash") String hash,
