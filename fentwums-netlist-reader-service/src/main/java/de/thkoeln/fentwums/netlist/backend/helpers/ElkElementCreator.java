@@ -132,9 +132,9 @@ public class ElkElementCreator {
 	public static ElkLabel createNewEntityLabel(String content, ElkGraphElement parent,
 												NetlistCreationSettings settings) {
 		if (settings == null) {
-			return createNewLabel(content, parent, 25.0d);
+			return createNodeLabel(content, parent, 25.0d);
 		} else {
-			return createNewLabel(content, parent, settings.getEntityLabelFontSize());
+			return createNodeLabel(content, parent, settings.getEntityLabelFontSize());
 		}
 	}
 
@@ -148,9 +148,9 @@ public class ElkElementCreator {
 	public static ElkLabel createNewCellLabel(String content, ElkGraphElement parent,
 											  NetlistCreationSettings settings) {
 		if (settings == null) {
-			return createNewLabel(content, parent, 15.0d);
+			return createNodeLabel(content, parent, 15.0d);
 		} else {
-			return createNewLabel(content, parent, settings.getCellLabelFontSize());
+			return createNodeLabel(content, parent, settings.getCellLabelFontSize());
 		}
 	}
 
