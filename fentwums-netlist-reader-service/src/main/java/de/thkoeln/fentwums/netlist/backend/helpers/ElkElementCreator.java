@@ -125,8 +125,9 @@ public class ElkElementCreator {
 	/**
 	 * Creates a new title-sized ElkLabel and automatically sets its dimensions
 	 *
-	 * @param content The content to be displayed in the label
-	 * @param parent  The element to which the label is to be attached
+	 * @param content  The content to be displayed in the label
+	 * @param parent   The element to which the label is to be attached
+	 * @param settings The settings that should be used during the labels creation
 	 * @return The created label
 	 */
 	public static ElkLabel createNewEntityLabel(String content, ElkGraphElement parent,
@@ -141,8 +142,9 @@ public class ElkElementCreator {
 	/**
 	 * Creates a new subtitle-sized ElkLabel and automatically sets its dimensions
 	 *
-	 * @param content The content to be displayed in the label
-	 * @param parent  The element to which the label is to be attached
+	 * @param content  The content to be displayed in the label
+	 * @param parent   The element to which the label is to be attached
+	 * @param settings The settings that should be used during the labels creation
 	 * @return The created label
 	 */
 	public static ElkLabel createNewCellLabel(String content, ElkGraphElement parent,
@@ -157,8 +159,9 @@ public class ElkElementCreator {
 	/**
 	 * Creates a new normal-sized ElkLabel and automatically sets its dimensions
 	 *
-	 * @param content The content to be displayed in the label
-	 * @param parent  The element to which the label is to be attached
+	 * @param content  The content to be displayed in the label
+	 * @param parent   The element to which the label is to be attached
+	 * @param settings The settings that should be used during the labels creation
 	 * @return The created label
 	 */
 	public static ElkLabel createNewEdgeLabel(String content, ElkGraphElement parent,
@@ -173,8 +176,9 @@ public class ElkElementCreator {
 	/**
 	 * Creates a new normal-sized ElkLabel and automatically sets its dimensions
 	 *
-	 * @param content The content to be displayed in the label
-	 * @param parent  The element to which the label is to be attached
+	 * @param content  The content to be displayed in the label
+	 * @param parent   The element to which the label is to be attached
+	 * @param settings The settings that should be used during the labels creation
 	 * @return The created label
 	 */
 	public static ElkLabel createNewPortLabel(String content, ElkGraphElement parent,
@@ -189,11 +193,13 @@ public class ElkElementCreator {
 	/**
 	 * Creates a new normal-sized ElkLabel and automatically sets its dimensions
 	 *
-	 * @param content The content to be displayed in the label
-	 * @param parent  The element to which the label is to be attached
+	 * @param content  The content to be displayed in the label
+	 * @param parent   The element to which the label is to be attached
+	 * @param settings The settings that should be used during the labels creation
 	 * @return The created label
 	 */
-	public static ElkLabel createNewConstantDriverLabel(String content, ElkGraphElement parent, NetlistCreationSettings settings) {
+	public static ElkLabel createNewConstantDriverLabel(String content, ElkGraphElement parent,
+														NetlistCreationSettings settings) {
 		if (settings == null) {
 			return createNewLabel(content, parent, 10.0d);
 		} else {
