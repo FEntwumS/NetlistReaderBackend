@@ -81,6 +81,7 @@ public class GraphCreator {
 			toplevelNode.setProperty(CoreOptions.NODE_LABELS_PLACEMENT, EnumSet.of(NodeLabelPlacement.H_CENTER,
 					NodeLabelPlacement.V_TOP, NodeLabelPlacement.OUTSIDE));
 			toplevelNode.setProperty(CoreOptions.PORT_LABELS_PLACEMENT, EnumSet.of(PortLabelPlacement.INSIDE));
+			toplevelNode.setProperty(FEntwumSOptions.CELL_TYPE, "HDL_ENTITY");
 		}
 
 		try {

@@ -104,6 +104,7 @@ public class CellHandler {
 								intermediateCellPath.toString());
 
 						newElkNode.setProperty(FEntwumSOptions.LOCATION_PATH, intermediateCellPath.toString());
+						newElkNode.setProperty(FEntwumSOptions.CELL_TYPE, "HDL_ENTITY");
 
 						ElkLabel newElkNodeLabel = ElkElementCreator.createNewEntityLabel(pathFragment, newElkNode,
 								settings);
