@@ -1,16 +1,10 @@
 package de.thkoeln.fentwums.netlist.backend.netlistreaderbackendspringboot;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
-import de.thkoeln.fentwums.netlist.backend.helpers.CellCollapser;
-import de.thkoeln.fentwums.netlist.backend.helpers.SignalBundler;
-import de.thkoeln.fentwums.netlist.backend.netlistreaderbackendspringboot.types.NetlistInformation;
-import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
-import de.thkoeln.fentwums.netlist.backend.parser.GraphCreator;
-import de.thkoeln.fentwums.netlist.backend.parser.NetlistParser;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import org.eclipse.elk.alg.layered.options.LayeredOptions;
 import org.eclipse.elk.core.data.LayoutMetaDataService;
 import org.eclipse.elk.graph.json.ElkGraphJson;
@@ -26,14 +20,25 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
+import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
+import de.thkoeln.fentwums.netlist.backend.helpers.CellCollapser;
+import de.thkoeln.fentwums.netlist.backend.helpers.SignalBundler;
+import de.thkoeln.fentwums.netlist.backend.netlistreaderbackendspringboot.types.NetlistInformation;
+import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
+import de.thkoeln.fentwums.netlist.backend.parser.GraphCreator;
+import de.thkoeln.fentwums.netlist.backend.parser.NetlistParser;
 
 @SpringBootApplication
 @RestController
@@ -47,6 +52,8 @@ public class NetlistReaderBackendSpringBootApplication {
 
 	@Value("${JAVA_HOME}")
 	private static String javaHome;
+
+	private static boolean isReady = false;
 
 	static HashMap<String, Object> blackboxmap = new HashMap<>();
 
@@ -107,6 +114,8 @@ public class NetlistReaderBackendSpringBootApplication {
 		} catch (Exception e) {
 			logger.error("Error reading blackboxes", e);
 		}
+		isReady = true;
+		logger.atInfo().setMessage("Backend Started. Ready to receive Requests").log();
 	}
 
 	@Deprecated
@@ -134,6 +143,15 @@ public class NetlistReaderBackendSpringBootApplication {
 		parser.setNetlistStream(null);
 
 		return graphNetlist(creator, parser, Long.parseUnsignedLong(hash), settings);
+	}
+
+	@GetMapping("/health")
+	public ResponseEntity<String> healthCheck() {
+		if (isReady) {
+			return new ResponseEntity<>("Backend is ready", HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>("Backend is not ready", HttpStatus.SERVICE_UNAVAILABLE);
+		}
 	}
 
 	@RequestMapping(value = "/graphRemoteFile", method = RequestMethod.POST)
