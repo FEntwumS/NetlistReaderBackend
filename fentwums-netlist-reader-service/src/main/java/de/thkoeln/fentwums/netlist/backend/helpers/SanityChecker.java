@@ -92,8 +92,8 @@ public class SanityChecker {
 			return;
 		}
 
-		if (edge.getSources().getFirst().getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST) && !edge.getTargets().getFirst().getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)) {
-			logger.atError().setMessage("Edge {} goes fromm sink to source (wrong direction)").addArgument(edge).log();
+		if (edge.getSources().getFirst().getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST) && !(edge.getTargets().getFirst().getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST) || edge.getTargets().getFirst().getProperty(CoreOptions.PORT_SIDE).equals(PortSide.SOUTH))) {
+			logger.atError().setMessage("Edge {} goes from sink to source (wrong direction)").addArgument(edge).log();
 		}
 	}
 
