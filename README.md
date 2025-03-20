@@ -68,7 +68,13 @@ in the root directory, an über-JAR containing all dependencies can be created. 
 `fentwums-netlist-reader-server/target` can then be executed using
 
 ```
-java -jar fentwums-netlist-reader-server-0.6.2-exec.jar
+java -Xmx16G -jar fentwums-netlist-reader-server-0.8.0-exec.jar
+```
+
+Alternatively, from the `fentwums-netlist-reader-server` directory, you can execute the `spring-boot:run` goal like so
+
+```
+mvn clean package spring-boot:run
 ```
 
 # Notes
@@ -85,9 +91,8 @@ Since the layouting process is mostly single-threaded by nature, a modern machin
 recommended for running the server. The CPU does not need to have a lot of cores, it should just be fast.
 
 Depending on the size of the netlists that are to be layouted, the backend can use quite a lot of system memory to store
-all the necessary information. Therefore, it is important to provide an appropriate amount of RAM to the server. The
-software itself is currently configured to use up to 1.000 GB of system memory, but this limit can be raised to 4 TB if
-desired.
+all the necessary information. Therefore, it is important to provide an appropriate amount of RAM to the server using
+the java -Xmx option. 
 
 ## Log generation
 
