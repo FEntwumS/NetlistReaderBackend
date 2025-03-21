@@ -31,7 +31,7 @@ collapsing or expanding a layer.
 ## fentwums-netlist-viewer-server
 
 The server module provides the communications interface to allow a suitable frontend (such as our OneWare Studio
-Plugin [Oneware.NetlistReaderFrontend](https://github.com/FEntwumS/Oneware.NetlistReaderFrontend)) to layout a given
+Plugin [FEntwumS.NetlistViewer](https://github.com/FEntwumS/FEntwumS.NetlistViewer)) to layout a given
 netlist. The server can be used locally (on the same machine as the frontend) or it can be used remotely to allow
 multiple users to experience a fast and responsive viewing experience.
 
@@ -39,7 +39,7 @@ multiple users to experience a fast and responsive viewing experience.
 
 This repository only contains the backend components of the viewer system. To actually view your HDL-Designs, please use
 a designated frontend such as our OneWare Studio
-Plugin [Oneware.NetlistReaderFrontend](https://github.com/FEntwumS/Oneware.NetlistReaderFrontend) or you can always
+Plugin [FEntwumS.NetlistViewer](https://github.com/FEntwumS/FEntwumS.NetlistViewer) or you can always
 build your own frontend.
 
 # Can I use the backend separately from the frontend?
