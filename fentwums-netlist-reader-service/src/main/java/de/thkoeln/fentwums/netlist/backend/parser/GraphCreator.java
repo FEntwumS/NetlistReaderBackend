@@ -154,6 +154,10 @@ public class GraphCreator {
 		// Check the graph for any obvious mistakes
 		SanityChecker checker = new SanityChecker();
 
+		// Mark any ports that are not connected to any signal
+		PortMarker marker = new PortMarker();
+		marker.mark(toplevel);
+
 		checker.checkGraph(root);
 
 		this.hierarchy = hierarchyTree;
