@@ -8,6 +8,8 @@ import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkLabel;
 import org.eclipse.elk.graph.ElkNode;
 import org.eclipse.elk.graph.ElkPort;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,6 +22,8 @@ import java.util.HashMap;
  * <code>HierarchicalNode</code>
  */
 public class SignalBundler {
+	private static Logger logger = LoggerFactory.getLogger(SignalBundler.class);
+
 	private HashMap<Integer, SignalTree> treeMap;
 	private HierarchyTree hierarchy;
 
@@ -157,9 +161,10 @@ public class SignalBundler {
 					}
 
 					for (ElkEdge edge : bundlePort.getIncomingEdges()) {
-						if (((ElkPort) edge.getSources().getFirst()).getParent().equals(((ElkPort) incoming.getSources().getFirst()).getParent())) {
+						if (((ElkPort) edge.getSources().getFirst()).getParent().equals(((ElkPort) incoming.getSources().getFirst()).getParent())
+								&& edge.getSources().getFirst().getProperty(FEntwumSOptions.PORT_GROUP_NAME).equals(incoming.getSources().getFirst().getProperty(FEntwumSOptions.PORT_GROUP_NAME))) {
 							// if any incoming edge of the bundle port and any incoming edge of the port that is
-							// currently being checked have the same source, it is marked removal
+							// currently being checked have the same source and the come from the same port group, it is marked removal
 
 							needEdge = false;
 
@@ -250,7 +255,7 @@ public class SignalBundler {
 
 		// now update labels
 		//
-		// contiguous ranges of bit indeces are shortened to the start of the range and the end of the range,
+		// contiguous ranges of bit indexes are shortened to the start of the range and the end of the range,
 		// separated by a colon
 		// a range containing only a single index does not get transformed or shortened
 		// if a bundle contains multiple ranges, the ranges are concatenated with a semicolon followed by space as
@@ -319,7 +324,8 @@ public class SignalBundler {
 	 * @param bundle       The signal indices and the corresponding bit indices
 	 * @param currentHNode The current position in the hierarchy
 	 */
-	private void bundleLayer(ArrayList<SignalNode> toBundle, Bundle bundle, HierarchicalNode currentHNode, NetlistCreationSettings settings) {
+	private void bundleLayer(ArrayList<SignalNode> toBundle, Bundle bundle, HierarchicalNode currentHNode,
+							 NetlistCreationSettings settings) {
 		// return early if the signal is already bundled
 		for (int bId : bundle.getBundleSignalMap().keySet()) {
 			if (currentHNode.getCurrentlyBundledSignals().contains(bId)) {
