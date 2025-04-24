@@ -148,13 +148,20 @@ public class PortHandler {
 		SignalTree tree = new SignalTree();
 		tree.setSId(port);
 		SignalNode rootNode = new SignalNode("root", null, new HashMap<String, SignalNode>(), null,
-				new HashMap<String, SignalNode>(), false, null);
+				new HashMap<String, SignalNode>(), false, null, null);
 
 		tree.setHRoot(rootNode);
 		rootNode.setSVisited(true);
 
-		SignalNode toplevelNode = new SignalNode(modulename, rootNode, new HashMap<String, SignalNode>(), null,
-				new HashMap<String, SignalNode>(), false, sPort);
+		SignalNode toplevelNode;
+
+		if (sPort.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST) {
+			toplevelNode = new SignalNode(modulename, rootNode, new HashMap<String, SignalNode>(), null,
+					new HashMap<String, SignalNode>(), false, null, sPort);
+		} else {
+			toplevelNode = new SignalNode(modulename, rootNode, new HashMap<String, SignalNode>(), null,
+					new HashMap<String, SignalNode>(), false, sPort, null);
+		}
 
 		toplevelNode.setSVisited(true);
 

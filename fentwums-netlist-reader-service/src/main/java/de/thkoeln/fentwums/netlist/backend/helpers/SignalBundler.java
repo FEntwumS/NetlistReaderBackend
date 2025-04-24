@@ -112,7 +112,7 @@ public class SignalBundler {
 		BundlingInformation currentInfo;
 
 		for (SignalNode currentNode : nodesToBundle) {
-			currentPort = currentNode.getSPort();
+			currentPort = currentNode.getInPort();
 
 			if (currentPort == null) {
 				continue;
@@ -250,7 +250,7 @@ public class SignalBundler {
 				bundlePort = currentPort;
 			}
 
-			currentNode.setSPort(bundlePort);
+			currentNode.setInPort(bundlePort);
 		}
 
 		// now update labels

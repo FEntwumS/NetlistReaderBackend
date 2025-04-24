@@ -77,7 +77,7 @@ public class SignalTree {
 	}
 
 	private void updateSignalValue(SignalNode currentNode) {
-		ElkPort currentPort = currentNode.getSPort();
+		ElkPort currentPort = currentNode.getOutPort();
 
 		if (currentPort != null) {
 			for (ElkEdge edge : currentPort.getOutgoingEdges()) {

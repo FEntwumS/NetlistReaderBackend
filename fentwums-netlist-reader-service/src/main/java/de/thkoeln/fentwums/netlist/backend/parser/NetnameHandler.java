@@ -30,14 +30,16 @@ public class NetnameHandler {
 	/**
 	 * Updates all signal trees with occurrences and bundling information from the "netnames" section of the netlist
 	 *
-	 * @param netnames      HashMap containing the deserialized net details
-	 * @param modulename    Name of the top level entity
-	 * @param signalMap     HashMap containing all signal trees
-	 * @param hierarchyTree Tree of the hierarchical netlist structure
-	 * @param NetInformationHashMap Stores the connections between signal names and the associated scopes and bitindices
+	 * @param netnames              HashMap containing the deserialized net details
+	 * @param modulename            Name of the top level entity
+	 * @param signalMap             HashMap containing all signal trees
+	 * @param hierarchyTree         Tree of the hierarchical netlist structure
+	 * @param NetInformationHashMap Stores the connections between signal names and the associated scopes and
+	 *                                 bitindices
 	 */
 	public void handleNetnames(HashMap<String, Object> netnames, String modulename,
-							   HashMap<Integer, SignalTree> signalMap, HierarchyTree hierarchyTree, HashMap<String, NetInformation> NetInformationHashMap, NetlistCreationSettings settings) {
+							   HashMap<Integer, SignalTree> signalMap, HierarchyTree hierarchyTree, HashMap<String,
+					NetInformation> NetInformationHashMap, NetlistCreationSettings settings) {
 		HashMap<String, Object> currentNet;
 		HashMap<String, Object> currentNetAttributes;
 		String currentNetPath;
@@ -188,7 +190,8 @@ public class NetnameHandler {
 	 * @param signalMap  HashMap containing all signal trees
 	 * @param modulename name of top level entity
 	 */
-	public void recreateSignals(HashMap<Integer, SignalTree> signalMap, String modulename, NetlistCreationSettings settings) {
+	public void recreateSignals(HashMap<Integer, SignalTree> signalMap, String modulename,
+								NetlistCreationSettings settings) {
 		SignalTree currentSignalTree;
 		SignalNode currentSignalNode;
 		int currentSignalIndex = 0;
@@ -227,7 +230,7 @@ public class NetnameHandler {
 		int currentSignalIndex;
 
 		// dont create port, if currentNode is toplevel and no port exists
-		if (currentSignalTree.getHRoot().getHChildren().containsValue(currentNode) && currentNode.getSPort() == null) {
+		if (currentSignalTree.getHRoot().getHChildren().containsValue(currentNode) && currentNode.getOutPort() == null) {
 			return;
 		}
 
@@ -238,11 +241,11 @@ public class NetnameHandler {
 			if (currentNode.getHParent() == null || currentNode.getHParent().getSVisited() == false) {
 				return;
 			}
-			source = precursor.getSPort();
+			source = precursor.getOutPort();
 
 			// create port (if it doesnt exist yet)
 			// should be the default (except for output signals)
-			if (currentNode.getSPort() == null) {
+			if (currentNode.getOutPort() == null) {
 				currentGraphNode = source.getParent().getParent();
 
 				if (currentGraphNode.getIdentifier().equals("root")) {
@@ -254,7 +257,7 @@ public class NetnameHandler {
 				// Propagate port group indication to created ports
 				sink.setProperty(FEntwumSOptions.PORT_GROUP_NAME, source.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
 
-				currentNode.setSPort(sink);
+				currentNode.setOutPort(sink);
 
 				currentSignalIndex = currentNode.getIndexInSignal();
 
@@ -263,7 +266,7 @@ public class NetnameHandler {
 										" [" + currentSignalIndex + "]" : ""),
 								sink, settings);
 			} else {
-				sink = currentNode.getSPort();
+				sink = currentNode.getOutPort();
 			}
 
 			// create the connecting edge
@@ -295,7 +298,8 @@ public class NetnameHandler {
 	 * @param currentSignalTree Signal tree defining the current signal
 	 * @param currentSignalNode Current position in the signal tree
 	 */
-	private void findSinks(SignalTree currentSignalTree, SignalNode currentSignalNode, NetlistCreationSettings settings) {
+	private void findSinks(SignalTree currentSignalTree, SignalNode currentSignalNode,
+						   NetlistCreationSettings settings) {
 		SignalNode nextNode;
 		if (currentSignalNode == null) {
 			currentSignalNode = currentSignalTree.getHRoot();
@@ -330,20 +334,26 @@ public class NetnameHandler {
 	 * @param currentSignalTree
 	 * @param currentSignalNode
 	 */
-	private void routeSink(SignalTree currentSignalTree, SignalNode currentSignalNode, NetlistCreationSettings settings) {
+	private void routeSink(SignalTree currentSignalTree, SignalNode currentSignalNode,
+						   NetlistCreationSettings settings) {
 		SignalNode precursor = currentSignalNode.getHParent();
 		ElkPort source = null, sink;
 		SignalNode sourceNode;
 		int currentSignalIndex;
 
 
-		sink = currentSignalNode.getSPort();
+		sink = currentSignalNode.getInPort();
+
+		if (sink == null) {
+			logger.error("Missing sink");
+			return;
+		}
 
 		// source is most likely in same layer; search there for signal source (check port side)
 		for (String candidate : precursor.getHChildren().keySet()) {
 			sourceNode = precursor.getHChildren().get(candidate);
 
-			source = sourceNode.getSPort();
+			source = sourceNode.getOutPort();
 
 			if (source != null && source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && sink.getIncomingEdges().isEmpty()) {
 				ElkEdge newEdge = createEdgeIfNotExists(source, sink);
@@ -367,7 +377,7 @@ public class NetnameHandler {
 		// check if signal came from parent, construct port as necessary
 		if (precursor.getHParent().getSVisited() && sink.getIncomingEdges().isEmpty()) {
 			// check if precursor source port exists
-			if (precursor.getSPort() == null) {
+			if (precursor.getOutPort() == null) {
 				if (sink.getParent().getParent().getIdentifier().equals("root")) {
 					// TODO fixme
 					logger.error("The root node seems to contain ports");
@@ -385,9 +395,9 @@ public class NetnameHandler {
 								" [" + currentSignalIndex +
 										"]" : ""), source, settings);
 
-				precursor.setSPort(source);
+				precursor.setInPort(source);
 			} else {
-				source = precursor.getSPort();
+				source = precursor.getOutPort();
 			}
 
 			if (source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)
@@ -406,11 +416,12 @@ public class NetnameHandler {
 			}
 		}
 
+
 		// If the signal occurs in a containing layer and the sink to be routed is not yet connected to the source,
 		// route one layer up. This can occur when a signal occurrence is not marked in the netlist
 
 		if (!sink.getParent().getParent().getParent().getIdentifier().equals("root") && higherUse(precursor) && sink.getIncomingEdges().isEmpty()) {
-			source = precursor.getSPort();
+			source = precursor.getInPort();
 
 			if (sink.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST) {
 				return;
@@ -422,8 +433,8 @@ public class NetnameHandler {
 				for (String candidate : precursor.getHChildren().keySet()) {
 					child = precursor.getHChildren().get(candidate);
 
-					if (child.getSPort() != null && child.getSPort().getProperty(CoreOptions.PORT_SIDE) != PortSide.WEST) {
-						source = child.getSPort();
+					if (child.getInPort() != null && child.getInPort().getProperty(CoreOptions.PORT_SIDE) != PortSide.WEST) {
+						source = child.getInPort();
 					}
 				}
 
@@ -447,7 +458,7 @@ public class NetnameHandler {
 								source, settings);
 					}
 
-					precursor.setSPort(source);
+					precursor.setInPort(source);
 				}
 			}
 
@@ -480,7 +491,7 @@ public class NetnameHandler {
 			// Add final link
 
 			sourceNode = precursor.getHChildren().get(possibleSourceBelowSplit[0]);
-			source = sourceNode.getSPort();
+			source = sourceNode.getOutPort();
 
 			if (source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
 				ElkEdge newEdge = createEdgeIfNotExists(source, sink);
@@ -526,14 +537,14 @@ public class NetnameHandler {
 		}
 
 		if (depth >= 1) {
-			source = child.getSPort();
-			sink = precursor.getSPort();
+			source = child.getOutPort();
+			sink = precursor.getInPort();
 
 			if (sink == null) {
 				sink = ElkElementCreator.createNewPort(source.getParent().getParent(), PortSide.EAST);
 				sink.setProperty(FEntwumSOptions.PORT_GROUP_NAME, source.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
 
-				precursor.setSPort(sink);
+				precursor.setOutPort(sink);
 
 				ElkLabel sinkLabel = ElkElementCreator.createNewPortLabel(String.valueOf(currentSignalTree.getSId()),
 						sink, settings);
