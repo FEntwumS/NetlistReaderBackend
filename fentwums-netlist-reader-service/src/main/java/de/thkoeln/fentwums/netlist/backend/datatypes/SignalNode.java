@@ -14,7 +14,8 @@ public class SignalNode {
 	private HashMap<String, SignalNode> sChildren;
 	private boolean sVisited;
 	private boolean isSource;
-	private ElkPort sPort;
+	private ElkPort inPort;
+	private ElkPort outPort;
 	private int indexInSignal;
 	private String srcLocation;
 
@@ -31,15 +32,16 @@ public class SignalNode {
 
 	public SignalNode(String sName, SignalNode hParent, HashMap<String, SignalNode> hChildren, SignalNode sParent,
 					  HashMap<String, SignalNode> sChildren,
-					  boolean isSource, ElkPort sPort) {
+					  boolean isSource, ElkPort inPort, ElkPort outPort) {
 		this.sName = sName;
 		this.hParent = hParent;
 		this.hChildren = hChildren;
 		this.sParent = sParent;
 		this.sChildren = sChildren;
-		this.sPort = sPort;
+		this.inPort = inPort;
+		this.outPort = outPort;
 
-		if(hParent != null && hParent.getHChildren() != null) {
+		if (hParent != null && hParent.getHChildren() != null) {
 			hParent.getHChildren().put(this.sName, this);
 		}
 
@@ -104,12 +106,20 @@ public class SignalNode {
 		this.isSource = isSource;
 	}
 
-	public ElkPort getSPort() {
-		return sPort;
+	public ElkPort getInPort() {
+		return inPort;
 	}
 
-	public void setSPort (ElkPort sPort) {
-		this.sPort = sPort;
+	public void setInPort(ElkPort inPort) {
+		this.inPort = inPort;
+	}
+
+	public ElkPort getOutPort() {
+		return outPort;
+	}
+
+	public void setOutPort(ElkPort outPort) {
+		this.outPort = outPort;
 	}
 
 	public int getIndexInSignal() {
@@ -125,7 +135,7 @@ public class SignalNode {
 		if (this.getHParent() != null) {
 			for (String candidate : this.getHParent().getHChildren().keySet()) {
 				if (this.getHParent().getHChildren().get(candidate).equals(this)) {
-					String ret =  this.getHParent().getAbsolutePath() + " " + candidate;
+					String ret = this.getHParent().getAbsolutePath() + " " + candidate;
 
 					return ret;
 				}
