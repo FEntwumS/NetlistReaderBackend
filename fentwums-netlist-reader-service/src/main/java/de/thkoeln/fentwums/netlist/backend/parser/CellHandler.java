@@ -201,6 +201,7 @@ public class CellHandler {
 						cellPort.setProperty(CoreOptions.PORT_INDEX,
 								currentDriverIndex * maxSignals + currentPortDriverIndex);
 						cellPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portname);
+						cellPort.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, currentPortDriverIndex);
 
 						ElkLabel cellPortLabel =
 								ElkElementCreator.createNewPortLabel(portname + (currentCellConnectionDrivers.size() == 1 ? "" : " [" + currentPortDriverIndex + "]"), cellPort, settings);
