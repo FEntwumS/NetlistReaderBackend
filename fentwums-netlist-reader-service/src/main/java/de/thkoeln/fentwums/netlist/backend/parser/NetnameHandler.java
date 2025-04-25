@@ -260,6 +260,7 @@ public class NetnameHandler {
 				currentNode.setOutPort(sink);
 
 				currentSignalIndex = currentNode.getIndexInSignal();
+				sink.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, currentSignalIndex);
 
 				ElkLabel sinkLabel =
 						ElkElementCreator.createNewPortLabel(currentNode.getSName() + (currentSignalIndex != -1 ?
@@ -394,6 +395,8 @@ public class NetnameHandler {
 
 				currentSignalIndex = precursor.getIndexInSignal();
 
+				source.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, currentSignalIndex);
+
 				ElkLabel sourceLabel =
 						ElkElementCreator.createNewPortLabel(precursor.getSName() + (currentSignalIndex != -1 ?
 								" [" + currentSignalIndex +
@@ -448,6 +451,8 @@ public class NetnameHandler {
 							sink.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
 
 					currentSignalIndex = precursor.getIndexInSignal();
+
+					source.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, currentSignalIndex);
 
 					ElkLabel sourceLabel;
 
@@ -547,6 +552,7 @@ public class NetnameHandler {
 			if (sink == null) {
 				sink = ElkElementCreator.createNewPort(source.getParent().getParent(), PortSide.EAST);
 				sink.setProperty(FEntwumSOptions.PORT_GROUP_NAME, source.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
+				sink.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, precursor.getIndexInSignal());
 
 				precursor.setOutPort(sink);
 
