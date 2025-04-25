@@ -1,5 +1,7 @@
 package de.thkoeln.fentwums.netlist.backend.datatypes;
 
+import org.eclipse.elk.core.options.CoreOptions;
+import org.eclipse.elk.core.options.PortSide;
 import org.eclipse.elk.graph.ElkPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,8 +40,8 @@ public class SignalNode {
 		this.hChildren = hChildren;
 		this.sParent = sParent;
 		this.sChildren = sChildren;
-		this.inPort = inPort;
-		this.outPort = outPort;
+		this.setInPort(inPort);
+		this.setOutPort(outPort);
 
 		if (hParent != null && hParent.getHChildren() != null) {
 			hParent.getHChildren().put(this.sName, this);
@@ -111,6 +113,12 @@ public class SignalNode {
 	}
 
 	public void setInPort(ElkPort inPort) {
+		if (inPort != null && inPort.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST) {
+			logger.error("Trying to set inPort as outPort");
+
+			return;
+		}
+
 		this.inPort = inPort;
 	}
 
@@ -119,6 +127,12 @@ public class SignalNode {
 	}
 
 	public void setOutPort(ElkPort outPort) {
+		if(outPort != null && outPort.getProperty(CoreOptions.PORT_SIDE) != PortSide.EAST) {
+			logger.error("Trying to set outPort as inPort");
+
+			return;
+		}
+
 		this.outPort = outPort;
 	}
 
