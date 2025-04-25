@@ -375,10 +375,6 @@ public class NetnameHandler {
 			}
 		}
 
-		if (sink == null) {
-			return;
-		}
-
 		// check if signal came from parent, construct port as necessary
 		if (precursor.getHParent().getSVisited() && sink.getIncomingEdges().isEmpty()) {
 			// check if precursor source port exists

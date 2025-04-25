@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * The signal bundler uses the previously stored information from the "netnames" section of the json netlist to
@@ -110,6 +111,8 @@ public class SignalBundler {
 		ArrayList<ElkEdge> reworkEdgeList = new ArrayList<>(), removeEdgeList = new ArrayList<>();
 		HashMap<ElkNode, HashMap<String, BundlingInformation>> bundlePortMap = new HashMap<>();
 		BundlingInformation currentInfo;
+		ElkPort oppositePort;
+		List<ElkPort> unnecessaryOppositePorts = new ArrayList<>();
 
 		for (SignalNode currentNode : nodesToBundle) {
 			currentPort = currentNode.getInPort();
@@ -167,6 +170,21 @@ public class SignalBundler {
 							// currently being checked have the same source and the come from the same port group, it is marked removal
 
 							needEdge = false;
+
+							oppositePort = (ElkPort) edge.getSources().getFirst();
+
+							if (bundlePortMap.get(containingNode).containsKey(oppositePort.getProperty(FEntwumSOptions.PORT_GROUP_NAME))) {
+								BundlingInformation oppositeBundle = bundlePortMap.get(containingNode).get(oppositePort.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
+
+								oppositeBundle.containedSignals().add(oppositePort.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP));
+
+								unnecessaryOppositePorts.add(oppositePort);
+							} else {
+								BundlingInformation oppositeBundle = new BundlingInformation(oppositePort, oppositePort.getProperty(FEntwumSOptions.PORT_GROUP_NAME), new ArrayList<>());
+								oppositeBundle.containedSignals().add(oppositePort.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP));
+
+								bundlePortMap.get(containingNode).put(oppositePort.getProperty(FEntwumSOptions.PORT_GROUP_NAME), oppositeBundle);
+							}
 
 							incoming.getContainingNode().getContainedEdges().remove(incoming);
 							removeEdgeList.add(incoming);
@@ -251,6 +269,12 @@ public class SignalBundler {
 			}
 
 			currentNode.setInPort(bundlePort);
+		}
+
+		for (ElkPort p : unnecessaryOppositePorts) {
+			if (p.getParent() != null && p.getIncomingEdges().isEmpty() && p.getOutgoingEdges().isEmpty()) {
+				p.getParent().getPorts().remove(p);
+			}
 		}
 
 		// now update labels
