@@ -346,6 +346,11 @@ public class NetnameHandler {
 
 		if (sink == null) {
 			logger.error("Missing sink");
+			sink = currentSignalNode.getOutPort();
+		}
+
+		if (sink == null) {
+			logger.error("Current signal node has no associated ports. Returning...");
 			return;
 		}
 
@@ -377,7 +382,7 @@ public class NetnameHandler {
 		// check if signal came from parent, construct port as necessary
 		if (precursor.getHParent().getSVisited() && sink.getIncomingEdges().isEmpty()) {
 			// check if precursor source port exists
-			if (precursor.getOutPort() == null) {
+			if (precursor.getInPort() == null) {
 				if (sink.getParent().getParent().getIdentifier().equals("root")) {
 					// TODO fixme
 					logger.error("The root node seems to contain ports");
@@ -397,7 +402,7 @@ public class NetnameHandler {
 
 				precursor.setInPort(source);
 			} else {
-				source = precursor.getOutPort();
+				source = precursor.getInPort();
 			}
 
 			if (source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)
@@ -433,8 +438,8 @@ public class NetnameHandler {
 				for (String candidate : precursor.getHChildren().keySet()) {
 					child = precursor.getHChildren().get(candidate);
 
-					if (child.getInPort() != null && child.getInPort().getProperty(CoreOptions.PORT_SIDE) != PortSide.WEST) {
-						source = child.getInPort();
+					if (child.getOutPort() != null && child.getOutPort().getProperty(CoreOptions.PORT_SIDE) != PortSide.WEST) {
+						source = child.getOutPort();
 					}
 				}
 
@@ -458,7 +463,7 @@ public class NetnameHandler {
 								source, settings);
 					}
 
-					precursor.setInPort(source);
+					precursor.setOutPort(source);
 				}
 			}
 
@@ -538,7 +543,7 @@ public class NetnameHandler {
 
 		if (depth >= 1) {
 			source = child.getOutPort();
-			sink = precursor.getInPort();
+			sink = precursor.getOutPort();
 
 			if (sink == null) {
 				sink = ElkElementCreator.createNewPort(source.getParent().getParent(), PortSide.EAST);
