@@ -118,8 +118,8 @@ public class SignalBundler {
 				continue;
 			}
 
-			currentIndexInSignal = currentNode.getIndexInSignal();
-			signalName = currentNode.getSName();
+			currentIndexInSignal = currentPort.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP);
+			signalName = currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME);
 
 			// check if the node this port is attached to already has a bundle port
 			containingNode = currentPort.getParent();
@@ -137,7 +137,7 @@ public class SignalBundler {
 
 					currentInfo = new BundlingInformation(currentPort, signalName, new ArrayList<>());
 
-					currentInfo.containedSignals().add(currentIndexInSignal);
+					currentInfo.containedSignals().add(bundlePort.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP));
 
 					bundlePortMap.get(containingNode).put(currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME),
 							currentInfo);
