@@ -345,12 +345,12 @@ public class NetnameHandler {
 		sink = currentSignalNode.getInPort();
 
 		if (sink == null) {
-			logger.error("Missing sink");
+			logger.debug("Missing sink");
 			sink = currentSignalNode.getOutPort();
 		}
 
 		if (sink == null) {
-			logger.error("Current signal node has no associated ports. Returning...");
+			logger.debug("Current signal node has no associated ports. Returning...");
 			return;
 		}
 
