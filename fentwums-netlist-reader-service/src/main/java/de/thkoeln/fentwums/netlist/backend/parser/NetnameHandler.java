@@ -310,7 +310,7 @@ public class NetnameHandler {
 			nextNode = currentSignalNode.getHChildren().get(candidate);
 
 			// Ignore sources; they have already been routed
-			if (nextNode.getIsSource() && !currentSignalNode.getSName().equals("root")) {
+			if (nextNode.getIsSource() && nextNode.getInPort() == null && !currentSignalNode.getSName().equals("root")) {
 				continue;
 			}
 
@@ -340,7 +340,6 @@ public class NetnameHandler {
 		ElkPort source = null, sink;
 		SignalNode sourceNode;
 		int currentSignalIndex;
-
 
 		sink = currentSignalNode.getInPort();
 
