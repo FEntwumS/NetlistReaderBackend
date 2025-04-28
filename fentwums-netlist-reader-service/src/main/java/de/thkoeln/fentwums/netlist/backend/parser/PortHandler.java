@@ -160,7 +160,9 @@ public class PortHandler {
 					new HashMap<String, SignalNode>(), false, null, sPort);
 		} else {
 			toplevelNode = new SignalNode(modulename, rootNode, new HashMap<String, SignalNode>(), null,
-					new HashMap<String, SignalNode>(), false, sPort, null);
+					new HashMap<String, SignalNode>(), false, null, null);
+
+			toplevelNode.addInPort(sPort);
 		}
 
 		toplevelNode.setSVisited(true);

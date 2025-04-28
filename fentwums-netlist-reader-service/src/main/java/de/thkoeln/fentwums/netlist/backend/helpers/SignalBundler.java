@@ -115,7 +115,7 @@ public class SignalBundler {
 		List<ElkPort> unnecessaryOppositePorts = new ArrayList<>();
 
 		for (SignalNode currentNode : nodesToBundle) {
-			currentPort = currentNode.getInPort();
+			currentPort = currentNode.getInPorts().getFirst();
 
 			if (currentPort == null) {
 				continue;
@@ -268,7 +268,10 @@ public class SignalBundler {
 				bundlePort = currentPort;
 			}
 
-			currentNode.setInPort(bundlePort);
+			List<ElkPort> l = new ArrayList<>();
+			l.add(bundlePort);
+
+			currentNode.setInPorts(l);
 		}
 
 		for (ElkPort p : unnecessaryOppositePorts) {

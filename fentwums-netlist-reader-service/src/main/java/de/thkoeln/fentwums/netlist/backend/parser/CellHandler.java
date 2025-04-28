@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class CellHandler {
 	private static Logger logger = LoggerFactory.getLogger(CellHandler.class);
@@ -291,12 +292,15 @@ public class CellHandler {
 			signalTree.setSRoot(currentNode);
 			currentNode.setOutPort(cellPort);
 		} else {
-			currentNode.setInPort(cellPort);
+			currentNode.addInPort(cellPort);
 		}
 	}
 
 	private SignalNode insertMissingSNode(SignalNode parent, String nodename, ElkPort inPort, ElkPort outPort) {
-		return new SignalNode(nodename, parent, new HashMap(), null, new HashMap(), false, inPort, outPort);
+		List<ElkPort> inPortList = new ArrayList<>();
+		inPortList.add(inPort);
+
+		return new SignalNode(nodename, parent, new HashMap<>(), null, new HashMap<>(), false, inPortList, outPort);
 	}
 
 	/**
