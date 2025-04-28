@@ -6,7 +6,9 @@ import org.eclipse.elk.graph.ElkPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class SignalNode {
 	private String sName;
@@ -16,7 +18,7 @@ public class SignalNode {
 	private HashMap<String, SignalNode> sChildren;
 	private boolean sVisited;
 	private boolean isSource;
-	private ElkPort inPort;
+	private List<ElkPort> inPorts;
 	private ElkPort outPort;
 	private int indexInSignal;
 	private String srcLocation;
@@ -34,13 +36,13 @@ public class SignalNode {
 
 	public SignalNode(String sName, SignalNode hParent, HashMap<String, SignalNode> hChildren, SignalNode sParent,
 					  HashMap<String, SignalNode> sChildren,
-					  boolean isSource, ElkPort inPort, ElkPort outPort) {
+					  boolean isSource, List<ElkPort> inPorts, ElkPort outPort) {
 		this.sName = sName;
 		this.hParent = hParent;
 		this.hChildren = hChildren;
 		this.sParent = sParent;
 		this.sChildren = sChildren;
-		this.setInPort(inPort);
+		this.setInPorts(inPorts);
 		this.setOutPort(outPort);
 
 		if (hParent != null && hParent.getHChildren() != null) {
@@ -108,22 +110,46 @@ public class SignalNode {
 		this.isSource = isSource;
 	}
 
-	public ElkPort getInPort() {
-		return inPort;
+	public List<ElkPort> getInPorts() {
+		return inPorts;
 	}
 
-	public void setInPort(ElkPort inPort) {
-		if (inPort != null && inPort.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST) {
-			logger.error("Trying to set inPort as outPort");
+	public void setInPorts(List<ElkPort> inPorts) {
+		this.inPorts.clear();
 
-			return;
+		for (ElkPort p : inPorts) {
+			if (p == null) {
+				continue;
+			}
+
+			if (p.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST) {
+				logger.error("Trying to set inPort as outPort");
+
+				continue;
+			}
+
+			this.inPorts.add(p);
 		}
-
-		this.inPort = inPort;
 	}
 
 	public ElkPort getOutPort() {
 		return outPort;
+	}
+
+	public void addInPort(ElkPort inPort) {
+		if (inPort == null) {
+			return;
+		}
+
+		if (this.inPorts == null) {
+			this.inPorts = new ArrayList<ElkPort>();
+		}
+
+		if (inPort.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST) {
+			logger.error("Trying to add inPort as outPort");
+		}
+
+		this.inPorts.add(inPort);
 	}
 
 	public void setOutPort(ElkPort outPort) {
