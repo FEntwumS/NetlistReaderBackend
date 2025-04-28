@@ -56,6 +56,7 @@ public class ElkElementCreator {
 
 		// Every signal is single by default
 		newEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.SINGLE);
+		newEdge.setProperty(CoreOptions.EDGE_THICKNESS, 0.0d);
 
 		return newEdge;
 	}
