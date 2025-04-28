@@ -115,6 +115,10 @@ public class SignalBundler {
 		List<ElkPort> unnecessaryOppositePorts = new ArrayList<>();
 
 		for (SignalNode currentNode : nodesToBundle) {
+			if (currentNode.getInPorts().isEmpty()) {
+				continue;
+			}
+
 			currentPort = currentNode.getInPorts().getFirst();
 
 			if (currentPort == null) {

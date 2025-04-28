@@ -115,7 +115,14 @@ public class SignalNode {
 	}
 
 	public void setInPorts(List<ElkPort> inPorts) {
-		this.inPorts.clear();
+		if (this.inPorts != null) {
+			this.inPorts.clear();
+		} else if (inPorts != null) {
+			this.inPorts = new ArrayList<>(inPorts.size());
+		} else {
+			this.inPorts = new ArrayList<>(1);
+			return;
+		}
 
 		for (ElkPort p : inPorts) {
 			if (p == null) {
