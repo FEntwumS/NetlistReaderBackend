@@ -108,7 +108,7 @@ public class SignalBundler {
 		StringBuilder signalRange;
 		final char separator = ';';
 		ElkLabel currentPortLabel;
-		boolean needEdge;
+		boolean needEdge, needOppositePort;
 		ArrayList<ElkEdge> reworkEdgeList = new ArrayList<>(), removeEdgeList = new ArrayList<>();
 		HashMap<ElkNode, HashMap<String, BundlingInformation>> bundlePortMap = new HashMap<>();
 		BundlingInformation currentInfo;
@@ -155,6 +155,7 @@ public class SignalBundler {
 
 						BundlingInformation oppositeInfo = new BundlingInformation(oppositePort, oppositePort.getProperty(FEntwumSOptions.PORT_GROUP_NAME), new ArrayList<>());
 						oppositeInfo.containedSignals().add(oppositePort.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP));
+						includePreviousSignals(oppositeInfo);
 
 						if (!bundlePortMap.containsKey(oppositePort.getParent())) {
 							bundlePortMap.put(oppositePort.getParent(), new HashMap<>());
@@ -175,6 +176,7 @@ public class SignalBundler {
 
 					for (ElkEdge incoming : currentPort.getIncomingEdges()) {
 						needEdge = true;
+						needOppositePort = true;
 
 						if (incoming.getSources().isEmpty()) {
 							continue;
@@ -191,17 +193,21 @@ public class SignalBundler {
 
 							if (!oppositeBundle.containedSignals().contains(oppositePort.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP))) {
 								oppositeBundle.containedSignals().add(oppositePort.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP));
+							} else {
+								logger.info("Thats interesting");
 							}
 
-							unnecessaryOppositePorts.add(oppositePort);
+							needOppositePort = false;
 						} else {
 							BundlingInformation oppositeBundle = new BundlingInformation(oppositePort, oppositePort.getProperty(FEntwumSOptions.PORT_GROUP_NAME), new ArrayList<>());
 							oppositeBundle.containedSignals().add(oppositePort.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP));
 
+							includePreviousSignals(oppositeBundle);
+
 							bundlePortMap.get(oppositePort.getParent()).put(oppositePort.getProperty(FEntwumSOptions.PORT_GROUP_NAME), oppositeBundle);
 						}
 
-						for (ElkEdge edge : bundlePort.getIncomingEdges()) {
+						for (ElkEdge edge : oppositePort.getIncomingEdges()) {
 							if (((ElkPort) edge.getSources().getFirst()).getParent().equals(((ElkPort) incoming.getSources().getFirst()).getParent())
 									&& edge.getSources().getFirst().getProperty(FEntwumSOptions.PORT_GROUP_NAME).equals(incoming.getSources().getFirst().getProperty(FEntwumSOptions.PORT_GROUP_NAME))) {
 								// if any incoming edge of the bundle port and any incoming edge of the port that is
@@ -213,6 +219,10 @@ public class SignalBundler {
 								removeEdgeList.add(incoming);
 
 								edge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
+
+								if (!needOppositePort) {
+									unnecessaryOppositePorts.add(oppositePort);
+								}
 							}
 						}
 
@@ -294,6 +304,8 @@ public class SignalBundler {
 
 					BundlingInformation oppositeInfo = new BundlingInformation(oppositePort, oppositePort.getProperty(FEntwumSOptions.PORT_GROUP_NAME), new ArrayList<>());
 					oppositeInfo.containedSignals().add(oppositePort.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP));
+
+					includePreviousSignals(oppositeInfo);
 
 					if (!bundlePortMap.containsKey(oppositePort.getParent())) {
 						bundlePortMap.put(oppositePort.getParent(), new HashMap<>());
@@ -381,6 +393,18 @@ public class SignalBundler {
 				currentPort.getLabels().remove(currentPortLabel);
 
 				currentPortLabel = ElkElementCreator.createNewPortLabel(signalName, currentPort, settings);
+			}
+		}
+	}
+
+	private void includePreviousSignals(BundlingInformation info) {
+		if (info.port().getProperty(FEntwumSOptions.BUNDLED_SIGNALS) == null || info.port().getProperty(FEntwumSOptions.BUNDLED_SIGNALS).isEmpty()) {
+			return;
+		}
+
+		for (int s : info.port().getProperty(FEntwumSOptions.BUNDLED_SIGNALS)) {
+			if (!info.containedSignals().contains(s)) {
+				info.containedSignals().add(s);
 			}
 		}
 	}
