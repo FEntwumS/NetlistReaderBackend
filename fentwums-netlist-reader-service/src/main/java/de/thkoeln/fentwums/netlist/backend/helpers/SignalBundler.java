@@ -116,7 +116,7 @@ public class SignalBundler {
 		List<ElkPort> unnecessaryOppositePorts = new ArrayList<>();
 
 		for (SignalNode currentNode : nodesToBundle) {
-			if (currentNode.getInPorts() == null || currentNode.getInPorts().isEmpty()) {
+			if (currentNode.getInPorts() == null || (currentNode.getInPorts().isEmpty() && currentNode.getOutPort() != null)) {
 				continue;
 			}
 
@@ -193,8 +193,6 @@ public class SignalBundler {
 
 							if (!oppositeBundle.containedSignals().contains(oppositePort.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP))) {
 								oppositeBundle.containedSignals().add(oppositePort.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP));
-							} else {
-								logger.info("Thats interesting");
 							}
 
 							needOppositePort = false;
@@ -207,7 +205,7 @@ public class SignalBundler {
 							bundlePortMap.get(oppositePort.getParent()).put(oppositePort.getProperty(FEntwumSOptions.PORT_GROUP_NAME), oppositeBundle);
 						}
 
-						for (ElkEdge edge : oppositePort.getIncomingEdges()) {
+						for (ElkEdge edge : bundlePort.getIncomingEdges()) {
 							if (((ElkPort) edge.getSources().getFirst()).getParent().equals(((ElkPort) incoming.getSources().getFirst()).getParent())
 									&& edge.getSources().getFirst().getProperty(FEntwumSOptions.PORT_GROUP_NAME).equals(incoming.getSources().getFirst().getProperty(FEntwumSOptions.PORT_GROUP_NAME))) {
 								// if any incoming edge of the bundle port and any incoming edge of the port that is
@@ -220,8 +218,23 @@ public class SignalBundler {
 
 								edge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 
+								List<ElkEdge> toMove = new ArrayList<>();
+
 								if (!needOppositePort) {
 									unnecessaryOppositePorts.add(oppositePort);
+
+									for (ElkEdge e : oppositePort.getOutgoingEdges()) {
+										if (!e.equals(edge)) {
+											toMove.add(e);
+										}
+									}
+
+									for (ElkEdge e : toMove) {
+										e.getSources().remove(e.getSources().getFirst());
+										e.getSources().add(edge.getSources().getFirst());
+									}
+
+									toMove.clear();
 								}
 							}
 						}
@@ -315,6 +328,10 @@ public class SignalBundler {
 				}
 
 
+			}
+
+			if (bundlePort == null) {
+				continue;
 			}
 
 			List<ElkPort> l = new ArrayList<>();
