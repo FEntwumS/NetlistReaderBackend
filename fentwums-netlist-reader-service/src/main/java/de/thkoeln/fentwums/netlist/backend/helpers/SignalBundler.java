@@ -121,10 +121,15 @@ public class SignalBundler {
 				continue;
 			}
 
-			for(ElkPort p :currentNode.getInPorts()) {
+			for(ElkPort p : currentNode.getInPorts()) {
 				currentPort = p;
 
 				if (currentPort == null) {
+					continue;
+				}
+
+				// Since the incoming edges are bundled, input ports of the toplevel are skipped
+				if (currentPort.getParent().getParent().getIdentifier().equals("root")) {
 					continue;
 				}
 
