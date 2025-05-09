@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class CellHandler {
 	private static Logger logger = LoggerFactory.getLogger(CellHandler.class);
@@ -201,6 +202,7 @@ public class CellHandler {
 						cellPort.setProperty(CoreOptions.PORT_INDEX,
 								currentDriverIndex * maxSignals + currentPortDriverIndex);
 						cellPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portname);
+						cellPort.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, currentPortDriverIndex);
 
 						ElkLabel cellPortLabel =
 								ElkElementCreator.createNewPortLabel(portname + (currentCellConnectionDrivers.size() == 1 ? "" : " [" + currentPortDriverIndex + "]"), cellPort, settings);
@@ -214,15 +216,17 @@ public class CellHandler {
 							currentSignalTree.setSId((int) driver);
 
 							SignalNode rootNode = new SignalNode("root", null, new HashMap<String, SignalNode>(), null
-									, new HashMap<String, SignalNode>(), false, null);
+									, new HashMap<String, SignalNode>(), false, null, null);
 
 							currentSignalTree.setHRoot(rootNode);
 
 							SignalNode toplevelNode = new SignalNode(modulename, rootNode, new HashMap<String,
-									SignalNode>(), null, new HashMap<String, SignalNode>(), false, null);
+									SignalNode>(), null, new HashMap<String, SignalNode>(), false, null, null);
 
 							signalMap.put((int) driver, currentSignalTree);
 						}
+
+
 						updateSignalTree(currentSignalTree, currentCellPathSplit, modulename,
 								cellPort.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST, cellPort, portname,
 								currentPortDriverIndex);
@@ -250,20 +254,20 @@ public class CellHandler {
 	 * @param hierarchyPath Path where the occurance is located
 	 * @param modulename    Name of the top level entity
 	 * @param isSource      True if the occurance is the source of the signal
-	 * @param sPort         The representation of the port where the signal occured
+	 * @param cellPort      The representation of the port where the signal occured
 	 * @param portname      The name of the port
 	 * @param index         The signals index inside the containing vector (-1 if the signal is not contained in a
 	 *                      vector)
 	 */
 	public void updateSignalTree(SignalTree signalTree, String[] hierarchyPath, String modulename, boolean isSource,
-								 ElkPort sPort, String portname, int index) {
+								 ElkPort cellPort, String portname, int index) {
 		SignalNode currentNode = signalTree.getHRoot().getHChildren().get(modulename);
 
 		for (String fragment : hierarchyPath) {
 			if (currentNode.getHChildren().containsKey(fragment)) {
 				currentNode = currentNode.getHChildren().get(fragment);
 			} else {
-				currentNode = insertMissingSNode(currentNode, fragment, null);
+				currentNode = insertMissingSNode(currentNode, fragment, null, null);
 			}
 		}
 
@@ -272,15 +276,31 @@ public class CellHandler {
 
 		currentNode.setSVisited(true);
 		currentNode.setIsSource(isSource);
-		currentNode.setSPort(sPort);
+
+		/*
+		// Dont remove existing ports
+		if (currentNode.getInPort() != null) {
+			currentNode.setInPort(inPort);
+		}
+
+		if (currentNode.getOutPort() != null) {
+			currentNode.setOutPort(outPort);
+		}
+		*/
 
 		if (isSource) {
 			signalTree.setSRoot(currentNode);
+			currentNode.setOutPort(cellPort);
+		} else {
+			currentNode.addInPort(cellPort);
 		}
 	}
 
-	private SignalNode insertMissingSNode(SignalNode parent, String nodename, ElkPort sPort) {
-		return new SignalNode(nodename, parent, new HashMap(), null, new HashMap(), false, sPort);
+	private SignalNode insertMissingSNode(SignalNode parent, String nodename, ElkPort inPort, ElkPort outPort) {
+		List<ElkPort> inPortList = new ArrayList<>();
+		inPortList.add(inPort);
+
+		return new SignalNode(nodename, parent, new HashMap<>(), null, new HashMap<>(), false, inPortList, outPort);
 	}
 
 	/**

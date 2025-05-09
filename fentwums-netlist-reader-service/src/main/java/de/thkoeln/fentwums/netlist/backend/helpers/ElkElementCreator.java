@@ -38,6 +38,8 @@ public class ElkElementCreator {
 		newNode.setProperty(CoreOptions.SPACING_LABEL_PORT_VERTICAL, 1.0d);
 		newNode.setProperty(CoreOptions.SPACING_EDGE_LABEL, 3.0d);
 		newNode.setProperty(CoreOptions.SPACING_LABEL_NODE, 3.0d);
+		newNode.setProperty(CoreOptions.SPACING_EDGE_EDGE, 10.0d);
+		newNode.setProperty(CoreOptions.RANDOM_SEED, 1);
 
 		return newNode;
 	}
@@ -54,6 +56,7 @@ public class ElkElementCreator {
 
 		// Every signal is single by default
 		newEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.SINGLE);
+		newEdge.setProperty(CoreOptions.EDGE_THICKNESS, 0.0d);
 
 		return newEdge;
 	}

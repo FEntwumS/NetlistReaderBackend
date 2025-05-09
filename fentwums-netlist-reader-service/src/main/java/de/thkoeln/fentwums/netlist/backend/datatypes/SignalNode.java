@@ -1,10 +1,14 @@
 package de.thkoeln.fentwums.netlist.backend.datatypes;
 
+import org.eclipse.elk.core.options.CoreOptions;
+import org.eclipse.elk.core.options.PortSide;
 import org.eclipse.elk.graph.ElkPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class SignalNode {
 	private String sName;
@@ -14,7 +18,8 @@ public class SignalNode {
 	private HashMap<String, SignalNode> sChildren;
 	private boolean sVisited;
 	private boolean isSource;
-	private ElkPort sPort;
+	private List<ElkPort> inPorts;
+	private ElkPort outPort;
 	private int indexInSignal;
 	private String srcLocation;
 
@@ -31,15 +36,16 @@ public class SignalNode {
 
 	public SignalNode(String sName, SignalNode hParent, HashMap<String, SignalNode> hChildren, SignalNode sParent,
 					  HashMap<String, SignalNode> sChildren,
-					  boolean isSource, ElkPort sPort) {
+					  boolean isSource, List<ElkPort> inPorts, ElkPort outPort) {
 		this.sName = sName;
 		this.hParent = hParent;
 		this.hChildren = hChildren;
 		this.sParent = sParent;
 		this.sChildren = sChildren;
-		this.sPort = sPort;
+		this.setInPorts(inPorts);
+		this.setOutPort(outPort);
 
-		if(hParent != null && hParent.getHChildren() != null) {
+		if (hParent != null && hParent.getHChildren() != null) {
 			hParent.getHChildren().put(this.sName, this);
 		}
 
@@ -104,12 +110,63 @@ public class SignalNode {
 		this.isSource = isSource;
 	}
 
-	public ElkPort getSPort() {
-		return sPort;
+	public List<ElkPort> getInPorts() {
+		return inPorts;
 	}
 
-	public void setSPort (ElkPort sPort) {
-		this.sPort = sPort;
+	public void setInPorts(List<ElkPort> inPorts) {
+		if (this.inPorts != null) {
+			this.inPorts.clear();
+		} else if (inPorts != null) {
+			this.inPorts = new ArrayList<>(inPorts.size());
+		} else {
+			this.inPorts = new ArrayList<>(1);
+			return;
+		}
+
+		for (ElkPort p : inPorts) {
+			if (p == null) {
+				continue;
+			}
+
+			if (p.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST) {
+				logger.error("Trying to set inPort as outPort");
+
+				continue;
+			}
+
+			this.inPorts.add(p);
+		}
+	}
+
+	public ElkPort getOutPort() {
+		return outPort;
+	}
+
+	public void addInPort(ElkPort inPort) {
+		if (inPort == null) {
+			return;
+		}
+
+		if (this.inPorts == null) {
+			this.inPorts = new ArrayList<ElkPort>();
+		}
+
+		if (inPort.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST) {
+			logger.error("Trying to add inPort as outPort");
+		}
+
+		this.inPorts.add(inPort);
+	}
+
+	public void setOutPort(ElkPort outPort) {
+		if(outPort != null && outPort.getProperty(CoreOptions.PORT_SIDE) != PortSide.EAST) {
+			logger.error("Trying to set outPort as inPort");
+
+			return;
+		}
+
+		this.outPort = outPort;
 	}
 
 	public int getIndexInSignal() {
@@ -125,7 +182,7 @@ public class SignalNode {
 		if (this.getHParent() != null) {
 			for (String candidate : this.getHParent().getHChildren().keySet()) {
 				if (this.getHParent().getHChildren().get(candidate).equals(this)) {
-					String ret =  this.getHParent().getAbsolutePath() + " " + candidate;
+					String ret = this.getHParent().getAbsolutePath() + " " + candidate;
 
 					return ret;
 				}

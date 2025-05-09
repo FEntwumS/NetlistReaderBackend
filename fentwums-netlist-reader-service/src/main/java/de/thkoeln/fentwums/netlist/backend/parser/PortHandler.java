@@ -76,6 +76,8 @@ public class PortHandler {
 				toplevelPort.setProperty(CoreOptions.PORT_SIDE, side);
 				toplevelPort.setDimensions(10d, 10d);
 				toplevelPort.setIdentifier(modulename + driver);
+				toplevelPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portname);
+				toplevelPort.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, currentPortDriverIndex);
 
 				// Add label to port
 				ElkLabel toplevelPortLabel =
@@ -148,13 +150,22 @@ public class PortHandler {
 		SignalTree tree = new SignalTree();
 		tree.setSId(port);
 		SignalNode rootNode = new SignalNode("root", null, new HashMap<String, SignalNode>(), null,
-				new HashMap<String, SignalNode>(), false, null);
+				new HashMap<String, SignalNode>(), false, null, null);
 
 		tree.setHRoot(rootNode);
 		rootNode.setSVisited(true);
 
-		SignalNode toplevelNode = new SignalNode(modulename, rootNode, new HashMap<String, SignalNode>(), null,
-				new HashMap<String, SignalNode>(), false, sPort);
+		SignalNode toplevelNode;
+
+		if (sPort.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST) {
+			toplevelNode = new SignalNode(modulename, rootNode, new HashMap<String, SignalNode>(), null,
+					new HashMap<String, SignalNode>(), false, null, sPort);
+		} else {
+			toplevelNode = new SignalNode(modulename, rootNode, new HashMap<String, SignalNode>(), null,
+					new HashMap<String, SignalNode>(), false, null, null);
+
+			toplevelNode.addInPort(sPort);
+		}
 
 		toplevelNode.setSVisited(true);
 

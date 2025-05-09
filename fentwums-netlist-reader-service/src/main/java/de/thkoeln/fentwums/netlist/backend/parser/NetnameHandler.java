@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
 
@@ -30,14 +31,16 @@ public class NetnameHandler {
 	/**
 	 * Updates all signal trees with occurrences and bundling information from the "netnames" section of the netlist
 	 *
-	 * @param netnames      HashMap containing the deserialized net details
-	 * @param modulename    Name of the top level entity
-	 * @param signalMap     HashMap containing all signal trees
-	 * @param hierarchyTree Tree of the hierarchical netlist structure
-	 * @param NetInformationHashMap Stores the connections between signal names and the associated scopes and bitindices
+	 * @param netnames              HashMap containing the deserialized net details
+	 * @param modulename            Name of the top level entity
+	 * @param signalMap             HashMap containing all signal trees
+	 * @param hierarchyTree         Tree of the hierarchical netlist structure
+	 * @param NetInformationHashMap Stores the connections between signal names and the associated scopes and
+	 *                                 bitindices
 	 */
 	public void handleNetnames(HashMap<String, Object> netnames, String modulename,
-							   HashMap<Integer, SignalTree> signalMap, HierarchyTree hierarchyTree, HashMap<String, NetInformation> NetInformationHashMap, NetlistCreationSettings settings) {
+							   HashMap<Integer, SignalTree> signalMap, HierarchyTree hierarchyTree, HashMap<String,
+					NetInformation> NetInformationHashMap, NetlistCreationSettings settings) {
 		HashMap<String, Object> currentNet;
 		HashMap<String, Object> currentNetAttributes;
 		String currentNetPath;
@@ -188,7 +191,8 @@ public class NetnameHandler {
 	 * @param signalMap  HashMap containing all signal trees
 	 * @param modulename name of top level entity
 	 */
-	public void recreateSignals(HashMap<Integer, SignalTree> signalMap, String modulename, NetlistCreationSettings settings) {
+	public void recreateSignals(HashMap<Integer, SignalTree> signalMap, String modulename,
+								NetlistCreationSettings settings) {
 		SignalTree currentSignalTree;
 		SignalNode currentSignalNode;
 		int currentSignalIndex = 0;
@@ -227,7 +231,7 @@ public class NetnameHandler {
 		int currentSignalIndex;
 
 		// dont create port, if currentNode is toplevel and no port exists
-		if (currentSignalTree.getHRoot().getHChildren().containsValue(currentNode) && currentNode.getSPort() == null) {
+		if (currentSignalTree.getHRoot().getHChildren().containsValue(currentNode) && currentNode.getOutPort() == null) {
 			return;
 		}
 
@@ -238,11 +242,11 @@ public class NetnameHandler {
 			if (currentNode.getHParent() == null || currentNode.getHParent().getSVisited() == false) {
 				return;
 			}
-			source = precursor.getSPort();
+			source = precursor.getOutPort();
 
 			// create port (if it doesnt exist yet)
 			// should be the default (except for output signals)
-			if (currentNode.getSPort() == null) {
+			if (currentNode.getOutPort() == null) {
 				currentGraphNode = source.getParent().getParent();
 
 				if (currentGraphNode.getIdentifier().equals("root")) {
@@ -254,16 +258,17 @@ public class NetnameHandler {
 				// Propagate port group indication to created ports
 				sink.setProperty(FEntwumSOptions.PORT_GROUP_NAME, source.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
 
-				currentNode.setSPort(sink);
+				currentNode.setOutPort(sink);
 
 				currentSignalIndex = currentNode.getIndexInSignal();
+				sink.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, currentSignalIndex);
 
 				ElkLabel sinkLabel =
 						ElkElementCreator.createNewPortLabel(currentNode.getSName() + (currentSignalIndex != -1 ?
 										" [" + currentSignalIndex + "]" : ""),
 								sink, settings);
 			} else {
-				sink = currentNode.getSPort();
+				sink = currentNode.getOutPort();
 			}
 
 			// create the connecting edge
@@ -295,7 +300,8 @@ public class NetnameHandler {
 	 * @param currentSignalTree Signal tree defining the current signal
 	 * @param currentSignalNode Current position in the signal tree
 	 */
-	private void findSinks(SignalTree currentSignalTree, SignalNode currentSignalNode, NetlistCreationSettings settings) {
+	private void findSinks(SignalTree currentSignalTree, SignalNode currentSignalNode,
+						   NetlistCreationSettings settings) {
 		SignalNode nextNode;
 		if (currentSignalNode == null) {
 			currentSignalNode = currentSignalTree.getHRoot();
@@ -306,7 +312,7 @@ public class NetnameHandler {
 			nextNode = currentSignalNode.getHChildren().get(candidate);
 
 			// Ignore sources; they have already been routed
-			if (nextNode.getIsSource() && !currentSignalNode.getSName().equals("root")) {
+			if (nextNode.getIsSource() && (nextNode.getInPorts() == null || nextNode.getInPorts().isEmpty()) && !currentSignalNode.getSName().equals("root")) {
 				continue;
 			}
 
@@ -330,44 +336,59 @@ public class NetnameHandler {
 	 * @param currentSignalTree
 	 * @param currentSignalNode
 	 */
-	private void routeSink(SignalTree currentSignalTree, SignalNode currentSignalNode, NetlistCreationSettings settings) {
+	private void routeSink(SignalTree currentSignalTree, SignalNode currentSignalNode,
+						   NetlistCreationSettings settings) {
 		SignalNode precursor = currentSignalNode.getHParent();
-		ElkPort source = null, sink;
+		ElkPort source, sink = null;
+		List<ElkPort> sinks;
 		SignalNode sourceNode;
 		int currentSignalIndex;
 
+		sinks = currentSignalNode.getInPorts();
 
-		sink = currentSignalNode.getSPort();
+		if (!sinks.isEmpty()) {
+			sink = sinks.getFirst();
+		}
+
+		if (sinks == null || sinks.isEmpty()) {
+			logger.debug("Sink is an outPort");
+			sinks = new ArrayList<>(1);
+			sink = currentSignalNode.getOutPort();
+			sinks.add(sink);
+		}
+
+		if (sink == null) {
+			logger.debug("Current signal node has no associated ports. Returning...");
+			return;
+		}
 
 		// source is most likely in same layer; search there for signal source (check port side)
 		for (String candidate : precursor.getHChildren().keySet()) {
 			sourceNode = precursor.getHChildren().get(candidate);
 
-			source = sourceNode.getSPort();
+			source = sourceNode.getOutPort();
 
-			if (source != null && source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && sink.getIncomingEdges().isEmpty()) {
-				ElkEdge newEdge = createEdgeIfNotExists(source, sink);
+			for (ElkPort p : sinks) {
+				if (source != null && source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !p.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && p.getIncomingEdges().isEmpty()) {
+					ElkEdge newEdge = createEdgeIfNotExists(source, p);
 
-				if (newEdge != null) {
-					newEdge.setProperty(FEntwumSOptions.SRC_LOCATION, sourceNode.getSrcLocation());
-					newEdge.setProperty(FEntwumSOptions.LOCATION_PATH, sourceNode.getAbsolutePath());
-					newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, sourceNode.getIndexInSignal());
-					newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, sourceNode.getSName());
+					if (newEdge != null) {
+						newEdge.setProperty(FEntwumSOptions.SRC_LOCATION, sourceNode.getSrcLocation());
+						newEdge.setProperty(FEntwumSOptions.LOCATION_PATH, sourceNode.getAbsolutePath());
+						newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, sourceNode.getIndexInSignal());
+						newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, sourceNode.getSName());
+					}
+
+					// update signal tree
+					linkSignalNodes(currentSignalNode, sourceNode);
 				}
-
-				// update signal tree
-				linkSignalNodes(currentSignalNode, sourceNode);
 			}
-		}
-
-		if (sink == null) {
-			return;
 		}
 
 		// check if signal came from parent, construct port as necessary
 		if (precursor.getHParent().getSVisited() && sink.getIncomingEdges().isEmpty()) {
 			// check if precursor source port exists
-			if (precursor.getSPort() == null) {
+			if (precursor.getInPorts() == null || precursor.getInPorts().isEmpty()) {
 				if (sink.getParent().getParent().getIdentifier().equals("root")) {
 					// TODO fixme
 					logger.error("The root node seems to contain ports");
@@ -376,41 +397,48 @@ public class NetnameHandler {
 				}
 
 				source = ElkElementCreator.createNewPort(sink.getParent().getParent(), PortSide.WEST);
-				source.setProperty(FEntwumSOptions.PORT_GROUP_NAME, sink.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
+				source.setProperty(FEntwumSOptions.PORT_GROUP_NAME, precursor.getSName());
 
 				currentSignalIndex = precursor.getIndexInSignal();
+
+				source.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, currentSignalIndex);
 
 				ElkLabel sourceLabel =
 						ElkElementCreator.createNewPortLabel(precursor.getSName() + (currentSignalIndex != -1 ?
 								" [" + currentSignalIndex +
 										"]" : ""), source, settings);
 
-				precursor.setSPort(source);
+				precursor.addInPort(source);
 			} else {
-				source = precursor.getSPort();
+				// TODO check yosys handling of this case
+
+				source = precursor.getInPorts().getFirst();
 			}
 
-			if (source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)
-					&& !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
-				ElkEdge newEdge = createEdgeIfNotExists(source, sink);
+			for (ElkPort p : sinks) {
+				if (source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)
+						&& !p.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
+					ElkEdge newEdge = createEdgeIfNotExists(source, p);
 
-				if (newEdge != null) {
-					newEdge.setProperty(FEntwumSOptions.SRC_LOCATION, precursor.getSrcLocation());
-					newEdge.setProperty(FEntwumSOptions.LOCATION_PATH, precursor.getAbsolutePath());
-					newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, precursor.getIndexInSignal());
-					newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, precursor.getSName());
+					if (newEdge != null) {
+						newEdge.setProperty(FEntwumSOptions.SRC_LOCATION, precursor.getSrcLocation());
+						newEdge.setProperty(FEntwumSOptions.LOCATION_PATH, precursor.getAbsolutePath());
+						newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, precursor.getIndexInSignal());
+						newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, precursor.getSName());
+					}
+
+					// update signal tree
+					linkSignalNodes(currentSignalNode, precursor);
 				}
-
-				// update signal tree
-				linkSignalNodes(currentSignalNode, precursor);
 			}
 		}
+
 
 		// If the signal occurs in a containing layer and the sink to be routed is not yet connected to the source,
 		// route one layer up. This can occur when a signal occurrence is not marked in the netlist
 
 		if (!sink.getParent().getParent().getParent().getIdentifier().equals("root") && higherUse(precursor) && sink.getIncomingEdges().isEmpty()) {
-			source = precursor.getSPort();
+			source = precursor.getInPorts().getFirst();
 
 			if (sink.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST) {
 				return;
@@ -422,8 +450,8 @@ public class NetnameHandler {
 				for (String candidate : precursor.getHChildren().keySet()) {
 					child = precursor.getHChildren().get(candidate);
 
-					if (child.getSPort() != null && child.getSPort().getProperty(CoreOptions.PORT_SIDE) != PortSide.WEST) {
-						source = child.getSPort();
+					if (child.getOutPort() != null && child.getOutPort().getProperty(CoreOptions.PORT_SIDE) != PortSide.WEST) {
+						source = child.getOutPort();
 					}
 				}
 
@@ -433,6 +461,8 @@ public class NetnameHandler {
 							sink.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
 
 					currentSignalIndex = precursor.getIndexInSignal();
+
+					source.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, currentSignalIndex);
 
 					ElkLabel sourceLabel;
 
@@ -447,23 +477,25 @@ public class NetnameHandler {
 								source, settings);
 					}
 
-					precursor.setSPort(source);
+					precursor.setOutPort(source);
 				}
 			}
 
-			ElkEdge newEdge = createEdgeIfNotExists(source, sink);
+			for (ElkPort p : sinks) {
+				ElkEdge newEdge = createEdgeIfNotExists(source, p);
 
-			if (newEdge != null) {
-				if (child != null) {
-					newEdge.setProperty(FEntwumSOptions.SRC_LOCATION, child.getSrcLocation());
-					newEdge.setProperty(FEntwumSOptions.LOCATION_PATH, child.getAbsolutePath());
-					newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, child.getIndexInSignal());
-					newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, child.getSName());
-				} else {
-					newEdge.setProperty(FEntwumSOptions.SRC_LOCATION, precursor.getSrcLocation());
-					newEdge.setProperty(FEntwumSOptions.LOCATION_PATH, precursor.getAbsolutePath());
-					newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, precursor.getIndexInSignal());
-					newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, precursor.getSName());
+				if (newEdge != null) {
+					if (child != null) {
+						newEdge.setProperty(FEntwumSOptions.SRC_LOCATION, child.getSrcLocation());
+						newEdge.setProperty(FEntwumSOptions.LOCATION_PATH, child.getAbsolutePath());
+						newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, child.getIndexInSignal());
+						newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, child.getSName());
+					} else {
+						newEdge.setProperty(FEntwumSOptions.SRC_LOCATION, precursor.getSrcLocation());
+						newEdge.setProperty(FEntwumSOptions.LOCATION_PATH, precursor.getAbsolutePath());
+						newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, precursor.getIndexInSignal());
+						newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, precursor.getSName());
+					}
 				}
 			}
 
@@ -480,20 +512,22 @@ public class NetnameHandler {
 			// Add final link
 
 			sourceNode = precursor.getHChildren().get(possibleSourceBelowSplit[0]);
-			source = sourceNode.getSPort();
+			source = sourceNode.getOutPort();
 
-			if (source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !sink.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
-				ElkEdge newEdge = createEdgeIfNotExists(source, sink);
+			for (ElkPort p : sinks) {
+				if (source.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST) && !p.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
+					ElkEdge newEdge = createEdgeIfNotExists(source, p);
 
-				if (newEdge != null) {
-					newEdge.setProperty(FEntwumSOptions.SRC_LOCATION, sourceNode.getSrcLocation());
-					newEdge.setProperty(FEntwumSOptions.LOCATION_PATH, sourceNode.getAbsolutePath());
-					newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, sourceNode.getIndexInSignal());
-					newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, sourceNode.getSName());
+					if (newEdge != null) {
+						newEdge.setProperty(FEntwumSOptions.SRC_LOCATION, sourceNode.getSrcLocation());
+						newEdge.setProperty(FEntwumSOptions.LOCATION_PATH, sourceNode.getAbsolutePath());
+						newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, sourceNode.getIndexInSignal());
+						newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, sourceNode.getSName());
+					}
+
+					// update signal tree
+					linkSignalNodes(currentSignalNode, sourceNode);
 				}
-
-				// update signal tree
-				linkSignalNodes(currentSignalNode, sourceNode);
 			}
 		}
 
@@ -526,14 +560,15 @@ public class NetnameHandler {
 		}
 
 		if (depth >= 1) {
-			source = child.getSPort();
-			sink = precursor.getSPort();
+			source = child.getOutPort();
+			sink = precursor.getOutPort();
 
 			if (sink == null) {
 				sink = ElkElementCreator.createNewPort(source.getParent().getParent(), PortSide.EAST);
 				sink.setProperty(FEntwumSOptions.PORT_GROUP_NAME, source.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
+				sink.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, precursor.getIndexInSignal());
 
-				precursor.setSPort(sink);
+				precursor.setOutPort(sink);
 
 				ElkLabel sinkLabel = ElkElementCreator.createNewPortLabel(String.valueOf(currentSignalTree.getSId()),
 						sink, settings);
