@@ -29,8 +29,6 @@ public class SignalBundler {
 	private HashMap<Integer, SignalTree> treeMap;
 	private HierarchyTree hierarchy;
 
-	private int inner = 0, moveCheck = 0, moved = 0;
-
 	public SignalBundler() {
 	}
 
