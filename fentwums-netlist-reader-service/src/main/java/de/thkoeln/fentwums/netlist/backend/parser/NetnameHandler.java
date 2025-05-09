@@ -397,7 +397,7 @@ public class NetnameHandler {
 				}
 
 				source = ElkElementCreator.createNewPort(sink.getParent().getParent(), PortSide.WEST);
-				source.setProperty(FEntwumSOptions.PORT_GROUP_NAME, sink.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
+				source.setProperty(FEntwumSOptions.PORT_GROUP_NAME, precursor.getSName());
 
 				currentSignalIndex = precursor.getIndexInSignal();
 
