@@ -29,6 +29,8 @@ public class SignalBundler {
 	private HashMap<Integer, SignalTree> treeMap;
 	private HierarchyTree hierarchy;
 
+	private int inner = 0, moveCheck = 0, moved = 0;
+
 	public SignalBundler() {
 	}
 
@@ -114,6 +116,7 @@ public class SignalBundler {
 		BundlingInformation currentInfo;
 		ElkPort oppositePort;
 		List<ElkPort> unnecessaryOppositePorts = new ArrayList<>();
+		List<ElkEdge> toMove = new ArrayList<>();
 
 		for (SignalNode currentNode : nodesToBundle) {
 			if (currentNode.getInPorts() == null || (currentNode.getInPorts().isEmpty() && currentNode.getOutPort() != null)) {
@@ -218,9 +221,9 @@ public class SignalBundler {
 
 								edge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 
-								List<ElkEdge> toMove = new ArrayList<>();
-
-								if (!needOppositePort) {
+								// only move edges if the opposite port is NOT the bundlePort
+								// this is needed for edges that belong to ports that are bundled, but that exit the entity they belong to
+								if (!oppositePort.equals(bundlePortMap.get(oppositePort.getParent()).get(oppositePort.getProperty(FEntwumSOptions.PORT_GROUP_NAME)).port())) {
 									unnecessaryOppositePorts.add(oppositePort);
 
 									for (ElkEdge e : oppositePort.getOutgoingEdges()) {
@@ -228,16 +231,17 @@ public class SignalBundler {
 											toMove.add(e);
 										}
 									}
-
-									for (ElkEdge e : toMove) {
-										e.getSources().remove(e.getSources().getFirst());
-										e.getSources().add(edge.getSources().getFirst());
-									}
-
-									toMove.clear();
 								}
+
 							}
 						}
+
+						for (ElkEdge e : toMove) {
+							e.getSources().clear();
+							e.getSources().add(bundlePortMap.get(oppositePort.getParent()).get(oppositePort.getProperty(FEntwumSOptions.PORT_GROUP_NAME)).port());
+						}
+
+						toMove.clear();
 
 						if (needEdge) {
 							// if the edge has not been marked for removal, it is instead marked for rework
