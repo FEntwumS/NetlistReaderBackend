@@ -76,6 +76,8 @@ public class PortHandler {
 				toplevelPort.setProperty(CoreOptions.PORT_SIDE, side);
 				toplevelPort.setDimensions(10d, 10d);
 				toplevelPort.setIdentifier(modulename + driver);
+				toplevelPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portname);
+				toplevelPort.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, currentPortDriverIndex);
 
 				// Add label to port
 				ElkLabel toplevelPortLabel =
