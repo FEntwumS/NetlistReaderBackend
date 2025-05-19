@@ -1,6 +1,6 @@
 package de.thkoeln.fentwums.netlist.backend.helpers;
 
-import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
+import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
 import org.eclipse.elk.graph.ElkNode;
 import org.eclipse.elk.graph.ElkPort;
 import org.slf4j.Logger;

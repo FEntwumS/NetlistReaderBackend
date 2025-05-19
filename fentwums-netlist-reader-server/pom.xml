@@ -62,7 +62,6 @@
 		<dependency>
 			<groupId>fentwums.th-koeln.de</groupId>
 			<artifactId>fentwums-netlist-reader-service</artifactId>
-			<version>${project.parent.version}</version>
 		</dependency>
 
 

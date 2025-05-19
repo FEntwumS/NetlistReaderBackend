@@ -1,8 +1,8 @@
 package de.thkoeln.fentwums.netlist.backend.helpers;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
-import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
-import de.thkoeln.fentwums.netlist.backend.options.SignalType;
+import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
+import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.graph.*;
 

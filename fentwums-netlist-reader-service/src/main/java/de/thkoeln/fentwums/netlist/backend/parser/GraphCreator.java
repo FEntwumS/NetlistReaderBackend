@@ -1,12 +1,9 @@
 package de.thkoeln.fentwums.netlist.backend.parser;
 
-import de.thkoeln.fentwums.netlist.backend.Main;
 import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import de.thkoeln.fentwums.netlist.backend.helpers.*;
-import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
-import org.eclipse.elk.alg.layered.options.LayeredOptions;
+import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
 import org.eclipse.elk.core.RecursiveGraphLayoutEngine;
-import org.eclipse.elk.core.data.LayoutMetaDataService;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.core.util.BasicProgressMonitor;
 import org.eclipse.elk.graph.ElkLabel;

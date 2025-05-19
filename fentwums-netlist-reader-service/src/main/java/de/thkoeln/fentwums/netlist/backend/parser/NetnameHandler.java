@@ -3,7 +3,7 @@ package de.thkoeln.fentwums.netlist.backend.parser;
 import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import de.thkoeln.fentwums.netlist.backend.helpers.CellPathFormatter;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
-import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
+import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.PortSide;
 import org.eclipse.elk.graph.*;
@@ -14,8 +14,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-
-import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
 
 /**
  * Handles the data contained in the "netnames" section of the netlist. Creates ports for entities as needed,

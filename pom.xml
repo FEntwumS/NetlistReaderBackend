@@ -11,6 +11,9 @@
     <modules>
         <module>fentwums-netlist-reader-service</module>
         <module>fentwums-netlist-reader-server</module>
+	    <module>fentwums-netlist-reader-helpers</module>
+        <module>fentwums-netlist-reader-datatypes</module>
+        <module>fentwums-netlist-reader-elkoptions</module>
     </modules>
 
     <properties>
@@ -71,6 +74,33 @@
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-core</artifactId>
                 <version>${dependency.version.ch.qos.logback}</version>
+            </dependency>
+
+            <!-- FEntwumS -->
+            <dependency>
+                <groupId>fentwums.th-koeln.de</groupId>
+                <artifactId>fentwums-netlist-reader-datatypes</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>fentwums.th-koeln.de</groupId>
+                <artifactId>fentwums-netlist-reader-elkoptions</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>fentwums.th-koeln.de</groupId>
+                <artifactId>fentwums-netlist-reader-helpers</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>fentwums.th-koeln.de</groupId>
+                <artifactId>fentwums-netlist-reader-server</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>fentwums.th-koeln.de</groupId>
+                <artifactId>fentwums-netlist-reader-service</artifactId>
+                <version>${project.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -1,4 +1,4 @@
-package de.thkoeln.fentwums.netlist.backend.options;
+package de.thkoeln.fentwums.netlist.backend.elkoptions;
 
 import org.eclipse.elk.core.data.ILayoutMetaDataProvider;
 import org.eclipse.elk.core.data.LayoutOptionData;

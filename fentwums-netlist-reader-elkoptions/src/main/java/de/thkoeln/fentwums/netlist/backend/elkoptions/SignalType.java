@@ -1,4 +1,4 @@
-package de.thkoeln.fentwums.netlist.backend.options;
+package de.thkoeln.fentwums.netlist.backend.elkoptions;
 
 /**
  * Provides values for a custom ELK option that specifies the type of the signal represented by the

@@ -1,7 +1,7 @@
 package de.thkoeln.fentwums.netlist.backend.datatypes;
 
-import de.thkoeln.fentwums.netlist.backend.options.FEntwumSOptions;
-import de.thkoeln.fentwums.netlist.backend.options.SignalType;
+import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
+import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
 import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkPort;
 
