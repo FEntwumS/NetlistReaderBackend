@@ -34,10 +34,11 @@ private static Logger logger = LoggerFactory.getLogger(PortHandler.class);
         HashMap<String, Object> currentPort, module, ports;
         int currentIndexInPort;
         ArrayList<Object> portDrivers;
-        int signalIndex;
+        int signalIndex, canonicalIndex;
         String currentPortDirection;
         HashMap<String, ElkPort> constantDriverPortMap = new HashMap<>();
         HashMap<Integer, SignalOccurences> signalMap;
+        boolean reversedPort;
 
         if (signalMaps.containsKey(instancePath)) {
             signalMap = signalMaps.get(instancePath);
@@ -77,15 +78,21 @@ private static Logger logger = LoggerFactory.getLogger(PortHandler.class);
 
             portDrivers = (ArrayList<Object>) currentPort.get("bits");
 
+            reversedPort = currentPort.containsKey("upto");
+
             // reverse order for MSB-first ports
-            if (currentPort.containsKey("upto")) {
+            if (reversedPort) {
                 portDrivers = (ArrayList<Object>) portDrivers.reversed();
+                canonicalIndex = portDrivers.size() - 1;
+            } else {
+                canonicalIndex = 0;
             }
 
             for (Object driver : portDrivers) {
                 ElkPort newPort = ElkElementCreator.createNewPort(currentNode, createdPortSide);
                 newPort.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, currentIndexInPort);
                 newPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portname);
+                newPort.setProperty(FEntwumSOptions.CANONICAL_INDEX_IN_PORT_GROUP, canonicalIndex);
 
                 ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(portname + (portDrivers.size() == 1
                         ? "" : " [" + currentIndexInPort + "]"), newPort, settings);
@@ -104,7 +111,6 @@ private static Logger logger = LoggerFactory.getLogger(PortHandler.class);
                     // Only create constant drivers for the toplevel entity
                     // Otherwise the cell creator will take care of creating the constant drivers
                     // to simplify the entity insertion process
-                    // TODO add constant drivers
 
                     if (isTopLevel) {
                         ElkPort constPort;
@@ -139,6 +145,12 @@ private static Logger logger = LoggerFactory.getLogger(PortHandler.class);
                     }
                 }
 
+                if (reversedPort) {
+                    canonicalIndex--;
+                } else {
+                    canonicalIndex++;
+                }
+
                 currentIndexInPort++;
             }
         }
@@ -147,10 +159,10 @@ private static Logger logger = LoggerFactory.getLogger(PortHandler.class);
     private void insertPortIntoMap(HashMap<Integer, SignalOccurences> signalMap, ElkPort port, int signalIndex) {
         SignalOccurences signalOccurences = signalMap.get(signalIndex);
 
-        if (port.getProperty(CoreOptions.PORT_SIDE) == PortSide.WEST) {
-            signalOccurences.setInPort(port);
+        if (port.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST) {
+            signalOccurences.setSourcePort(port);
         } else {
-            signalOccurences.getOutPorts().add(port);
+            signalOccurences.getSinkPorts().add(port);
         }
     }
 }

@@ -6,32 +6,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SignalOccurences {
-    private ElkPort inPort;
-    private List<ElkPort> outPorts;
+    private ElkPort sourcePort;
+    private List<ElkPort> sinkPorts;
 
     public SignalOccurences() {
-        inPort = null;
-        outPorts = new ArrayList<ElkPort>();
+        sourcePort = null;
+        sinkPorts = new ArrayList<ElkPort>();
     }
 
-    public SignalOccurences(ElkPort inPort, List<ElkPort> outPorts) {
-        this.inPort = inPort;
-        this.outPorts = outPorts;
+    public SignalOccurences(ElkPort sourcePort, List<ElkPort> sinkPorts) {
+        this.sourcePort = sourcePort;
+        this.sinkPorts = sinkPorts;
     }
 
-    public void setInPort(ElkPort inPort) {
-        this.inPort = inPort;
+    public void setSourcePort(ElkPort sourcePort) {
+        this.sourcePort = sourcePort;
     }
 
-    public ElkPort getInPort() {
-        return inPort;
+    public ElkPort getSourcePort() {
+        return sourcePort;
     }
 
-    public void setOutPorts(List<ElkPort> outPorts) {
-        this.outPorts = outPorts;
+    public void setSinkPorts(List<ElkPort> sinkPorts) {
+        this.sinkPorts = sinkPorts;
     }
 
-    public List<ElkPort> getOutPorts() {
-        return outPorts;
+    public List<ElkPort> getSinkPorts() {
+        return sinkPorts;
     }
 }
