@@ -21,7 +21,7 @@ public class CellHandler {
 
     public void createCells(HashMap<String, Object> netlist, ElkNode parentNode, ConcurrentHashMap<String, HashMap<Integer,
                 SignalOccurences>> signalMaps, NetlistCreationSettings settings, HashMap<String, Object> blackboxes,
-                            ModuleNode currentModuleNode, String moduleName) {
+                            ModuleNode currentModuleNode, String moduleName, String instancePath) {
         HashMap<String, Object> module, cells, currentCell, currentCellAttributes, currentCellPortDirections, currentCellConnections;
         HashMap<String, ElkPort> constantDriverPortMap = new HashMap<>();
         int currentCellIndex = 0, maxSignals = 0, currentPortIndex = 0, currentBitIndex = 0;
@@ -121,7 +121,12 @@ public class CellHandler {
             } else {
                 PortHandler portHandler = new PortHandler();
 
-                portHandler.createPorts(netlist, signalMaps, newCellNode, settings, cellType);
+                portHandler.createPorts(netlist, signalMaps, newCellNode, settings, cellType, instancePath + " " + cellName);
+
+                // Make user modules available in hierarchy for later loading and expansion
+                if (!isHidden) {
+                    currentModuleNode.getChildNodes().put(cellName, new ModuleNode(newCellNode));
+                }
             }
         }
     }

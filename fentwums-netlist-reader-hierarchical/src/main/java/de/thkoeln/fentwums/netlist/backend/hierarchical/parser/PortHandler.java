@@ -29,7 +29,7 @@ private static Logger logger = LoggerFactory.getLogger(PortHandler.class);
      * @param currentNode The ElkNode representing the current entity
      */
     public void createPorts(HashMap<String, Object> netlist, ConcurrentHashMap<String, HashMap<Integer, SignalOccurences>> signalMaps, ElkNode currentNode,
-                            NetlistCreationSettings settings, String moduleName) {
+                            NetlistCreationSettings settings, String moduleType, String instancePath) {
         PortSide createdPortSide, oppositePortSide;
         HashMap<String, Object> currentPort, module, ports;
         int currentIndexInPort;
@@ -39,16 +39,17 @@ private static Logger logger = LoggerFactory.getLogger(PortHandler.class);
         HashMap<String, ElkPort> constantDriverPortMap = new HashMap<>();
         HashMap<Integer, SignalOccurences> signalMap;
 
-        if (signalMaps.containsKey(moduleName)) {
-            signalMap = signalMaps.get(moduleName);
+        if (signalMaps.containsKey(instancePath)) {
+            signalMap = signalMaps.get(instancePath);
         } else {
             signalMap = new HashMap<>();
+            signalMaps.put(instancePath, signalMap);
         }
 
-        module = (HashMap<String, Object>) netlist.get(moduleName);
+        module = (HashMap<String, Object>) netlist.get(moduleType);
 
         if (module == null) {
-            logger.atError().setMessage("Module {} not found in Netlist. Aborting...").addArgument(moduleName).log();
+            logger.atError().setMessage("Module {} not found in Netlist. Aborting...").addArgument(moduleType).log();
         }
 
         ports = (HashMap<String, Object>) netlist.get("ports");
