@@ -9,14 +9,14 @@
         <version>0.9.0</version>
     </parent>
 
-    <artifactId>fentwums-netlist-reader-hierarchical</artifactId>
-
     <licenses>
         <license>
             <name>MIT</name>
             <url>https://spdx.org/licenses/MIT.html</url>
         </license>
     </licenses>
+
+    <artifactId>fentwums-netlist-reader-interfaces</artifactId>
 
     <properties>
         <maven.compiler.source>23</maven.compiler.source>
@@ -39,16 +39,6 @@
             <artifactId>org.eclipse.elk.graph.json</artifactId>
         </dependency>
 
-        <!-- Jackson -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-        </dependency>
-
         <!-- Logging -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -58,27 +48,5 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
         </dependency>
-        <dependency>
-            <groupId>fentwums.th-koeln.de</groupId>
-            <artifactId>fentwums-netlist-reader-datatypes</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>fentwums.th-koeln.de</groupId>
-            <artifactId>fentwums-netlist-reader-helpers</artifactId>
-        </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${dependency.version.spring.spring-boot}</version>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
 </project>

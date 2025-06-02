@@ -61,7 +61,10 @@
 		<dependency>
 			<groupId>fentwums.th-koeln.de</groupId>
 			<artifactId>fentwums-netlist-reader-elkoptions</artifactId>
-			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>fentwums.th-koeln.de</groupId>
+			<artifactId>fentwums-netlist-reader-interfaces</artifactId>
 		</dependency>
 	</dependencies>
 

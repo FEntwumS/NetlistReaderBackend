@@ -18,22 +18,25 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PortHandler {
-private static Logger logger = LoggerFactory.getLogger(PortHandler.class);
+    private static Logger logger = LoggerFactory.getLogger(PortHandler.class);
 
     /**
      * Creates the input and output ports of the current entity
      *
      * @param currentNode The ElkNode representing the current entity
      */
-    public void createPorts(HashMap<String, Object> netlist, ConcurrentHashMap<String, HashMap<Integer, SignalOccurences>> signalMaps, ElkNode currentNode,
-                            NetlistCreationSettings settings, String moduleType, String instancePath) {
+    public void createPorts(HashMap<String, Object> netlist,
+                            ConcurrentHashMap<String, HashMap<Integer, SignalOccurences>> signalMaps,
+                            ElkNode currentNode, NetlistCreationSettings settings, String moduleType,
+                            String instancePath) {
         PortSide createdPortSide, oppositePortSide;
         HashMap<String, Object> currentPort, module, ports;
         int currentIndexInPort;
-        ArrayList<Object> portDrivers;
+        List<Object> portDrivers;
         int signalIndex, canonicalIndex;
         String currentPortDirection;
         HashMap<String, ElkPort> constantDriverPortMap = new HashMap<>();
@@ -53,7 +56,7 @@ private static Logger logger = LoggerFactory.getLogger(PortHandler.class);
             logger.atError().setMessage("Module {} not found in Netlist. Aborting...").addArgument(moduleType).log();
         }
 
-        ports = (HashMap<String, Object>) netlist.get("ports");
+        ports = (HashMap<String, Object>) module.get("ports");
 
         boolean isTopLevel = currentNode.getParent() != null && currentNode.getParent().getIdentifier().equals("root");
 
@@ -76,14 +79,15 @@ private static Logger logger = LoggerFactory.getLogger(PortHandler.class);
                 currentIndexInPort = 0;
             }
 
-            portDrivers = (ArrayList<Object>) currentPort.get("bits");
+            portDrivers = (List<Object>) currentPort.get("bits");
 
             reversedPort = currentPort.containsKey("upto");
 
             // reverse order for MSB-first ports
             if (reversedPort) {
-                portDrivers = (ArrayList<Object>) portDrivers.reversed();
+                portDrivers =  portDrivers.reversed();
                 canonicalIndex = portDrivers.size() - 1;
+                currentIndexInPort += portDrivers.size() - 1;
             } else {
                 canonicalIndex = 0;
             }
@@ -122,7 +126,8 @@ private static Logger logger = LoggerFactory.getLogger(PortHandler.class);
                             ElkNode constNode = ElkElementCreator.createNewConstantDriver(currentNode.getParent());
                             constNode.setDimensions(20d, 20d);
 
-                            ElkLabel constLabel = ElkElementCreator.createNewConstantDriverLabel((String) driver, constNode, settings);
+                            ElkLabel constLabel = ElkElementCreator.createNewConstantDriverLabel((String) driver,
+                                    constNode, settings);
 
                             constPort = ElkElementCreator.createNewPort(constNode, oppositePortSide);
 
@@ -140,18 +145,19 @@ private static Logger logger = LoggerFactory.getLogger(PortHandler.class);
                         ElkEdge constEdge = ElkElementCreator.createNewEdge(sink, source);
                         constEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.CONSTANT);
 
-                        ElkLabel constEdgeLabel = ElkElementCreator.createNewEdgeLabel((String) driver, constEdge, settings);
+                        ElkLabel constEdgeLabel = ElkElementCreator.createNewEdgeLabel((String) driver, constEdge,
+                                settings);
                         constEdgeLabel.setProperty(CoreOptions.EDGE_LABELS_PLACEMENT, EdgeLabelPlacement.TAIL);
                     }
                 }
 
                 if (reversedPort) {
                     canonicalIndex--;
+                    currentIndexInPort--;
                 } else {
                     canonicalIndex++;
+                    currentIndexInPort++;
                 }
-
-                currentIndexInPort++;
             }
         }
     }
@@ -159,7 +165,7 @@ private static Logger logger = LoggerFactory.getLogger(PortHandler.class);
     private void insertPortIntoMap(HashMap<Integer, SignalOccurences> signalMap, ElkPort port, int signalIndex) {
         SignalOccurences signalOccurences = signalMap.get(signalIndex);
 
-        if (port.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST) {
+        if (port.getProperty(CoreOptions.PORT_SIDE) == PortSide.WEST) {
             signalOccurences.setSourcePort(port);
         } else {
             signalOccurences.getSinkPorts().add(port);

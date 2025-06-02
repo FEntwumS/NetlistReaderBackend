@@ -157,8 +157,8 @@ public class CellCollapser {
 			return;
 		}
 
-		ArrayList<ElkNode> storedChildren = hNode.getChildList();
-		ArrayList<ElkEdge> storedEdges = hNode.getEdgeList();
+		List<ElkNode> storedChildren = hNode.getChildList();
+		List<ElkEdge> storedEdges = hNode.getEdgeList();
 
 		graphChildren.addAll(storedChildren);
 

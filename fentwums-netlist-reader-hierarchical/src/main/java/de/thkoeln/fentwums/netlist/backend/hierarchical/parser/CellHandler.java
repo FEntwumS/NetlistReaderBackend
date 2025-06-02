@@ -22,8 +22,9 @@ import java.util.stream.Collectors;
 public class CellHandler {
     private static Logger logger = LoggerFactory.getLogger(CellHandler.class);
 
-    public void createCells(HashMap<String, Object> netlist, ElkNode parentNode, ConcurrentHashMap<String, HashMap<Integer,
-                                    SignalOccurences>> signalMaps, NetlistCreationSettings settings, HashMap<String, Object> blackboxes,
+    public void createCells(HashMap<String, Object> netlist, ElkNode parentNode,
+                            ConcurrentHashMap<String, HashMap<Integer, SignalOccurences>> signalMaps,
+                            NetlistCreationSettings settings, HashMap<String, Object> blackboxes,
                             ModuleNode currentModuleNode, String moduleName, String instancePath) {
         HashMap<String, Object> module, cells, currentCell, currentCellAttributes, currentCellPortDirections, currentCellConnections;
         int currentCellIndex = 0, maxSignals, currentPortIndex, currentBitIndex;
@@ -34,11 +35,18 @@ public class CellHandler {
         ArrayList<Object> currentCellPortDrivers;
         HashMap<Integer, SignalOccurences> signalMap = signalMaps.get(instancePath);
 
+        if (signalMap == null) {
+            logger.atError().setMessage("signalMap is null for module {} at path {}. Aborting...").addArgument(
+                    moduleName).addArgument(instancePath).log();
+            return;
+        }
+
         module = (HashMap<String, Object>) netlist.get(moduleName);
 
         if (module == null) {
             logger.atError().setMessage("Could not find module {} in Netlist. Aborting...").addArgument(
                     moduleName).log();
+            return;
         }
 
         cells = (HashMap<String, Object>) module.get("cells");
@@ -61,21 +69,6 @@ public class CellHandler {
 
             if (currentCellAttributes.containsKey("src")) {
                 srcLocation = currentCellAttributes.get("src").toString();
-            }
-
-            ElkNode newCellNode = ElkElementCreator.createNewNode(parentNode, cellName);
-            newCellNode.setProperty(FEntwumSOptions.CELL_NAME, cellName);
-            newCellNode.setProperty(FEntwumSOptions.CELL_TYPE, cellType);
-            newCellNode.setProperty(FEntwumSOptions.SRC_LOCATION, srcLocation);
-
-            ElkLabel newCellNodeLabel = ElkElementCreator.createNewCellLabel(cellType, newCellNode, settings);
-
-            // Create label containing the cell's/module's name for non-hidden cells
-            // The label is placed below the generated node
-            // It contains the user-given name of the cell/module and therefor is likely to differ from the
-            // cell's/module's type
-            if (!isHidden) {
-                ElkLabel newCellModuleLabel = ElkElementCreator.createNewModuleLabel(cellName, newCellNode, settings);
             }
 
             currentCellPortDirections = (HashMap<String, Object>) currentCell.get("port_directions");
@@ -102,10 +95,30 @@ public class CellHandler {
                 isDerived = true;
             }
 
+            ElkNode newCellNode = ElkElementCreator.createNewNode(parentNode, cellName);
+            newCellNode.setProperty(FEntwumSOptions.CELL_NAME, cellName);
+
+            newCellNode.setProperty(FEntwumSOptions.SRC_LOCATION, srcLocation);
+            if (!isHidden && !isDerived) {
+                newCellNode.setProperty(FEntwumSOptions.CELL_TYPE, "HDL_ENTITY");
+            } else {
+                newCellNode.setProperty(FEntwumSOptions.CELL_TYPE, cellType);
+            }
+
+            ElkLabel newCellNodeLabel = ElkElementCreator.createNewCellLabel(cellType, newCellNode, settings);
+
+            // Create label containing the cell's/module's name for non-hidden cells
+            // The label is placed below the generated node
+            // It contains the user-given name of the cell/module and therefor is likely to differ from the
+            // cell's/module's type
+            if (!isHidden) {
+                ElkLabel newCellModuleLabel = ElkElementCreator.createNewModuleLabel(cellName, newCellNode, settings);
+            }
+
             // get max number of signals
             maxSignals = 0;
 
-            for (String portName : currentCellPortDirections.keySet()) {
+            for (String portName : currentCellConnections.keySet()) {
                 if (((ArrayList<Object>) currentCellConnections.get(portName)).size() > maxSignals) {
                     maxSignals = ((ArrayList<Object>) currentCellConnections.get(portName)).size();
                 }
@@ -138,7 +151,7 @@ public class CellHandler {
                         oppositeSide = PortSide.WEST;
                     }
 
-                    currentCellPortDrivers = (ArrayList<Object>) currentCellPortDirections.get(portName);
+                    currentCellPortDrivers = (ArrayList<Object>) currentCellConnections.get(portName);
 
                     for (Object driver : currentCellPortDrivers) {
                         if (driver instanceof Integer) {
@@ -180,13 +193,13 @@ public class CellHandler {
                 }
             } else {
                 PortHandler portHandler = new PortHandler();
-                newSubModulePath = instancePath + " " + cellName;
+                newSubModulePath = instancePath + " " + cellType;
 
                 portHandler.createPorts(netlist, signalMaps, newCellNode, settings, cellType, newSubModulePath);
 
                 // Make user modules available in hierarchy for later loading and expansion
                 if (!isHidden) {
-                    currentModuleNode.getChildNodes().put(cellName, new ModuleNode(newCellNode));
+                    currentModuleNode.getChildNodes().put(cellType, new ModuleNode(newCellNode));
                 }
 
                 // Backport port association for signals crossing boundary to new module
@@ -199,7 +212,7 @@ public class CellHandler {
                                 "Mismatch between number of ports in port_directions and connections");
                     }
 
-                    currentCellPortDrivers = (ArrayList<Object>) currentCellPortDirections.get(portName);
+                    currentCellPortDrivers = (ArrayList<Object>) currentCellConnections.get(portName);
 
                     for (Object driver : currentCellPortDrivers) {
                         if (driver instanceof Integer) {
@@ -219,6 +232,10 @@ public class CellHandler {
                                                     "Module {} portgroup {} index {} found more than one matching port")
                                             .addArgument(cellName).addArgument(portName).addArgument(
                                                     currentBitIndex).log();
+                                }
+
+                                if (!signalMap.containsKey(driver)) {
+                                    signalMap.put((Integer) driver, new SignalOccurences());
                                 }
 
                                 if (currentCellPortDirections.get(portName).equals("input")) {

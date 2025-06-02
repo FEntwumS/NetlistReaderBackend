@@ -1,5 +1,6 @@
 package de.thkoeln.fentwums.netlist.backend.datatypes;
 
+import de.thkoeln.fentwums.netlist.backend.interfaces.internal.CollapsableNode;
 import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkNode;
 import org.slf4j.Logger;
@@ -7,8 +8,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
-public class HierarchicalNode {
+public class HierarchicalNode implements CollapsableNode {
 	private String hName;
 	private int lId;
 	private HierarchicalNode parent;
@@ -18,8 +20,8 @@ public class HierarchicalNode {
 	private HashMap<Integer, Bundle> possibleBundles;
 	private ElkNode node;
 	private HashMap<String, ElkNode> constantDrivers;
-	private ArrayList<ElkNode> childList;
-	private ArrayList<ElkEdge> edgeList;
+	private List<ElkNode> childList;
+	private List<ElkEdge> edgeList;
 	private ArrayList<Integer> currentlyBundledSignals;
 	private String path;
 
@@ -113,10 +115,12 @@ public class HierarchicalNode {
 		this.possibleBundles = possibleBundles;
 	}
 
+	@Override
 	public ElkNode getNode() {
 		return node;
 	}
 
+	@Override
 	public void setNode(ElkNode node) {
 		this.node = node;
 	}
@@ -129,19 +133,23 @@ public class HierarchicalNode {
 		this.constantDrivers = constantDrivers;
 	}
 
-	public ArrayList<ElkNode> getChildList() {
+	@Override
+	public List<ElkNode> getChildList() {
 		return childList;
 	}
 
-	public void setChildList(ArrayList<ElkNode> childList) {
+	@Override
+	public void setChildList(List<ElkNode> childList) {
 		this.childList = childList;
 	}
 
-	public ArrayList<ElkEdge> getEdgeList() {
+	@Override
+	public List<ElkEdge> getEdgeList() {
 		return edgeList;
 	}
 
-	public void setEdgeList(ArrayList<ElkEdge> edgeList) {
+	@Override
+	public void setEdgeList(List<ElkEdge> edgeList) {
 		this.edgeList = edgeList;
 	}
 
