@@ -3,6 +3,7 @@ package de.thkoeln.fentwums.netlist.backend.interfaces.internal;
 import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkNode;
 
+import java.util.AbstractMap;
 import java.util.List;
 
 public interface CollapsableNode {
@@ -14,4 +15,7 @@ public interface CollapsableNode {
 
     public void setNode(ElkNode node);
     public ElkNode getNode();
+
+    public void setChildren(AbstractMap<String, CollapsableNode> children);
+    public AbstractMap<String, CollapsableNode> getChildren();
 }

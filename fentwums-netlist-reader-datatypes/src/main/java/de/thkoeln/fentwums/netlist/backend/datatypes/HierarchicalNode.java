@@ -6,15 +6,17 @@ import org.eclipse.elk.graph.ElkNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class HierarchicalNode implements CollapsableNode {
 	private String hName;
 	private int lId;
 	private HierarchicalNode parent;
-	private HashMap<String, HierarchicalNode> children;
+	private AbstractMap<String, CollapsableNode> children;
 	private boolean isLeaf;
 	private ArrayList<Vector> vectors;
 	private HashMap<Integer, Bundle> possibleBundles;
@@ -31,7 +33,7 @@ public class HierarchicalNode implements CollapsableNode {
 		hName = "";
 		lId = 0;
 		parent = null;
-		children = new HashMap<String, HierarchicalNode>(8);
+		children = new HashMap<String, CollapsableNode>(8);
 		isLeaf = true;
 		vectors = new ArrayList<>(8);
 		possibleBundles = new HashMap<>(8);
@@ -40,7 +42,7 @@ public class HierarchicalNode implements CollapsableNode {
 		currentlyBundledSignals = new ArrayList<>(8);
 	}
 
-	public HierarchicalNode(String hName, HierarchicalNode parent, HashMap<String, HierarchicalNode> children,
+	public HierarchicalNode(String hName, HierarchicalNode parent, HashMap<String, CollapsableNode> children,
 							ArrayList<Vector> vectors, HashMap<Integer, Bundle> possibleBundles, ElkNode node) {
 		this.hName = hName;
 		this.parent = parent;
@@ -91,11 +93,13 @@ public class HierarchicalNode implements CollapsableNode {
 		this.parent = parent;
 	}
 
-	public HashMap<String, HierarchicalNode> getChildren() {
+	@Override
+	public AbstractMap<String, CollapsableNode> getChildren() {
 		return children;
 	}
 
-	public void setChildren(HashMap<String, HierarchicalNode> children) {
+	@Override
+	public void setChildren(AbstractMap<String, CollapsableNode> children) {
 		this.children = children;
 	}
 

@@ -70,8 +70,8 @@ public class HierarchicalOrchestrator {
                                 topName);
         netnameHandler.handleNetnames(modules, signalMaps, settings, currentModuleNode, topName, topName);
 
-        for (String child : currentModuleNode.getChildNodes().keySet()) {
-            addModulesRecursively(modules, blackBoxes, settings, currentModuleNode.getChildNodes().get(child),
+        for (String child : currentModuleNode.getChildren().keySet()) {
+            addModulesRecursively(modules, blackBoxes, settings, (ModuleNode) currentModuleNode.getChildren().get(child),
                                   signalMaps, child, topName + " " + child);
         }
 
@@ -99,8 +99,8 @@ public class HierarchicalOrchestrator {
                                 currentModuleNode, moduleName, instancePath);
         netnameHandler.handleNetnames(modules, signalMaps, settings, currentModuleNode, moduleName, instancePath);
 
-        for (String child : currentModuleNode.getChildNodes().keySet()) {
-            addModulesRecursively(modules, blackBoxes, settings, currentModuleNode.getChildNodes().get(child),
+        for (String child : currentModuleNode.getChildren().keySet()) {
+            addModulesRecursively(modules, blackBoxes, settings, (ModuleNode) currentModuleNode.getChildren().get(child),
                                   signalMaps, child, instancePath + " " + child);
         }
 

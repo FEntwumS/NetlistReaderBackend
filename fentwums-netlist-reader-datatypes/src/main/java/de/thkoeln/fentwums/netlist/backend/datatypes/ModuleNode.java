@@ -4,18 +4,19 @@ import de.thkoeln.fentwums.netlist.backend.interfaces.internal.CollapsableNode;
 import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkNode;
 
+import java.util.AbstractMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ModuleNode implements CollapsableNode {
     ElkNode moduleNode;
-    ConcurrentHashMap<String, ModuleNode> childNodes;
+    AbstractMap<String, CollapsableNode> children;
     List<ElkNode> childList;
     List<ElkEdge> edgeList;
 
     public ModuleNode(ElkNode moduleNode) {
         this.moduleNode = moduleNode;
-        this.childNodes = new ConcurrentHashMap<>();
+        this.children = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -28,12 +29,14 @@ public class ModuleNode implements CollapsableNode {
         this.moduleNode = moduleNode;
     }
 
-    public ConcurrentHashMap<String, ModuleNode> getChildNodes() {
-        return childNodes;
+    @Override
+    public AbstractMap<String, CollapsableNode> getChildren() {
+        return children;
     }
 
-    public void setChildNodes(ConcurrentHashMap<String, ModuleNode> childNodes) {
-        this.childNodes = childNodes;
+    @Override
+    public void setChildren(AbstractMap<String, CollapsableNode> children) {
+        this.children = children;
     }
 
     @Override

@@ -224,7 +224,7 @@ public class NetlistReaderBackendSpringBootApplication {
         creator.createGraphFromNetlist(parser.getModuleToParse(), parser.getToplevelName(), blackboxmap, settings);
         logger.info("Graph created successfully");
 
-        collapser.setHierarchy(creator.getHierarchyTree());
+        collapser.setRootNode(creator.getHierarchyTree().getRoot());
 
         bundler.setHierarchy(creator.getHierarchyTree());
         bundler.setTreeMap(creator.getSignalTreeMap());

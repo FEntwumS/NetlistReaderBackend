@@ -199,7 +199,7 @@ public class CellHandler {
 
                 // Make user modules available in hierarchy for later loading and expansion
                 if (!isHidden) {
-                    currentModuleNode.getChildNodes().put(cellType, new ModuleNode(newCellNode));
+                    currentModuleNode.getChildren().put(cellType, new ModuleNode(newCellNode));
                 }
 
                 // Backport port association for signals crossing boundary to new module
