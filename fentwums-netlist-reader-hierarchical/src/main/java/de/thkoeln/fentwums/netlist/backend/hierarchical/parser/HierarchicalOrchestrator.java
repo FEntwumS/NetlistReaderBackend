@@ -6,6 +6,7 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalOccurences;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
+import de.thkoeln.fentwums.netlist.backend.helpers.OutputReverser;
 import de.thkoeln.fentwums.netlist.backend.interfaces.ICollapsableNode;
 import de.thkoeln.fentwums.netlist.backend.interfaces.IGraphCreator;
 import org.eclipse.elk.core.RecursiveGraphLayoutEngine;
@@ -80,6 +81,10 @@ public class HierarchicalOrchestrator implements IGraphCreator {
             addModulesRecursively(modules, blackBoxes, settings, (ModuleNode) rootNode.getChildren().get(child),
                                   signalMaps, ((ModuleNode) rootNode.getChildren().get(child)).getCellType(), topName + " " + child);
         }
+
+        OutputReverser reverser = new OutputReverser();
+
+        reverser.reversePorts(root);
 
         return root;
     }
