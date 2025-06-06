@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
+import de.thkoeln.fentwums.netlist.backend.datatypes.PerformanceTarget;
 import de.thkoeln.fentwums.netlist.backend.helpers.CellCollapser;
 import de.thkoeln.fentwums.netlist.backend.helpers.SignalBundler;
 import de.thkoeln.fentwums.netlist.backend.hierarchical.parser.HierarchicalOrchestrator;
@@ -106,33 +107,6 @@ public class NetlistReaderBackendSpringBootApplication {
         }
     }
 
-    @Deprecated
-    @RequestMapping(value = "/graphLocalFile", method = RequestMethod.POST)
-    public ResponseEntity<String> createNetlistGraphFromLocalFile(@RequestParam(value = "filename") String filename,
-                                                                  @RequestParam(value = "hash") String hash,
-                                                                  @RequestParam(value = "entityLabelFontSize",
-                                                                          defaultValue = "25") int entityLabelFontSize,
-                                                                  @RequestParam(value = "cellLabelFontSize",
-                                                                          defaultValue = "15") int cellLabelFontSize,
-                                                                  @RequestParam(value = "edgeLabelFontSize",
-                                                                          defaultValue = "10") int edgeLabelFontSize,
-                                                                  @RequestParam(value = "portLabelFontSize",
-                                                                          defaultValue = "10") int portLabelFontSize) {
-        GraphCreator creator = new GraphCreator();
-        NetlistParser parser = new NetlistParser();
-
-        NetlistCreationSettings settings = new NetlistCreationSettings(entityLabelFontSize, cellLabelFontSize,
-                                                                       edgeLabelFontSize, portLabelFontSize);
-
-        logger.atInfo().setMessage("Filename: {}").addArgument(filename).log();
-
-        parser.setNetlistFile(new File(filename));
-        // TODO remove
-        parser.setNetlistStream(null);
-
-        return graphNetlist(creator, parser, Long.parseUnsignedLong(hash), settings);
-    }
-
     @RequestMapping(value = "/graphRemoteFile", method = RequestMethod.POST)
     public ResponseEntity<String> createNetlistGraphFromRemoteFile(@RequestParam("file") MultipartFile file,
                                                                    @RequestParam(value = "hash") String hash,
@@ -143,14 +117,27 @@ public class NetlistReaderBackendSpringBootApplication {
                                                                    @RequestParam(value = "edgeLabelFontSize",
                                                                            defaultValue = "10") int edgeLabelFontSize,
                                                                    @RequestParam(value = "portLabelFontSize",
-                                                                           defaultValue = "10") int portLabelFontSize) {
+                                                                           defaultValue = "10") int portLabelFontSize,
+                                                                   @RequestParam(value = "performance-target",
+                                                                           defaultValue = "Preloading")
+                                                                   String performanceTarget) {
 
 
         GraphCreator creator = new GraphCreator();
         NetlistParser parser = new NetlistParser();
+        PerformanceTarget target;
+
+        logger.atInfo().setMessage("Selected performannce target: {}").addArgument(performanceTarget).log();
+
+        try {
+            target = PerformanceTarget.valueOf(performanceTarget);
+        } catch (IllegalArgumentException e) {
+            target = PerformanceTarget.Preloading;
+        }
 
         NetlistCreationSettings settings = new NetlistCreationSettings(entityLabelFontSize, cellLabelFontSize,
-                                                                       edgeLabelFontSize, portLabelFontSize);
+                                                                       edgeLabelFontSize, portLabelFontSize,
+                                                                       target);
 
         HierarchicalOrchestrator orchestrator = new HierarchicalOrchestrator();
 
@@ -170,9 +157,8 @@ public class NetlistReaderBackendSpringBootApplication {
 //		return graphNetlist(creator, parser, Long.parseUnsignedLong(hash), settings);
     }
 
-    private ResponseEntity<String> getStringResponseEntity(MultipartFile file,
-                                                                  HierarchicalOrchestrator orchestrator,
-                                                                  NetlistCreationSettings settings, long hash) {
+    private ResponseEntity<String> getStringResponseEntity(MultipartFile file, HierarchicalOrchestrator orchestrator,
+                                                           NetlistCreationSettings settings, long hash) {
         try {
             ObjectMapper mapper = new ObjectMapper();
             TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
