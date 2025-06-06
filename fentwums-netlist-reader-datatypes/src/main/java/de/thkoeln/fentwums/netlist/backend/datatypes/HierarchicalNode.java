@@ -1,6 +1,6 @@
 package de.thkoeln.fentwums.netlist.backend.datatypes;
 
-import de.thkoeln.fentwums.netlist.backend.interfaces.internal.CollapsableNode;
+import de.thkoeln.fentwums.netlist.backend.interfaces.ICollapsableNode;
 import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkNode;
 import org.slf4j.Logger;
@@ -10,13 +10,12 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
-public class HierarchicalNode implements CollapsableNode {
+public class HierarchicalNode implements ICollapsableNode {
 	private String hName;
 	private int lId;
 	private HierarchicalNode parent;
-	private AbstractMap<String, CollapsableNode> children;
+	private AbstractMap<String, ICollapsableNode> children;
 	private boolean isLeaf;
 	private ArrayList<Vector> vectors;
 	private HashMap<Integer, Bundle> possibleBundles;
@@ -33,7 +32,7 @@ public class HierarchicalNode implements CollapsableNode {
 		hName = "";
 		lId = 0;
 		parent = null;
-		children = new HashMap<String, CollapsableNode>(8);
+		children = new HashMap<String, ICollapsableNode>(8);
 		isLeaf = true;
 		vectors = new ArrayList<>(8);
 		possibleBundles = new HashMap<>(8);
@@ -42,7 +41,7 @@ public class HierarchicalNode implements CollapsableNode {
 		currentlyBundledSignals = new ArrayList<>(8);
 	}
 
-	public HierarchicalNode(String hName, HierarchicalNode parent, HashMap<String, CollapsableNode> children,
+	public HierarchicalNode(String hName, HierarchicalNode parent, HashMap<String, ICollapsableNode> children,
 							ArrayList<Vector> vectors, HashMap<Integer, Bundle> possibleBundles, ElkNode node) {
 		this.hName = hName;
 		this.parent = parent;
@@ -94,12 +93,12 @@ public class HierarchicalNode implements CollapsableNode {
 	}
 
 	@Override
-	public AbstractMap<String, CollapsableNode> getChildren() {
+	public AbstractMap<String, ICollapsableNode> getChildren() {
 		return children;
 	}
 
 	@Override
-	public void setChildren(AbstractMap<String, CollapsableNode> children) {
+	public void setChildren(AbstractMap<String, ICollapsableNode> children) {
 		this.children = children;
 	}
 

@@ -1,6 +1,6 @@
 package de.thkoeln.fentwums.netlist.backend.datatypes;
 
-import de.thkoeln.fentwums.netlist.backend.interfaces.internal.CollapsableNode;
+import de.thkoeln.fentwums.netlist.backend.interfaces.ICollapsableNode;
 import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkNode;
 
@@ -8,11 +8,12 @@ import java.util.AbstractMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ModuleNode implements CollapsableNode {
+public class ModuleNode implements ICollapsableNode {
     ElkNode moduleNode;
-    AbstractMap<String, CollapsableNode> children;
+    AbstractMap<String, ICollapsableNode> children;
     List<ElkNode> childList;
     List<ElkEdge> edgeList;
+    String cellType, cellName;
 
     public ModuleNode(ElkNode moduleNode) {
         this.moduleNode = moduleNode;
@@ -30,12 +31,12 @@ public class ModuleNode implements CollapsableNode {
     }
 
     @Override
-    public AbstractMap<String, CollapsableNode> getChildren() {
+    public AbstractMap<String, ICollapsableNode> getChildren() {
         return children;
     }
 
     @Override
-    public void setChildren(AbstractMap<String, CollapsableNode> children) {
+    public void setChildren(AbstractMap<String, ICollapsableNode> children) {
         this.children = children;
     }
 
@@ -57,5 +58,21 @@ public class ModuleNode implements CollapsableNode {
     @Override
     public List<ElkEdge> getEdgeList() {
         return edgeList;
+    }
+
+    public String getCellType() {
+        return cellType;
+    }
+
+    public void setCellType(String cellType) {
+        this.cellType = cellType;
+    }
+
+    public String getCellName() {
+        return cellName;
+    }
+
+    public void setCellName(String cellName) {
+        this.cellName = cellName;
     }
 }

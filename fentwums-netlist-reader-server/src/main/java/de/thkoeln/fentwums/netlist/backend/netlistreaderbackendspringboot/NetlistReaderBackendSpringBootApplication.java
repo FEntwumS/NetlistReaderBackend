@@ -154,7 +154,7 @@ public class NetlistReaderBackendSpringBootApplication {
 
         HierarchicalOrchestrator orchestrator = new HierarchicalOrchestrator();
 
-        return getStringResponseEntity(file, orchestrator, settings);
+        return getStringResponseEntity(file, orchestrator, settings, Long.parseUnsignedLong(hash));
 
 
 //		try {
@@ -172,18 +172,42 @@ public class NetlistReaderBackendSpringBootApplication {
 
     private ResponseEntity<String> getStringResponseEntity(MultipartFile file,
                                                                   HierarchicalOrchestrator orchestrator,
-                                                                  NetlistCreationSettings settings) {
+                                                                  NetlistCreationSettings settings, long hash) {
         try {
             ObjectMapper mapper = new ObjectMapper();
             TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
             };
+            CellCollapser collapser = new CellCollapser();
 
             HashMap<String, Object> netlist = mapper.readValue(file.getInputStream(), typeRef);
 
-            return new ResponseEntity<>(ElkGraphJson.forGraph(
-                            orchestrator.createGraphFromNetlist(netlist, blackboxmap, settings)).omitLayout(false)
-                                                .omitZeroDimension(true).omitZeroPositions(true).shortLayoutOptionKeys(
-                            true).prettyPrint(false).toJson(), HttpStatus.OK);
+            orchestrator.createGraphFromNetlist(netlist, "", blackboxmap, settings);
+
+            collapser.setRootNode(orchestrator.getRoot());
+
+            for (String key : orchestrator.getRoot().getChildren().keySet()) {
+                collapser.collapseRecursively(orchestrator.getRoot().getChildren().get(key));
+            }
+
+            logger.info("Start layouting");
+            String layoutedGraph = orchestrator.layoutGraph();
+            logger.info("Graph layouted successfully");
+
+            logger.info("done");
+
+            NetlistInformation newNetlist = new NetlistInformation(orchestrator, null, collapser);
+
+            mapLock.writeLock().lock();
+            try {
+                currentNets.put(hash, newNetlist);
+            } finally {
+                mapLock.writeLock().unlock();
+            }
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
+
+            return new ResponseEntity<>(layoutedGraph, headers, HttpStatus.OK);
         } catch (IOException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -345,7 +369,7 @@ public class NetlistReaderBackendSpringBootApplication {
                 try {
                     currentNetlist = currentNets.get(Long.parseUnsignedLong(hash));
 
-                    expandedGraph = ElkGraphJson.forGraph(currentNetlist.getCreator().getGraph()).omitLayout(false)
+                    expandedGraph = ElkGraphJson.forGraph(currentNetlist.getCreator().getGraphRoot()).omitLayout(false)
                             .omitZeroDimension(true).omitZeroPositions(true).shortLayoutOptionKeys(true).prettyPrint(
                                     false).toJson();
                 } catch (Exception e) {

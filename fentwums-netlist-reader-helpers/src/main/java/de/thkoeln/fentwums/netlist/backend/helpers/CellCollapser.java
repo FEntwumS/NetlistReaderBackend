@@ -1,7 +1,7 @@
 package de.thkoeln.fentwums.netlist.backend.helpers;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchicalNode;
-import de.thkoeln.fentwums.netlist.backend.interfaces.internal.CollapsableNode;
+import de.thkoeln.fentwums.netlist.backend.interfaces.ICollapsableNode;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.SizeConstraint;
 import org.eclipse.elk.graph.ElkEdge;
@@ -18,7 +18,7 @@ import java.util.*;
  * layouting time
  */
 public class CellCollapser {
-	private CollapsableNode rootNode;
+	private ICollapsableNode rootNode;
 	private static Logger logger = LoggerFactory.getLogger(CellCollapser.class);
 
 	public CellCollapser() {
@@ -29,7 +29,7 @@ public class CellCollapser {
 	 *
 	 * @param rootNode
 	 */
-	public void setRootNode(CollapsableNode rootNode) {
+	public void setRootNode(ICollapsableNode rootNode) {
 		this.rootNode = rootNode;
 	}
 
@@ -38,7 +38,7 @@ public class CellCollapser {
 	 *
 	 * @return The root node
 	 */
-	public CollapsableNode getRootNode() {
+	public ICollapsableNode getRootNode() {
 		return rootNode;
 	}
 
@@ -70,11 +70,11 @@ public class CellCollapser {
 	 *
 	 * @param hNode The cell that is to be collapsed
 	 */
-	public void collapseRecursively(CollapsableNode hNode) {
+	public void collapseRecursively(ICollapsableNode hNode) {
 		collapseCell(hNode);
 
 		for (String hChild : hNode.getChildren().keySet()) {
-			collapseRecursively((HierarchicalNode) hNode.getChildren().get(hChild));
+			collapseRecursively(hNode.getChildren().get(hChild));
 		}
 	}
 
@@ -85,7 +85,7 @@ public class CellCollapser {
 	 *
 	 * @param hNode The cell to be collapsed
 	 */
-	public void collapseCell(CollapsableNode hNode) {
+	public void collapseCell(ICollapsableNode hNode) {
 		ElkNode currentGraphNode = hNode.getNode();
 
 		if (hNode.getChildList() == null) {
@@ -123,7 +123,7 @@ public class CellCollapser {
 	 *
 	 * @param hNode The cell that is to be expanded
 	 */
-	public void expandRecursively(CollapsableNode hNode) {
+	public void expandRecursively(ICollapsableNode hNode) {
 		expandCell(hNode);
 
 		for (String hChild : hNode.getChildren().keySet()) {
@@ -148,7 +148,7 @@ public class CellCollapser {
 	 *
 	 * @param cNode The cell to be expanded
 	 */
-	public void expandCell(CollapsableNode cNode) {
+	public void expandCell(ICollapsableNode cNode) {
 		ElkNode currentGraphNode = cNode.getNode();
 		EList<ElkNode> graphChildren = currentGraphNode.getChildren();
 		EList<ElkEdge> graphContainedEdges = currentGraphNode.getContainedEdges();
@@ -175,17 +175,20 @@ public class CellCollapser {
 	 * @param cellPath The location of the wanted cell
 	 * @return The found HierarchicalNode or null, if no matching cell could be found
 	 */
-	private CollapsableNode findNode(String cellPath) {
+	private ICollapsableNode findNode(String cellPath) {
 		String[] cellPathSplit = cellPath.trim().split(" ");
 
-		CollapsableNode currentNode = rootNode;
-		HierarchicalNode nextNode;
+		ICollapsableNode currentNode = rootNode;
 
-		for (String fragment : cellPathSplit) {
-			currentNode = currentNode.getChildren().get(fragment);
+		for (int i = 0; i < cellPathSplit.length; i++) {
+			if (i == 0 && cellPathSplit.length > 1 && rootNode.getChildren().containsKey(cellPathSplit[i + 1])) {
+				continue;
+			}
+
+			currentNode = currentNode.getChildren().get(cellPathSplit[i]);
 
 			if (currentNode == null) {
-				logger.atError().setMessage("Could not find cell {} from cellpath {}").addArgument(fragment).addArgument(cellPath).log();
+				logger.atError().setMessage("Could not find cell {} from cellpath {}").addArgument(cellPathSplit[i]).addArgument(cellPath).log();
 
 				return null;
 			}
@@ -202,7 +205,7 @@ public class CellCollapser {
 	 * @param cellPath The path of the cell
 	 */
 	public void toggleCollapsed(String cellPath) {
-		CollapsableNode node = findNode(cellPath);
+		ICollapsableNode node = findNode(cellPath);
 
 		if (!node.getEdgeList().isEmpty() || !node.getChildList().isEmpty()) {
 			// node can have child elements

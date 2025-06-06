@@ -1,16 +1,20 @@
 package de.thkoeln.fentwums.netlist.backend.hierarchical.parser;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.ModuleNode;
+import de.thkoeln.fentwums.netlist.backend.datatypes.NetInformation;
 import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalOccurences;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
+import de.thkoeln.fentwums.netlist.backend.interfaces.ICollapsableNode;
+import de.thkoeln.fentwums.netlist.backend.interfaces.IGraphCreator;
 import org.eclipse.elk.core.RecursiveGraphLayoutEngine;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.HierarchyHandling;
 import org.eclipse.elk.core.options.SizeConstraint;
 import org.eclipse.elk.core.util.BasicProgressMonitor;
 import org.eclipse.elk.graph.ElkNode;
+import org.eclipse.elk.graph.json.ElkGraphJson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,21 +24,23 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static org.eclipse.elk.graph.util.ElkGraphUtil.createGraph;
 
-public class HierarchicalOrchestrator {
+public class HierarchicalOrchestrator implements IGraphCreator {
     private static Logger logger = LoggerFactory.getLogger(HierarchicalOrchestrator.class);
+    private ElkNode root;
+    private ICollapsableNode rootNode;
 
-    public ElkNode createGraphFromNetlist(HashMap<String, Object> netlist, HashMap<String, Object> blackBoxes,
+    public ElkNode createGraphFromNetlist(HashMap<String, Object> netlist, String modulename, HashMap<String, Object> blackBoxes,
                                           NetlistCreationSettings settings) {
-        ElkNode rootNode = createGraph();
+        root = createGraph();
         String topName = "";
 
         ConcurrentHashMap<String, HashMap<Integer, SignalOccurences>> signalMaps = new ConcurrentHashMap<>();
 
 
-        rootNode.setProperty(CoreOptions.ALGORITHM, "layered");
-        rootNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
-        rootNode.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.allOf(SizeConstraint.class));
-        rootNode.setIdentifier("root");
+        root.setProperty(CoreOptions.ALGORITHM, "layered");
+        root.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
+        root.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.allOf(SizeConstraint.class));
+        root.setIdentifier("root");
 
         HashMap<String, Object> modules = (HashMap<String, Object>) netlist.get("modules");
 
@@ -56,36 +62,57 @@ public class HierarchicalOrchestrator {
             return null;
         }
 
-        ElkNode topNode = ElkElementCreator.createNewNode(rootNode, topName);
+        ElkNode topNode = ElkElementCreator.createNewNode(root, topName);
         topNode.setProperty(FEntwumSOptions.CELL_TYPE, "HDL_ENTITY");
 
         PortHandler portHandler = new PortHandler();
         CellHandler cellHandler = new CellHandler();
         NetnameHandler netnameHandler = new NetnameHandler();
 
-        ModuleNode currentModuleNode = new ModuleNode(topNode);
+        rootNode = new ModuleNode(topNode);
 
         portHandler.createPorts(modules, signalMaps, topNode, settings, topName, topName);
-        cellHandler.createCells(modules, topNode, signalMaps, settings, blackBoxes, currentModuleNode, topName,
+        cellHandler.createCells(modules, topNode, signalMaps, settings, blackBoxes, (ModuleNode) rootNode, topName,
                                 topName);
-        netnameHandler.handleNetnames(modules, signalMaps, settings, currentModuleNode, topName, topName);
+        netnameHandler.handleNetnames(modules, signalMaps, settings, (ModuleNode) rootNode, topName, topName);
 
-        for (String child : currentModuleNode.getChildren().keySet()) {
-            addModulesRecursively(modules, blackBoxes, settings, (ModuleNode) currentModuleNode.getChildren().get(child),
-                                  signalMaps, child, topName + " " + child);
+        for (String child : rootNode.getChildren().keySet()) {
+            addModulesRecursively(modules, blackBoxes, settings, (ModuleNode) rootNode.getChildren().get(child),
+                                  signalMaps, ((ModuleNode) rootNode.getChildren().get(child)).getCellType(), topName + " " + child);
         }
 
+        return root;
+    }
+
+    @Override
+    public String layoutGraph() {
         // Layout the graph
         RecursiveGraphLayoutEngine engine = new RecursiveGraphLayoutEngine();
         BasicProgressMonitor monitor = new BasicProgressMonitor();
 
         try {
-            engine.layout(rootNode, monitor);
+            engine.layout(root, monitor);
         } catch (Exception e) {
             logger.error("Error during layout", e);
         }
 
+        return ElkGraphJson.forGraph(root).omitLayout(false).omitZeroDimension(true)
+                .omitZeroPositions(true).shortLayoutOptionKeys(true).prettyPrint(false).toJson();
+    }
+
+    @Override
+    public ICollapsableNode getRoot() {
         return rootNode;
+    }
+
+    @Override
+    public ElkNode getGraphRoot() {
+        return root;
+    }
+
+    @Override
+    public HashMap<String, NetInformation> getNetInformationMap() {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     public void addModulesRecursively(HashMap<String, Object> modules, HashMap<String, Object> blackBoxes,
@@ -101,7 +128,7 @@ public class HierarchicalOrchestrator {
 
         for (String child : currentModuleNode.getChildren().keySet()) {
             addModulesRecursively(modules, blackBoxes, settings, (ModuleNode) currentModuleNode.getChildren().get(child),
-                                  signalMaps, child, instancePath + " " + child);
+                                  signalMaps, ((ModuleNode) currentModuleNode.getChildren().get(child)).getCellType(), instancePath + " " + child);
         }
 
     }

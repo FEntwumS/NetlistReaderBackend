@@ -5,7 +5,7 @@ import de.thkoeln.fentwums.netlist.backend.helpers.CellPathFormatter;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
-import de.thkoeln.fentwums.netlist.backend.interfaces.internal.CollapsableNode;
+import de.thkoeln.fentwums.netlist.backend.interfaces.ICollapsableNode;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.graph.*;
 import org.slf4j.LoggerFactory;
@@ -112,7 +112,7 @@ public class CellHandler {
 								settings);
 
 						HierarchicalNode newHierarchyNode = new HierarchicalNode(pathFragment,
-								currentHierarchyPosition, new HashMap<String, CollapsableNode>(), new ArrayList<>(),
+								currentHierarchyPosition, new HashMap<String, ICollapsableNode>(), new ArrayList<>(),
 								new HashMap<>(), newElkNode);
 
 						currentHierarchyPosition.getChildren().put(pathFragment, newHierarchyNode);
@@ -143,7 +143,7 @@ public class CellHandler {
 
 			// update hierarchy to include the new node
 			newHNode = new HierarchicalNode(currentCellPathSplit[currentCellPathSplit.length - 1],
-					currentHierarchyPosition, new HashMap<String, CollapsableNode>(), new ArrayList<Vector>(),
+					currentHierarchyPosition, new HashMap<String, ICollapsableNode>(), new ArrayList<Vector>(),
 					new HashMap<Integer, Bundle>(), newCellNode);
 
 			// Create node ports

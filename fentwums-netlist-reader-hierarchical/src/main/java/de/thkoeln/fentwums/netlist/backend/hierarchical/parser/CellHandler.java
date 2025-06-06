@@ -100,6 +100,7 @@ public class CellHandler {
 
             newCellNode.setProperty(FEntwumSOptions.SRC_LOCATION, srcLocation);
             if (!isHidden && !isDerived) {
+                newCellNode.setProperty(FEntwumSOptions.LOCATION_PATH, instancePath + " " + cellName);
                 newCellNode.setProperty(FEntwumSOptions.CELL_TYPE, "HDL_ENTITY");
             } else {
                 newCellNode.setProperty(FEntwumSOptions.CELL_TYPE, cellType);
@@ -193,13 +194,17 @@ public class CellHandler {
                 }
             } else {
                 PortHandler portHandler = new PortHandler();
-                newSubModulePath = instancePath + " " + cellType;
+                newSubModulePath = instancePath + " " + cellName;
 
                 portHandler.createPorts(netlist, signalMaps, newCellNode, settings, cellType, newSubModulePath);
 
                 // Make user modules available in hierarchy for later loading and expansion
                 if (!isHidden) {
-                    currentModuleNode.getChildren().put(cellType, new ModuleNode(newCellNode));
+                    ModuleNode childModuleNode = new ModuleNode(newCellNode);
+                    childModuleNode.setCellType(cellType);
+                    childModuleNode.setCellName(cellName);
+
+                    currentModuleNode.getChildren().put(cellName, childModuleNode);
                 }
 
                 // Backport port association for signals crossing boundary to new module
