@@ -62,7 +62,7 @@ public class CellHandler {
             currentCell = (HashMap<String, Object>) cells.get(cellName);
             currentCellAttributes = (HashMap<String, Object>) currentCell.get("attributes");
 
-            cellType = ((String) currentCell.get("type")).replaceAll("\\$", "");
+            cellType = (String) currentCell.get("type");
 
             // Check whether the module / cell is hidden or not
             isHidden = currentCell.get("hide_name").equals("0");
@@ -74,7 +74,7 @@ public class CellHandler {
             currentCellPortDirections = (HashMap<String, Object>) currentCell.get("port_directions");
             currentCellConnections = (HashMap<String, Object>) currentCell.get("connections");
 
-            if (currentCellAttributes.containsKey("module_not_derived")) {
+            if (currentCellAttributes.containsKey("module_not_derived") || cellType.contains("paramod")) {
                 isDerived = false;
 
                 if (currentCellPortDirections != null) {
