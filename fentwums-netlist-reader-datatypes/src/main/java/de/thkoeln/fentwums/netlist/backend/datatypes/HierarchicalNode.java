@@ -1,25 +1,28 @@
 package de.thkoeln.fentwums.netlist.backend.datatypes;
 
+import de.thkoeln.fentwums.netlist.backend.interfaces.ICollapsableNode;
 import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
-public class HierarchicalNode {
+public class HierarchicalNode implements ICollapsableNode {
 	private String hName;
 	private int lId;
 	private HierarchicalNode parent;
-	private HashMap<String, HierarchicalNode> children;
+	private AbstractMap<String, ICollapsableNode> children;
 	private boolean isLeaf;
 	private ArrayList<Vector> vectors;
 	private HashMap<Integer, Bundle> possibleBundles;
 	private ElkNode node;
 	private HashMap<String, ElkNode> constantDrivers;
-	private ArrayList<ElkNode> childList;
-	private ArrayList<ElkEdge> edgeList;
+	private List<ElkNode> childList;
+	private List<ElkEdge> edgeList;
 	private ArrayList<Integer> currentlyBundledSignals;
 	private String path;
 
@@ -29,7 +32,7 @@ public class HierarchicalNode {
 		hName = "";
 		lId = 0;
 		parent = null;
-		children = new HashMap<String, HierarchicalNode>(8);
+		children = new HashMap<String, ICollapsableNode>(8);
 		isLeaf = true;
 		vectors = new ArrayList<>(8);
 		possibleBundles = new HashMap<>(8);
@@ -38,7 +41,7 @@ public class HierarchicalNode {
 		currentlyBundledSignals = new ArrayList<>(8);
 	}
 
-	public HierarchicalNode(String hName, HierarchicalNode parent, HashMap<String, HierarchicalNode> children,
+	public HierarchicalNode(String hName, HierarchicalNode parent, HashMap<String, ICollapsableNode> children,
 							ArrayList<Vector> vectors, HashMap<Integer, Bundle> possibleBundles, ElkNode node) {
 		this.hName = hName;
 		this.parent = parent;
@@ -89,11 +92,13 @@ public class HierarchicalNode {
 		this.parent = parent;
 	}
 
-	public HashMap<String, HierarchicalNode> getChildren() {
+	@Override
+	public AbstractMap<String, ICollapsableNode> getChildren() {
 		return children;
 	}
 
-	public void setChildren(HashMap<String, HierarchicalNode> children) {
+	@Override
+	public void setChildren(AbstractMap<String, ICollapsableNode> children) {
 		this.children = children;
 	}
 
@@ -113,10 +118,12 @@ public class HierarchicalNode {
 		this.possibleBundles = possibleBundles;
 	}
 
+	@Override
 	public ElkNode getNode() {
 		return node;
 	}
 
+	@Override
 	public void setNode(ElkNode node) {
 		this.node = node;
 	}
@@ -129,19 +136,23 @@ public class HierarchicalNode {
 		this.constantDrivers = constantDrivers;
 	}
 
-	public ArrayList<ElkNode> getChildList() {
+	@Override
+	public List<ElkNode> getChildList() {
 		return childList;
 	}
 
-	public void setChildList(ArrayList<ElkNode> childList) {
+	@Override
+	public void setChildList(List<ElkNode> childList) {
 		this.childList = childList;
 	}
 
-	public ArrayList<ElkEdge> getEdgeList() {
+	@Override
+	public List<ElkEdge> getEdgeList() {
 		return edgeList;
 	}
 
-	public void setEdgeList(ArrayList<ElkEdge> edgeList) {
+	@Override
+	public void setEdgeList(List<ElkEdge> edgeList) {
 		this.edgeList = edgeList;
 	}
 

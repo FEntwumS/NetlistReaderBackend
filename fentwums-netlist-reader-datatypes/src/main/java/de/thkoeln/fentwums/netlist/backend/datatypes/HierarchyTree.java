@@ -24,7 +24,7 @@ public class HierarchyTree {
 		HierarchicalNode currentNode = root;
 
 		for (int i = 1; i < pathSplit.length; i++) {
-			currentNode = currentNode.getChildren().get(pathSplit[i]);
+			currentNode = (HierarchicalNode) currentNode.getChildren().get(pathSplit[i]);
 
 			if (currentNode == null) {
 				return null;
