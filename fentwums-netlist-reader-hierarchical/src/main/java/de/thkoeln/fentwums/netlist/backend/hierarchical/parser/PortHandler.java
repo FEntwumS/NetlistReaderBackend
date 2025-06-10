@@ -2,10 +2,13 @@ package de.thkoeln.fentwums.netlist.backend.hierarchical.parser;
 
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
+import de.thkoeln.fentwums.netlist.backend.datatypes.Range;
+import de.thkoeln.fentwums.netlist.backend.datatypes.SignalElement;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalOccurences;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
+import de.thkoeln.fentwums.netlist.backend.helpers.RangeCalculator;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.EdgeLabelPlacement;
 import org.eclipse.elk.core.options.PortSide;
@@ -42,6 +45,7 @@ public class PortHandler {
         HashMap<String, ElkPort> constantDriverPortMap = new HashMap<>();
         HashMap<Integer, SignalOccurences> signalMap;
         boolean reversedPort;
+        ArrayList<SignalElement> signalIndexList = new ArrayList<>(), constantSignalIndexList = new ArrayList<>();
 
         if (signalMaps.containsKey(instancePath)) {
             signalMap = signalMaps.get(instancePath);
@@ -61,6 +65,9 @@ public class PortHandler {
         boolean isTopLevel = currentNode.getParent() != null && currentNode.getParent().getIdentifier().equals("root");
 
         for (String portname : ports.keySet()) {
+            signalIndexList.clear();
+            constantSignalIndexList.clear();
+
             currentPort = (HashMap<String, Object>) ports.get(portname);
 
             currentPortDirection = (String) currentPort.get("direction");
@@ -85,7 +92,7 @@ public class PortHandler {
 
             // reverse order for MSB-first ports
             if (reversedPort) {
-                portDrivers =  portDrivers.reversed();
+                portDrivers = portDrivers.reversed();
                 canonicalIndex = portDrivers.size() - 1;
                 currentIndexInPort += portDrivers.size() - 1;
             } else {
@@ -93,62 +100,10 @@ public class PortHandler {
             }
 
             for (Object driver : portDrivers) {
-                ElkPort newPort = ElkElementCreator.createNewPort(currentNode, createdPortSide);
-                newPort.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, currentIndexInPort);
-                newPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portname);
-                newPort.setProperty(FEntwumSOptions.CANONICAL_INDEX_IN_PORT_GROUP, canonicalIndex);
-
-                ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(portname + (portDrivers.size() == 1
-                        ? "" : " [" + currentIndexInPort + "]"), newPort, settings);
-
                 if (driver instanceof Integer) {
-                    signalIndex = (Integer) driver;
-
-                    if (signalMap.containsKey(signalIndex)) {
-                        insertPortIntoMap(signalMap, newPort, signalIndex);
-                    } else {
-                        signalMap.put(signalIndex, new SignalOccurences());
-
-                        insertPortIntoMap(signalMap, newPort, signalIndex);
-                    }
+                    signalIndexList.add(new SignalElement(currentIndexInPort, driver));
                 } else {
-                    // Only create constant drivers for the toplevel entity
-                    // Otherwise the cell creator will take care of creating the constant drivers
-                    // to simplify the entity insertion process
-
-                    if (isTopLevel) {
-                        ElkPort constPort;
-                        ElkPort source, sink;
-
-                        if (constantDriverPortMap.containsKey(driver + currentPortDirection)) {
-                            constPort = constantDriverPortMap.get(driver + currentPortDirection);
-                        } else {
-                            ElkNode constNode = ElkElementCreator.createNewConstantDriver(currentNode.getParent());
-                            constNode.setDimensions(20d, 20d);
-
-                            ElkLabel constLabel = ElkElementCreator.createNewConstantDriverLabel((String) driver,
-                                    constNode, settings);
-
-                            constPort = ElkElementCreator.createNewPort(constNode, oppositePortSide);
-
-                            constantDriverPortMap.put(driver + currentPortDirection, constPort);
-                        }
-
-                        if (currentPortDirection.equals("input")) {
-                            sink = newPort;
-                            source = constPort;
-                        } else {
-                            sink = constPort;
-                            source = newPort;
-                        }
-
-                        ElkEdge constEdge = ElkElementCreator.createNewEdge(sink, source);
-                        constEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.CONSTANT);
-
-                        ElkLabel constEdgeLabel = ElkElementCreator.createNewEdgeLabel((String) driver, constEdge,
-                                settings);
-                        constEdgeLabel.setProperty(CoreOptions.EDGE_LABELS_PLACEMENT, EdgeLabelPlacement.TAIL);
-                    }
+                    constantSignalIndexList.add(new SignalElement(currentIndexInPort, driver));
                 }
 
                 if (reversedPort) {
@@ -158,6 +113,111 @@ public class PortHandler {
                     canonicalIndex++;
                     currentIndexInPort++;
                 }
+            }
+
+            List<Range> signalRanges = RangeCalculator.calculateRanges(signalIndexList);
+            List<Range> constRanges = RangeCalculator.calculateRanges(constantSignalIndexList);
+
+            // First create ports for "normal" signals
+            for (Range signalRange : signalRanges) {
+                ElkPort newPort = ElkElementCreator.createNewPort(currentNode, createdPortSide);
+                newPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portname);
+
+                if (signalRange.singleElement()) {
+                    newPort.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, (int) signalRange.drivers().getFirst());
+                    newPort.setProperty(FEntwumSOptions.CANONICAL_INDEX_IN_PORT_GROUP, signalRange.lower());
+
+                    ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(
+                            portname + (portDrivers.size() == 1 ? "" : " [" + (signalRange.lower()) + "]"), newPort,
+                            settings);
+                } else {
+                    ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(
+                            portname + " [" + (signalRange.upper()) + ":" + (signalRange.lower()) + "]", newPort,
+                            settings);
+                }
+
+                for (Object driver : signalRange.drivers()) {
+                    if (driver instanceof Integer) {
+                        signalIndex = (Integer) driver;
+
+                        if (signalMap.containsKey(signalIndex)) {
+                            insertPortIntoMap(signalMap, newPort, signalIndex);
+                        } else {
+                            signalMap.put(signalIndex, new SignalOccurences());
+
+                            insertPortIntoMap(signalMap, newPort, signalIndex);
+                        }
+                    } else {
+                        logger.atError().setMessage("Cell {} Signal {} is constant but part of \"normal\" range")
+                                .addArgument(moduleType).addArgument(portname).log();
+                    }
+                }
+            }
+
+            // Then create ports for constant signals
+            // Constant inputs are generated as nodes on the same layer as the current entities representation, whereas
+            // constant outputs are generated as children of the current entities representation
+            for (Range constRange : constRanges) {
+                ElkPort constPort;
+                ElkPort source, sink;
+                ElkNode constNode;
+
+                ElkPort newPort = ElkElementCreator.createNewPort(currentNode, createdPortSide);
+                newPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portname);
+
+                if (constRange.singleElement()) {
+                    newPort.setProperty(FEntwumSOptions.CANONICAL_INDEX_IN_PORT_GROUP, constRange.lower());
+
+                    ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(
+                            portname + (portDrivers.size() == 1 ? "" : " [" + (constRange.lower()) + "]"), newPort,
+                            settings);
+                } else {
+                    ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(
+                            portname + " [" + (constRange.upper()) + ":" + (constRange.lower()) + "]", newPort,
+                            settings);
+                }
+
+                StringBuilder constantValues = new StringBuilder();
+
+                for (Object driver : constRange.drivers()) {
+                    if (driver instanceof String) {
+                        constantValues.append((String) driver);
+                    }
+                }
+
+                // Also generate the driver node
+                if (createdPortSide == PortSide.EAST) {
+                    // Const outputs are generated as a child
+                    constNode = ElkElementCreator.createNewConstantDriver(currentNode);
+                    constNode.setDimensions(20d, 20d);
+
+                    ElkLabel constLabel = ElkElementCreator.createNewConstantDriverLabel(constantValues.toString(),
+                                                                                         constNode, settings);
+
+                    constPort = ElkElementCreator.createNewPort(constNode, createdPortSide);
+
+                } else {
+                    // Const input
+                    constNode = ElkElementCreator.createNewConstantDriver(currentNode.getParent());
+                    constNode.setDimensions(20d, 20d);
+
+                    ElkLabel constLabel = ElkElementCreator.createNewConstantDriverLabel(constantValues.toString(),
+                                                                                         constNode, settings);
+
+                    constPort = ElkElementCreator.createNewPort(constNode, oppositePortSide);
+
+                }
+
+                source = constPort;
+                sink = newPort;
+
+                // Add connection
+                ElkEdge constEdge = ElkElementCreator.createNewEdge(sink, source);
+                constEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.CONSTANT);
+
+                ElkLabel constEdgeLabel = ElkElementCreator.createNewEdgeLabel(constantValues.toString(), constEdge,
+                                                                               settings);
+                constEdgeLabel.setProperty(CoreOptions.EDGE_LABELS_PLACEMENT, EdgeLabelPlacement.TAIL);
             }
         }
     }
