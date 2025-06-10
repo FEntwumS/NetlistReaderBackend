@@ -131,6 +131,10 @@ public class PortHandler {
                             portname + (portDrivers.size() == 1 ? "" : " [" + (signalRange.lower()) + "]"), newPort,
                             settings);
                 } else {
+                    // Add contained range data to port
+                    newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_LOWER_INDEX_IN_PORT_GROUP, signalRange.lower());
+                    newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP, signalRange.upper());
+
                     ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(
                             portname + " [" + (signalRange.upper()) + ":" + (signalRange.lower()) + "]", newPort,
                             settings);
@@ -182,6 +186,8 @@ public class PortHandler {
                 for (Object driver : constRange.drivers()) {
                     if (driver instanceof String) {
                         constantValues.append((String) driver);
+                    } else {
+                        logger.error("Non-String const driver");
                     }
                 }
 

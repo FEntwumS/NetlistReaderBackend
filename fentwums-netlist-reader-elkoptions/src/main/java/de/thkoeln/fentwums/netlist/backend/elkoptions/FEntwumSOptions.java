@@ -116,7 +116,17 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 	);
 
 	public static final IProperty<Integer> CANONICAL_INDEX_IN_PORT_GROUP = new Property<Integer>(
-			"de.thkoeln.fentwums.netlist.backend.canonigal-index-in-port-group",
+			"de.thkoeln.fentwums.netlist.backend.canonical-index-in-port-group",
+			0
+	);
+
+	public static final IProperty<Integer> CANONICAL_BUNDLE_LOWER_INDEX_IN_PORT_GROUP = new Property<Integer>(
+			"de.thkoeln.fentwums.netlist.backend.canonical-bundle-lower-index-in-port-group",
+			0
+	);
+
+	public static final IProperty<Integer> CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP = new Property<Integer>(
+			"de.thkoeln.fentwums.netlist.backend.canonical-bundle-upper-index-in-port-group",
 			0
 	);
 
@@ -263,13 +273,33 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 		);
 
 		registry.register(new LayoutOptionData.Builder()
-				.id("de.thkoeln.fentwums.netlist.backend.canonigal-index-in-port-group")
+				.id("de.thkoeln.fentwums.netlist.backend.canonical-index-in-port-group")
 				.defaultValue(0)
 				.type(LayoutOptionData.Type.INT)
 				.optionClass(Integer.class)
 				.targets(EnumSet.of(LayoutOptionData.Target.PORTS))
 				.visibility(LayoutOptionData.Visibility.HIDDEN)
 				.create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+              .id("de.thkoeln.fentwums.netlist.backend.canonical-bundle-lower-index-in-port-group")
+              .defaultValue(0)
+              .type(LayoutOptionData.Type.INT)
+              .optionClass(Integer.class)
+              .targets(EnumSet.of(LayoutOptionData.Target.PORTS))
+              .visibility(LayoutOptionData.Visibility.HIDDEN)
+              .create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+              .id("de.thkoeln.fentwums.netlist.backend.canonical-bundle-upper-index-in-port-group")
+              .defaultValue(0)
+              .type(LayoutOptionData.Type.INT)
+              .optionClass(Integer.class)
+              .targets(EnumSet.of(LayoutOptionData.Target.PORTS))
+              .visibility(LayoutOptionData.Visibility.HIDDEN)
+              .create()
 		);
 	}
 }

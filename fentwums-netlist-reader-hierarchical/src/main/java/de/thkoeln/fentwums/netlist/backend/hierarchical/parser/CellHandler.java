@@ -26,7 +26,8 @@ public class CellHandler {
                             ConcurrentHashMap<String, HashMap<Integer, SignalOccurences>> signalMaps,
                             NetlistCreationSettings settings, HashMap<String, Object> blackboxes,
                             ModuleNode currentModuleNode, String moduleName, String instancePath) {
-        HashMap<String, Object> module, cells, currentCell, currentCellAttributes, currentCellPortDirections, currentCellConnections;
+        HashMap<String, Object> module, cells, currentCell, currentCellAttributes, currentCellPortDirections,
+                currentCellConnections;
         int currentCellIndex = 0, maxSignals, currentPortIndex, currentBitIndex;
         String cellType, srcLocation = "", newSubModulePath;
         PortSide newPortSide, oppositeSide = PortSide.WEST;
@@ -44,8 +45,8 @@ public class CellHandler {
         module = (HashMap<String, Object>) netlist.get(moduleName);
 
         if (module == null) {
-            logger.atError().setMessage("Could not find module {} in Netlist. Aborting...").addArgument(
-                    moduleName).log();
+            logger.atError().setMessage("Could not find module {} in Netlist. Aborting...").addArgument(moduleName)
+                    .log();
             return;
         }
 
@@ -53,8 +54,8 @@ public class CellHandler {
 
         for (String cellName : cells.keySet()) {
             if (currentCellIndex % 512 == 0) {
-                logger.atInfo().setMessage("Cell {} of {}")
-                        .addArgument(currentCellIndex).addArgument(cells.size()).log();
+                logger.atInfo().setMessage("Cell {} of {}").addArgument(currentCellIndex).addArgument(cells.size())
+                        .log();
             }
 
             currentCellIndex++;
@@ -78,16 +79,17 @@ public class CellHandler {
                 isDerived = false;
 
                 if (currentCellPortDirections != null) {
-                    logger.atInfo().setMessage("Cell {} is a blackbox. Using yosys description to add input/output " +
-                            "information").addArgument(cellName).log();
+                    logger.atInfo().setMessage(
+                                    "Cell {} is a blackbox. Using yosys description to add input/output " + "information")
+                            .addArgument(cellName).log();
                 } else {
                     if (blackboxes.containsKey(cellType)) {
                         logger.atInfo().setMessage("Using description from external file for cell {}").addArgument(
                                 cellName).log();
                         currentCellPortDirections = (HashMap<String, Object>) blackboxes.get(cellType);
                     } else {
-                        logger.atError().setMessage("Cell {} is a blackbox cell. Aborting...").addArgument(
-                                cellName).log();
+                        logger.atError().setMessage("Cell {} is a blackbox cell. Aborting...").addArgument(cellName)
+                                .log();
                         throw new RuntimeException("Cell " + cellName + " is a blackbox cell. Aborting...");
                     }
                 }
@@ -138,8 +140,8 @@ public class CellHandler {
                     currentBitIndex = 0;
                     constantValues = new HashMap<>();
 
-                    if (currentCellConnections.size() != currentCellPortDirections.size() || !currentCellConnections.containsKey(
-                            portName)) {
+                    if (currentCellConnections.size() != currentCellPortDirections.size() ||
+                            !currentCellConnections.containsKey(portName)) {
                         throw new RuntimeException(
                                 "Mismatch between number of ports in port_directions and connections");
                     }
@@ -159,7 +161,7 @@ public class CellHandler {
                             // Create port
                             ElkPort newCellPort = ElkElementCreator.createNewPort(newCellNode, newPortSide);
                             newCellPort.setProperty(CoreOptions.PORT_INDEX,
-                                    currentPortIndex * maxSignals + currentBitIndex);
+                                                    currentPortIndex * maxSignals + currentBitIndex);
                             newCellPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portName);
                             newCellPort.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, currentBitIndex);
 
@@ -188,8 +190,6 @@ public class CellHandler {
                         currentBitIndex++;
                     }
 
-                    // TODO create constant drivers
-
                     currentPortIndex++;
                 }
             } else {
@@ -211,8 +211,8 @@ public class CellHandler {
                 for (String portName : currentCellPortDirections.keySet()) {
                     currentBitIndex = 0;
 
-                    if (currentCellConnections.size() != currentCellPortDirections.size() || !currentCellConnections.containsKey(
-                            portName)) {
+                    if (currentCellConnections.size() != currentCellPortDirections.size() ||
+                            !currentCellConnections.containsKey(portName)) {
                         throw new RuntimeException(
                                 "Mismatch between number of ports in port_directions and connections");
                     }
@@ -223,20 +223,23 @@ public class CellHandler {
                         if (driver instanceof Integer) {
                             int finalCurrentBitIndex = currentBitIndex;
                             Set<ElkPort> matchingPorts = newCellNode.getPorts().stream().filter(
-                                    port -> port.getProperty(FEntwumSOptions.PORT_GROUP_NAME).equals(
-                                            portName) && port.getProperty(
-                                            FEntwumSOptions.CANONICAL_INDEX_IN_PORT_GROUP) == finalCurrentBitIndex).collect(
-                                    Collectors.toSet());
+                                    port -> port.getProperty(FEntwumSOptions.PORT_GROUP_NAME).equals(portName) &&
+                                            (port.getProperty(FEntwumSOptions.CANONICAL_INDEX_IN_PORT_GROUP) ==
+                                                    finalCurrentBitIndex || (port.getProperty(
+                                                    FEntwumSOptions.CANONICAL_BUNDLE_LOWER_INDEX_IN_PORT_GROUP) <=
+                                                    finalCurrentBitIndex && port.getProperty(
+                                                    FEntwumSOptions.CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP) >=
+                                                    finalCurrentBitIndex))).collect(Collectors.toSet());
 
                             if (matchingPorts.isEmpty()) {
-                                logger.atError().setMessage("Module {} portgroup {} index {} not found")
-                                        .addArgument(cellName).addArgument(portName).addArgument(currentBitIndex).log();
+                                logger.atError().setMessage("Module {} portgroup {} index {} not found").addArgument(
+                                        cellName).addArgument(portName).addArgument(currentBitIndex).log();
                             } else {
                                 if (matchingPorts.size() > 1) {
                                     logger.atWarn().setMessage(
                                                     "Module {} portgroup {} index {} found more than one matching port")
-                                            .addArgument(cellName).addArgument(portName).addArgument(
-                                                    currentBitIndex).log();
+                                            .addArgument(cellName).addArgument(portName).addArgument(currentBitIndex)
+                                            .log();
                                 }
 
                                 if (!signalMap.containsKey(driver)) {
