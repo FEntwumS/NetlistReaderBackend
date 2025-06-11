@@ -196,7 +196,7 @@ public class CellHandler {
                 PortHandler portHandler = new PortHandler();
                 newSubModulePath = instancePath + " " + cellName;
 
-                portHandler.createPorts(netlist, signalMaps, newCellNode, settings, cellType, newSubModulePath);
+                portHandler.createPorts(netlist, signalMaps, newCellNode, settings, cellType, newSubModulePath, currentCellConnections);
 
                 // Make user modules available in hierarchy for later loading and expansion
                 if (!isHidden) {

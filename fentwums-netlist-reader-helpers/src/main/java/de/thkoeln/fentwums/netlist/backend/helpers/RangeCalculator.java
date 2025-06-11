@@ -1,5 +1,6 @@
 package de.thkoeln.fentwums.netlist.backend.helpers;
 
+import de.thkoeln.fentwums.netlist.backend.datatypes.BundleRange;
 import de.thkoeln.fentwums.netlist.backend.datatypes.Range;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalElement;
 
@@ -7,11 +8,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RangeCalculator {
-    public static List<Range> calculateRanges(List<SignalElement> values) {
+    public static List<BundleRange> calculateRanges(List<SignalElement> values) {
         int cRangeStart, cRangeEnd, currentElem;
 
-        List<Range> ret = new ArrayList<>();
-        List<Object> signalIndices = new ArrayList<>();
+        List<BundleRange> ret = new ArrayList<>();
+        List<Object> internalSignalIndices = new ArrayList<>(), actualDrivers = new ArrayList<>();
 
         if (values.isEmpty()) {
             return ret;
@@ -20,10 +21,12 @@ public class RangeCalculator {
 
         cRangeStart = values.getFirst().canonicalIndex();
         cRangeEnd = cRangeStart;
-        signalIndices.add(values.getFirst().driver());
+        actualDrivers.add(values.getFirst().actualDriver());
+        internalSignalIndices.add(values.getFirst().internalSignalIndex());
 
         if (values.size() == 1) {
-                        ret.add(new Range(cRangeStart, cRangeEnd, signalIndices));
+                        ret.add(new BundleRange(new Range(cRangeStart, cRangeEnd), actualDrivers,
+                                                internalSignalIndices));
 
             return ret;
         }
@@ -32,19 +35,22 @@ public class RangeCalculator {
             currentElem = values.get(i).canonicalIndex();
 
             if (cRangeEnd + 1 != currentElem) {
-                ret.add(new Range(cRangeStart, cRangeEnd, signalIndices));
+                ret.add(new BundleRange(new Range(cRangeStart, cRangeEnd), actualDrivers, internalSignalIndices));
 
                 cRangeStart = currentElem;
                 cRangeEnd = currentElem;
-                signalIndices.clear();
-                signalIndices.add(values.get(i).driver());
+                actualDrivers.clear();
+                actualDrivers.add(values.get(i).actualDriver());
+                internalSignalIndices.clear();
+                internalSignalIndices.add(values.get(i).internalSignalIndex());
             } else {
                 cRangeEnd = currentElem;
-                signalIndices.add(values.get(i).driver());
+                actualDrivers.add(values.get(i).actualDriver());
+                internalSignalIndices.add(values.get(i).internalSignalIndex());
             }
         }
 
-        ret.add(new Range(cRangeStart, cRangeEnd, signalIndices));
+        ret.add(new BundleRange(new Range(cRangeStart, cRangeEnd), actualDrivers, internalSignalIndices));
 
         return ret;
     }

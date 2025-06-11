@@ -72,7 +72,7 @@ public class HierarchicalOrchestrator implements IGraphCreator {
 
         rootNode = new ModuleNode(topNode);
 
-        portHandler.createPorts(modules, signalMaps, topNode, settings, topName, topName);
+        portHandler.createPorts(modules, signalMaps, topNode, settings, topName, topName, null);
         cellHandler.createCells(modules, topNode, signalMaps, settings, blackBoxes, (ModuleNode) rootNode, topName,
                                 topName);
         netnameHandler.handleNetnames(modules, signalMaps, settings, (ModuleNode) rootNode, topName, topName);

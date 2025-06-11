@@ -1,10 +1,7 @@
 package de.thkoeln.fentwums.netlist.backend.hierarchical.parser;
 
 
-import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
-import de.thkoeln.fentwums.netlist.backend.datatypes.Range;
-import de.thkoeln.fentwums.netlist.backend.datatypes.SignalElement;
-import de.thkoeln.fentwums.netlist.backend.datatypes.SignalOccurences;
+import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
@@ -35,11 +32,11 @@ public class PortHandler {
     public void createPorts(HashMap<String, Object> netlist,
                             ConcurrentHashMap<String, HashMap<Integer, SignalOccurences>> signalMaps,
                             ElkNode currentNode, NetlistCreationSettings settings, String moduleType,
-                            String instancePath) {
+                            String instancePath, HashMap<String, Object> instanceConnections) {
         PortSide createdPortSide, oppositePortSide;
         HashMap<String, Object> currentPort, module, ports;
         int currentIndexInPort;
-        List<Object> portDrivers;
+        List<Object> portDrivers, instanceConnection;
         int signalIndex, canonicalIndex;
         String currentPortDirection;
         HashMap<String, ElkPort> constantDriverPortMap = new HashMap<>();
@@ -88,22 +85,32 @@ public class PortHandler {
 
             portDrivers = (List<Object>) currentPort.get("bits");
 
+            // Use constant value from parent, if the port is an input of a non-toplevel entity
+            if (!currentPortDirection.equals("output") && instanceConnections != null && instanceConnections.containsKey(portname)) {
+                instanceConnection = (List<Object>) instanceConnections.get(portname);
+            } else {
+                instanceConnection = (List<Object>) currentPort.get("bits");
+            }
+
             reversedPort = currentPort.containsKey("upto");
 
             // reverse order for MSB-first ports
             if (reversedPort) {
                 portDrivers = portDrivers.reversed();
+                instanceConnection = instanceConnection.reversed();
                 canonicalIndex = portDrivers.size() - 1;
                 currentIndexInPort += portDrivers.size() - 1;
             } else {
                 canonicalIndex = 0;
             }
 
-            for (Object driver : portDrivers) {
-                if (driver instanceof Integer) {
-                    signalIndexList.add(new SignalElement(currentIndexInPort, driver));
+            for (int i = 0; i < portDrivers.size(); i++) {
+                if (instanceConnection.get(i) instanceof Integer) {
+                    signalIndexList.add(new SignalElement(currentIndexInPort, instanceConnection.get(i),
+                                                          portDrivers.get(i)));
                 } else {
-                    constantSignalIndexList.add(new SignalElement(currentIndexInPort, driver));
+                    constantSignalIndexList.add(new SignalElement(currentIndexInPort, instanceConnection.get(i),
+                                                                  portDrivers.get(i)));
                 }
 
                 if (reversedPort) {
@@ -115,32 +122,33 @@ public class PortHandler {
                 }
             }
 
-            List<Range> signalRanges = RangeCalculator.calculateRanges(signalIndexList);
-            List<Range> constRanges = RangeCalculator.calculateRanges(constantSignalIndexList);
+            List<BundleRange> signalRanges = RangeCalculator.calculateRanges(signalIndexList);
+            List<BundleRange> constRanges = RangeCalculator.calculateRanges(constantSignalIndexList);
 
             // First create ports for "normal" signals
-            for (Range signalRange : signalRanges) {
+            for (BundleRange signalRange : signalRanges) {
                 ElkPort newPort = ElkElementCreator.createNewPort(currentNode, createdPortSide);
                 newPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portname);
 
-                if (signalRange.singleElement()) {
-                    newPort.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, (int) signalRange.drivers().getFirst());
-                    newPort.setProperty(FEntwumSOptions.CANONICAL_INDEX_IN_PORT_GROUP, signalRange.lower());
+                if (signalRange.containedRange().singleElement()) {
+                    // newPort.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, (int) signalRange.drivers().getFirst());
+                    newPort.setProperty(FEntwumSOptions.CANONICAL_INDEX_IN_PORT_GROUP, signalRange.containedRange().lower());
 
                     ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(
-                            portname + (portDrivers.size() == 1 ? "" : " [" + (signalRange.lower()) + "]"), newPort,
+                            portname + (portDrivers.size() == 1 ? "" : " [" + (signalRange.containedRange().lower()) + "]"), newPort,
                             settings);
                 } else {
                     // Add contained range data to port
-                    newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_LOWER_INDEX_IN_PORT_GROUP, signalRange.lower());
-                    newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP, signalRange.upper());
+                    newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_LOWER_INDEX_IN_PORT_GROUP,
+                                        signalRange.containedRange().lower());
+                    newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP, signalRange.containedRange().upper());
 
                     ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(
-                            portname + " [" + (signalRange.upper()) + ":" + (signalRange.lower()) + "]", newPort,
+                            portname + " [" + (signalRange.containedRange().upper()) + ":" + (signalRange.containedRange().lower()) + "]", newPort,
                             settings);
                 }
 
-                for (Object driver : signalRange.drivers()) {
+                for (Object driver : signalRange.internalDrivers()) {
                     if (driver instanceof Integer) {
                         signalIndex = (Integer) driver;
 
@@ -161,7 +169,7 @@ public class PortHandler {
             // Then create ports for constant signals
             // Constant inputs are generated as nodes on the same layer as the current entities representation, whereas
             // constant outputs are generated as children of the current entities representation
-            for (Range constRange : constRanges) {
+            for (BundleRange constRange : constRanges) {
                 ElkPort constPort;
                 ElkPort source, sink;
                 ElkNode constNode;
@@ -169,21 +177,21 @@ public class PortHandler {
                 ElkPort newPort = ElkElementCreator.createNewPort(currentNode, createdPortSide);
                 newPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portname);
 
-                if (constRange.singleElement()) {
-                    newPort.setProperty(FEntwumSOptions.CANONICAL_INDEX_IN_PORT_GROUP, constRange.lower());
+                if (constRange.containedRange().singleElement()) {
+                    newPort.setProperty(FEntwumSOptions.CANONICAL_INDEX_IN_PORT_GROUP, constRange.containedRange().lower());
 
                     ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(
-                            portname + (portDrivers.size() == 1 ? "" : " [" + (constRange.lower()) + "]"), newPort,
+                            portname + (portDrivers.size() == 1 ? "" : " [" + (constRange.containedRange().lower()) + "]"), newPort,
                             settings);
                 } else {
                     ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(
-                            portname + " [" + (constRange.upper()) + ":" + (constRange.lower()) + "]", newPort,
+                            portname + " [" + (constRange.containedRange().upper()) + ":" + (constRange.containedRange().lower()) + "]", newPort,
                             settings);
                 }
 
                 StringBuilder constantValues = new StringBuilder();
 
-                for (Object driver : constRange.drivers()) {
+                for (Object driver : constRange.actualDrivers()) {
                     if (driver instanceof String) {
                         constantValues.append((String) driver);
                     } else {
