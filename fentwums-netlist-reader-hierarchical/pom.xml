@@ -1,6 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>fentwums.th-koeln.de</groupId>
+        <artifactId>fentwums-parent</artifactId>
+        <version>0.9.0</version>
+    </parent>
+
+    <artifactId>fentwums-netlist-reader-hierarchical</artifactId>
 
     <licenses>
         <license>
@@ -14,50 +23,6 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
-    <parent>
-        <groupId>fentwums.th-koeln.de</groupId>
-        <artifactId>fentwums-parent</artifactId>
-        <version>0.9.0</version>
-    </parent>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                </configuration>
-            </plugin>
-
-            <!-- Attribution -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>license-maven-plugin</artifactId>
-                <version>2.5.0</version>
-                <executions>
-                    <execution>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>
-                                update-project-license
-                            </goal>
-                        </goals>
-                        <configuration>
-                            <inceptionYear>2024</inceptionYear>
-                            <licenseName>mit</licenseName>
-                            <organizationName>TH Koeln</organizationName>
-                            <projectName>NetlistReaderBackend</projectName>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-
-    <modelVersion>4.0.0</modelVersion>
-    <artifactId>fentwums-netlist-reader-service</artifactId>
 
     <dependencies>
         <!-- Eclipse Layout Kernel -->
@@ -94,19 +59,28 @@
             <artifactId>logback-core</artifactId>
         </dependency>
 
-        <!-- FEntwumS -->
+        <!-- FEntwumS dependencies-->
         <dependency>
             <groupId>fentwums.th-koeln.de</groupId>
             <artifactId>fentwums-netlist-reader-datatypes</artifactId>
         </dependency>
         <dependency>
             <groupId>fentwums.th-koeln.de</groupId>
-            <artifactId>fentwums-netlist-reader-elkoptions</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>fentwums.th-koeln.de</groupId>
             <artifactId>fentwums-netlist-reader-helpers</artifactId>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${dependency.version.spring.spring-boot}</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

@@ -5,6 +5,7 @@ public class NetlistCreationSettings {
 	private double cellLabelFontSize;
 	private double portLabelFontSize;
 	private double edgeLabelFontSize;
+	private PerformanceTarget performanceTarget;
 
 	/**
 	 * Creates a new settings store for the associated netlist
@@ -14,11 +15,12 @@ public class NetlistCreationSettings {
 	 * @param portLabelFontSize	Fontsize for ports
 	 * @param edgeLabelFontSize	Fontsize for edges
 	 */
-	public NetlistCreationSettings(double entityLabelFontSize, double cellLabelFontSize, double portLabelFontSize, double edgeLabelFontSize) {
+	public NetlistCreationSettings(double entityLabelFontSize, double cellLabelFontSize, double portLabelFontSize, double edgeLabelFontSize, PerformanceTarget performanceTarget) {
 		this.entityLabelFontSize = entityLabelFontSize;
 		this.cellLabelFontSize = cellLabelFontSize;
 		this.portLabelFontSize = portLabelFontSize;
 		this.edgeLabelFontSize = edgeLabelFontSize;
+		this.performanceTarget = performanceTarget;
 	}
 
 	/**
@@ -55,5 +57,14 @@ public class NetlistCreationSettings {
 	 */
 	public double getEdgeLabelFontSize() {
 		return edgeLabelFontSize;
+	}
+
+	/**
+	 * Get the requested performance target
+	 *
+	 * @return The performance target
+	 */
+	public PerformanceTarget getPerformanceTarget() {
+		return performanceTarget;
 	}
 }
