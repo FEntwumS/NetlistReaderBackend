@@ -15,6 +15,7 @@
         <module>fentwums-netlist-reader-datatypes</module>
         <module>fentwums-netlist-reader-elkoptions</module>
         <module>fentwums-netlist-reader-hierarchical</module>
+        <module>fentwums-netlist-reader-hierarchy-view</module>
     </modules>
 
     <properties>

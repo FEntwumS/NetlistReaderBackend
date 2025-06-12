@@ -19,8 +19,8 @@
     </licenses>
 
     <properties>
-        <maven.compiler.source>23</maven.compiler.source>
-        <maven.compiler.target>23</maven.compiler.target>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -58,6 +58,8 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
         </dependency>
+
+        <!-- FEntwumS dependencies-->
         <dependency>
             <groupId>fentwums.th-koeln.de</groupId>
             <artifactId>fentwums-netlist-reader-datatypes</artifactId>

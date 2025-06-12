@@ -2,16 +2,18 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-    <properties>
-        <encoding>UTF-8</encoding>
-    </properties>
-
     <licenses>
         <license>
             <name>MIT</name>
             <url>https://spdx.org/licenses/MIT.html</url>
         </license>
     </licenses>
+
+    <properties>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 
     <parent>
         <groupId>fentwums.th-koeln.de</groupId>
