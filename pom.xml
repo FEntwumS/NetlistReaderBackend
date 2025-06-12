@@ -52,6 +52,11 @@
                 <artifactId>org.eclipse.elk.graph.json</artifactId>
                 <version>${dependency.version.eclipse.elk}</version>
             </dependency>
+            <dependency>
+                <groupId>org.eclipse.elk</groupId>
+                <artifactId>org.eclipse.elk.alg.rectpacking</artifactId>
+                <version>${dependency.version.eclipse.elk}</version>
+            </dependency>
 
             <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core -->
             <dependency>

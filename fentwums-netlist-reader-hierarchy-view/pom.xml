@@ -58,6 +58,14 @@
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-core</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>fentwums.th-koeln.de</groupId>
+			<artifactId>fentwums-netlist-reader-datatypes</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>fentwums.th-koeln.de</groupId>
+			<artifactId>fentwums-netlist-reader-helpers</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>
