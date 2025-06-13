@@ -272,7 +272,7 @@ public class ElkElementCreator {
         return newNode;
     }
 
-    public static ElkLabel createNewSimpleHierarchyNodeLabel(ElkNode parent, String content, NetlistCreationSettings settings) {
+    public static ElkLabel createNewSimpleHierarchyLabel(ElkConnectableShape parent, String content) {
         ElkLabel newLabel = createNewLabel(content, parent, 10.0d);
 
         return newLabel;

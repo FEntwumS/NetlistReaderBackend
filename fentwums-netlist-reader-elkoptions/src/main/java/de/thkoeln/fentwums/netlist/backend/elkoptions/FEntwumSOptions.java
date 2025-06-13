@@ -130,6 +130,11 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 			0
 	);
 
+	public static final IProperty<String> PORT_DIRECTION = new Property<String>(
+			"de.thkoeln.fentwums.netlist.backend.hierarchy-view.port-direction",
+			"UNKNOWN"
+	);
+
 	@Override
 	public void apply(Registry registry) {
 		registry.register(new LayoutOptionData.Builder()
@@ -300,6 +305,16 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
               .targets(EnumSet.of(LayoutOptionData.Target.PORTS))
               .visibility(LayoutOptionData.Visibility.HIDDEN)
               .create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+				.id("de.thkoeln.fentwums.netlist.backend.hierarchy-view.port-direction")
+				.defaultValue("UNKNOWN")
+				.type(LayoutOptionData.Type.STRING)
+				.optionClass(String.class)
+				.targets(EnumSet.of(LayoutOptionData.Target.PORTS))
+				.visibility(LayoutOptionData.Visibility.VISIBLE)
+				.create()
 		);
 	}
 }
