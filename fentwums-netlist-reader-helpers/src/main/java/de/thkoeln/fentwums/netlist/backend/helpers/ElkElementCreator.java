@@ -286,4 +286,10 @@ public class ElkElementCreator {
 
         return newPort;
     }
+
+    public static ElkEdge createNewSimpleHierarchyEdge(ElkConnectableShape sink, ElkConnectableShape source) {
+        ElkEdge newEdge = createSimpleEdge(source, sink);
+
+        return newEdge;
+    }
 }

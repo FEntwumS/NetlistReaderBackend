@@ -8,6 +8,7 @@ import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
 import org.eclipse.elk.core.RecursiveGraphLayoutEngine;
 import org.eclipse.elk.core.util.BasicProgressMonitor;
+import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkLabel;
 import org.eclipse.elk.graph.ElkNode;
 import org.eclipse.elk.graph.ElkPort;
@@ -32,6 +33,8 @@ public class HierarchyExtractor {
 
 		HashMap<String, Object> modules = (HashMap<String, Object>) netlist.get("modules");
 
+		logger.info("Looking for toplevel entity");
+
 		for (String module : modules.keySet()) {
 			HashMap<String, Object> currentModule = (HashMap<String, Object>) modules.get(module);
 
@@ -52,10 +55,15 @@ public class HierarchyExtractor {
 			return null;
 		}
 
-		extractModuleRecursively(netlist, topType, root);
+		logger.atInfo().setMessage("Found top level entity with name {} and type {}").addArgument(topName).addArgument(topType).log();
+
+		ElkNode ancestor = addModuleToHierarchy(netlist, topType, topName, root, null);
+
+		extractModuleRecursively(netlist, topType, root, ancestor);
 
 		// Layout graph
 
+		logger.info("Starting layout");
 		RecursiveGraphLayoutEngine engine = new RecursiveGraphLayoutEngine();
 		BasicProgressMonitor monitor = new BasicProgressMonitor();
 
@@ -65,12 +73,13 @@ public class HierarchyExtractor {
 			logger.error("Error during layout", e);
 			return null;
 		}
+		logger.info("Finished layout");
 
 		return ElkGraphJson.forGraph(root).omitLayout(false).omitZeroDimension(true)
 				.omitZeroPositions(true).shortLayoutOptionKeys(true).prettyPrint(false).toJson();
 	}
 
-	private void extractModuleRecursively(HashMap<String, Object> netlist, String moduleType, ElkNode root) {
+	private void extractModuleRecursively(HashMap<String, Object> netlist, String moduleType, ElkNode root, ElkNode ancestor) {
 		if (!netlist.containsKey(moduleType)) {
 			logger.atError().setMessage("Could not find module type {} in netlist").addArgument(moduleType).log();
 			return;
@@ -92,17 +101,17 @@ public class HierarchyExtractor {
 			isDerived = !(currentCellAttributes.containsKey("module_not_derived") || cellType.contains("paramod"));
 
 			if (!isHidden && !isDerived) {
-				addModuleToHierarchy(netlist, cellType, cellName, root);
+				ElkNode a = addModuleToHierarchy(netlist, cellType, cellName, root, ancestor);
 
-				extractModuleRecursively(netlist, cellType, root);
+				extractModuleRecursively(netlist, cellType, root, a);
 			}
 		}
 	}
 
-	private void addModuleToHierarchy(HashMap<String, Object> netlist, String moduleType, String moduleName, ElkNode root) {
+	private ElkNode addModuleToHierarchy(HashMap<String, Object> netlist, String moduleType, String moduleName, ElkNode root, ElkNode ancestor) {
 		if (!netlist.containsKey(moduleType)) {
 			logger.atError().setMessage("Could not find module name {},  type {} in netlist").addArgument(moduleName).addArgument(moduleType).log();
-			return;
+			return null;
 		}
 
 		List<PortInformation> portList = new ArrayList<>();
@@ -157,7 +166,14 @@ public class HierarchyExtractor {
 
 		ElkNode newModuleNode = ElkElementCreator.createNewHierarchyContainer(root);
 
+		if (ancestor != null) {
+			ElkEdge newEdge = ElkElementCreator.createNewSimpleHierarchyEdge(newModuleNode, ancestor);
+			logger.info("Connected ancestor to new hierarchy container");
+		}
+
 		createNode(moduleName, moduleType, parameterList, portList, newModuleNode);
+
+		return newModuleNode;
 	}
 
 	private void createNode(String name, String type, List<ParameterInformation> parameters, List<PortInformation> ports, ElkNode parent) {
