@@ -104,6 +104,11 @@ public class PortHandler {
                 canonicalIndex = 0;
             }
 
+            if (instanceConnection.isEmpty()) {
+                logger.atWarn().setMessage("Module type {} port {} has no connections. Skipping...").addArgument(moduleType).addArgument(portname).log();
+                continue;
+            }
+
             for (int i = 0; i < portDrivers.size(); i++) {
                 if (instanceConnection.get(i) instanceof Integer) {
                     signalIndexList.add(new SignalElement(currentIndexInPort, instanceConnection.get(i),
