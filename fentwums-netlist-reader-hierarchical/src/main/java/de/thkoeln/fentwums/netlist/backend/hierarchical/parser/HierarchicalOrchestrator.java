@@ -5,6 +5,7 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.NetInformation;
 import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalOccurences;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
+import de.thkoeln.fentwums.netlist.backend.helpers.EdgeBundler;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
 import de.thkoeln.fentwums.netlist.backend.helpers.OutputReverser;
 import de.thkoeln.fentwums.netlist.backend.interfaces.ICollapsableNode;
@@ -77,6 +78,8 @@ public class HierarchicalOrchestrator implements IGraphCreator {
                                 topName);
         netnameHandler.handleNetnames(modules, signalMaps, settings, (ModuleNode) rootNode, topName, topName);
 
+        EdgeBundler.bundleEdges(topNode);
+
         for (String child : rootNode.getChildren().keySet()) {
             addModulesRecursively(modules, blackBoxes, settings, (ModuleNode) rootNode.getChildren().get(child),
                                   signalMaps, ((ModuleNode) rootNode.getChildren().get(child)).getCellType(), topName + " " + child);
@@ -130,6 +133,8 @@ public class HierarchicalOrchestrator implements IGraphCreator {
         cellHandler.createCells(modules, currentModuleNode.getNode(), signalMaps, settings, blackBoxes,
                                 currentModuleNode, moduleName, instancePath);
         netnameHandler.handleNetnames(modules, signalMaps, settings, currentModuleNode, moduleName, instancePath);
+
+        EdgeBundler.bundleEdges(currentModuleNode.getNode());
 
         for (String child : currentModuleNode.getChildren().keySet()) {
             addModulesRecursively(modules, blackBoxes, settings, (ModuleNode) currentModuleNode.getChildren().get(child),
