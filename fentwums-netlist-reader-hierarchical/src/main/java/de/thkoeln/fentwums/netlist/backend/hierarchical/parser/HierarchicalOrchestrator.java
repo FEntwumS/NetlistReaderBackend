@@ -78,7 +78,7 @@ public class HierarchicalOrchestrator implements IGraphCreator {
                                 topName);
         netnameHandler.handleNetnames(modules, signalMaps, settings, (ModuleNode) rootNode, topName, topName);
 
-        EdgeBundler.bundleEdges(topNode);
+        EdgeBundler.bundleEdges(topNode, settings);
 
         for (String child : rootNode.getChildren().keySet()) {
             addModulesRecursively(modules, blackBoxes, settings, (ModuleNode) rootNode.getChildren().get(child),
@@ -134,7 +134,7 @@ public class HierarchicalOrchestrator implements IGraphCreator {
                                 currentModuleNode, moduleName, instancePath);
         netnameHandler.handleNetnames(modules, signalMaps, settings, currentModuleNode, moduleName, instancePath);
 
-        EdgeBundler.bundleEdges(currentModuleNode.getNode());
+        EdgeBundler.bundleEdges(currentModuleNode.getNode(), settings);
 
         for (String child : currentModuleNode.getChildren().keySet()) {
             addModulesRecursively(modules, blackBoxes, settings, (ModuleNode) currentModuleNode.getChildren().get(child),

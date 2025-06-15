@@ -2,6 +2,7 @@ package de.thkoeln.fentwums.netlist.backend.helpers;
 
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.BundleRange;
+import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
 import de.thkoeln.fentwums.netlist.backend.datatypes.Range;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalElement;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
@@ -25,7 +26,7 @@ import java.util.List;
 public class EdgeBundler {
     public static final Logger logger = LoggerFactory.getLogger(EdgeBundler.class);
 
-    public static void bundleEdges(ElkNode entityInstance) {
+    public static void bundleEdges(ElkNode entityInstance, NetlistCreationSettings settings) {
         // Go through every child cell
         for (ElkNode childNode : entityInstance.getChildren()) {
             if (childNode.getProperty(FEntwumSOptions.CELL_TYPE).equals("HDL_ENTITY")) {
@@ -121,8 +122,10 @@ public class EdgeBundler {
                 }
 
                 Range containedRange = rangeList.getFirst().containedRange();
+                currentCellPortGroupMap.get(portGroupName).getLabels().clear();
 
-                currentCellPortGroupMap.get(portGroupName).getLabels().getFirst().setText(portGroupName + (containedRange.singleElement() ? "" : " [" + containedRange.lower() + ":" + containedRange.upper() + "]"));
+                ElkElementCreator.createNewEdgeLabel(portGroupName + (containedRange.singleElement() ? "" :
+                        " [" + containedRange.lower() + ":" + containedRange.upper() + "]"), currentCellPortGroupMap.get(portGroupName), settings);
             }
 
             // Now remove unused ports
