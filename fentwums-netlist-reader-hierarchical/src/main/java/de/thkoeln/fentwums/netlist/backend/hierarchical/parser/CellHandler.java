@@ -104,6 +104,7 @@ public class CellHandler {
             if (!isHidden && !isDerived) {
                 newCellNode.setProperty(FEntwumSOptions.LOCATION_PATH, instancePath + " " + cellName);
                 newCellNode.setProperty(FEntwumSOptions.CELL_TYPE, "HDL_ENTITY");
+                newCellNode.setProperty(CoreOptions.INSIDE_SELF_LOOPS_ACTIVATE, true);
             } else {
                 newCellNode.setProperty(FEntwumSOptions.CELL_TYPE, cellType);
             }
@@ -246,7 +247,7 @@ public class CellHandler {
                                     signalMap.put((Integer) driver, new SignalOccurences());
                                 }
 
-                                if (currentCellPortDirections.get(portName).equals("input")) {
+                                if (!currentCellPortDirections.get(portName).equals("output")) {
                                     signalMap.get(driver).getSinkPorts().add(matchingPorts.iterator().next());
                                 } else {
                                     signalMap.get(driver).setSourcePort(matchingPorts.iterator().next());

@@ -5,7 +5,10 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalOccurences;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
+import org.eclipse.elk.core.options.CoreOptions;
+import org.eclipse.elk.core.options.PortSide;
 import org.eclipse.elk.graph.ElkEdge;
+import org.eclipse.elk.graph.ElkNode;
 import org.eclipse.elk.graph.ElkLabel;
 import org.eclipse.elk.graph.ElkPort;
 import org.slf4j.Logger;
@@ -113,6 +116,32 @@ public class NetnameHandler {
                     currentIndexInNet--;
                 } else {
                     currentIndexInNet++;
+                }
+            }
+        }
+
+        // Now check for inside self loops
+        // All matches are marked appropriately
+        ElkNode currentNode = currentModuleNode.getNode();
+
+        for (int index : signalMap.keySet()) {
+            SignalOccurences signalOccurences = signalMap.get(index);
+
+            ElkPort source = signalOccurences.getSourcePort();
+
+            if (source == null) {
+                continue;
+            }
+
+            if (source.getProperty(CoreOptions.PORT_SIDE) != PortSide.WEST || source.getParent() != currentNode) {
+                continue;
+            }
+
+            for (ElkEdge candidate : source.getOutgoingEdges()) {
+                ElkPort sink = (ElkPort) candidate.getTargets().getFirst();
+
+                if (sink.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST && sink.getParent() == currentNode) {
+                    candidate.setProperty(CoreOptions.INSIDE_SELF_LOOPS_YO, true);
                 }
             }
         }

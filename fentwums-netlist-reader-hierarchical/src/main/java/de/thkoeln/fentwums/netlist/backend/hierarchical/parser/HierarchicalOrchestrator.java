@@ -66,6 +66,7 @@ public class HierarchicalOrchestrator implements IGraphCreator {
 
         ElkNode topNode = ElkElementCreator.createNewNode(root, topName);
         topNode.setProperty(FEntwumSOptions.CELL_TYPE, "HDL_ENTITY");
+        topNode.setProperty(CoreOptions.INSIDE_SELF_LOOPS_ACTIVATE, true);
 
         PortHandler portHandler = new PortHandler();
         CellHandler cellHandler = new CellHandler();
