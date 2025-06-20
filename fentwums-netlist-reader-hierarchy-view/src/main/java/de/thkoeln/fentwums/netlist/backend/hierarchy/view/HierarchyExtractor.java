@@ -57,9 +57,9 @@ public class HierarchyExtractor {
 
 		logger.atInfo().setMessage("Found top level entity with name {} and type {}").addArgument(topName).addArgument(topType).log();
 
-		ElkNode ancestor = addModuleToHierarchy(netlist, topType, topName, root, null);
+		ElkNode ancestor = addModuleToHierarchy(netlist, topType, topName, root, null, "root");
 
-		extractModuleRecursively(netlist, topType, root, ancestor);
+		extractModuleRecursively(netlist, topType, root, ancestor, "root");
 
 		// Layout graph
 
@@ -79,7 +79,8 @@ public class HierarchyExtractor {
 				.omitZeroPositions(true).shortLayoutOptionKeys(true).prettyPrint(false).toJson();
 	}
 
-	private void extractModuleRecursively(HashMap<String, Object> netlist, String moduleType, ElkNode root, ElkNode ancestor) {
+	private void extractModuleRecursively(HashMap<String, Object> netlist, String moduleType, ElkNode root,
+										  ElkNode ancestor, String ancestorName) {
 		if (!netlist.containsKey(moduleType)) {
 			logger.atError().setMessage("Could not find module type {} in netlist").addArgument(moduleType).log();
 			return;
@@ -101,14 +102,15 @@ public class HierarchyExtractor {
 			isDerived = !(currentCellAttributes.containsKey("module_not_derived") || cellType.contains("paramod"));
 
 			if (!isHidden && !isDerived) {
-				ElkNode a = addModuleToHierarchy(netlist, cellType, cellName, root, ancestor);
+				ElkNode a = addModuleToHierarchy(netlist, cellType, cellName, root, ancestor, ancestorName);
 
-				extractModuleRecursively(netlist, cellType, root, a);
+				extractModuleRecursively(netlist, cellType, root, a, cellName);
 			}
 		}
 	}
 
-	private ElkNode addModuleToHierarchy(HashMap<String, Object> netlist, String moduleType, String moduleName, ElkNode root, ElkNode ancestor) {
+	private ElkNode addModuleToHierarchy(HashMap<String, Object> netlist, String moduleType, String moduleName,
+										 ElkNode root, ElkNode ancestor, String ancestorName) {
 		if (!netlist.containsKey(moduleType)) {
 			logger.atError().setMessage("Could not find module name {},  type {} in netlist").addArgument(moduleName).addArgument(moduleType).log();
 			return null;
@@ -165,6 +167,7 @@ public class HierarchyExtractor {
 		}
 
 		ElkNode newModuleNode = ElkElementCreator.createNewHierarchyContainer(root);
+		newModuleNode.setProperty(FEntwumSOptions.HIERARCHY_ANCESTOR_NAME, ancestorName);
 
 		if (ancestor != null) {
 			ElkEdge newEdge = ElkElementCreator.createNewSimpleHierarchyEdge(newModuleNode, ancestor);
