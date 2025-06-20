@@ -135,6 +135,11 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 			"UNKNOWN"
 	);
 
+	public static final IProperty<String> HIERARCHY_ANCESTOR_NAME = new Property<String>(
+			"de.th-koeln.fentwums.netlist.backend.hierarchy-ancestor-name",
+			"root"
+	);
+
 	@Override
 	public void apply(Registry registry) {
 		registry.register(new LayoutOptionData.Builder()
@@ -315,6 +320,16 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 				.targets(EnumSet.of(LayoutOptionData.Target.PORTS))
 				.visibility(LayoutOptionData.Visibility.VISIBLE)
 				.create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+			  .id("de.th-koeln.fentwums.netlist.backend.hierarchy-ancestor-name")
+			  .defaultValue("root")
+			  .type(LayoutOptionData.Type.STRING)
+			  .optionClass(String.class)
+			  .targets(EnumSet.of(LayoutOptionData.Target.NODES))
+			  .visibility(LayoutOptionData.Visibility.VISIBLE)
+			  .create()
 		);
 	}
 }
