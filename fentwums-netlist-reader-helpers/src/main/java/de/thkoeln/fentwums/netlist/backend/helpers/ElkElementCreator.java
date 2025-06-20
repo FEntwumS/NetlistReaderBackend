@@ -3,6 +3,7 @@ package de.thkoeln.fentwums.netlist.backend.helpers;
 import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
+import org.eclipse.elk.core.math.KVector;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.graph.*;
 
@@ -262,12 +263,17 @@ public class ElkElementCreator {
         newNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
         // Set aspect ratio to really small value to ensure vertical layout
         newNode.setProperty(CoreOptions.ASPECT_RATIO, 0.00000000001d);
+        newNode.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.of(SizeConstraint.NODE_LABELS, SizeConstraint.PORTS, SizeConstraint.PORT_LABELS));
+        newNode.setDimensions(100, 100);
 
         return newNode;
     }
 
     public static ElkNode createNewSimpleHierarchyNode(ElkNode parent) {
         ElkNode newNode = createNode(parent);
+        newNode.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.allOf(SizeConstraint.class));
+        newNode.setDimensions(100, 100);
+        newNode.setProperty(CoreOptions.NODE_SIZE_MINIMUM, new KVector(100, 100));
 
         return newNode;
     }

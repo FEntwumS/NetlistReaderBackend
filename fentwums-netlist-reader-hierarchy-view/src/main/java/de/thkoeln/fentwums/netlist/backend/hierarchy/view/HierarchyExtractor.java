@@ -5,6 +5,7 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.PortDirection;
 import de.thkoeln.fentwums.netlist.backend.datatypes.PortInformation;
 import de.thkoeln.fentwums.netlist.backend.datatypes.Range;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
+import de.thkoeln.fentwums.netlist.backend.elkoptions.HierarchyContainerSubNodeType;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
 import org.eclipse.elk.core.RecursiveGraphLayoutEngine;
 import org.eclipse.elk.core.util.BasicProgressMonitor;
@@ -44,7 +45,7 @@ public class HierarchyExtractor {
 				if (currentModuleAttributes.containsKey("top")) {
 					topName = module;
 
-					topType = (String) currentModule.get("type");
+					topType = module;
 					break;
 				}
 			}
@@ -59,7 +60,7 @@ public class HierarchyExtractor {
 
 		ElkNode ancestor = addModuleToHierarchy(netlist, topType, topName, root, null, "root");
 
-		extractModuleRecursively(netlist, topType, root, ancestor, "root");
+		extractModuleRecursively(netlist, topType, root, ancestor, topName);
 
 		// Layout graph
 
@@ -81,7 +82,9 @@ public class HierarchyExtractor {
 
 	private void extractModuleRecursively(HashMap<String, Object> netlist, String moduleType, ElkNode root,
 										  ElkNode ancestor, String ancestorName) {
-		if (!netlist.containsKey(moduleType)) {
+		HashMap<String, Object> modules = (HashMap<String, Object>) netlist.get("modules");
+
+		if (!modules.containsKey(moduleType)) {
 			logger.atError().setMessage("Could not find module type {} in netlist").addArgument(moduleType).log();
 			return;
 		}
@@ -90,7 +93,7 @@ public class HierarchyExtractor {
 		boolean isHidden = true, isDerived = true;
 		String cellType;
 
-		module = (HashMap<String, Object>) netlist.get(moduleType);
+		module = (HashMap<String, Object>) modules.get(moduleType);
 		cells = (HashMap<String, Object>) module.get("cells");
 
 		for(String cellName : cells.keySet()) {
@@ -111,8 +114,10 @@ public class HierarchyExtractor {
 
 	private ElkNode addModuleToHierarchy(HashMap<String, Object> netlist, String moduleType, String moduleName,
 										 ElkNode root, ElkNode ancestor, String ancestorName) {
-		if (!netlist.containsKey(moduleType)) {
-			logger.atError().setMessage("Could not find module name {},  type {} in netlist").addArgument(moduleName).addArgument(moduleType).log();
+		HashMap<String, Object> modules = (HashMap<String, Object>) netlist.get("modules");
+
+		if (!modules.containsKey(moduleType)) {
+			logger.atError().setMessage("Could not find module name {}, type {} in netlist").addArgument(moduleName).addArgument(moduleType).log();
 			return null;
 		}
 
@@ -120,7 +125,7 @@ public class HierarchyExtractor {
 		List<ParameterInformation> parameterList = new ArrayList<>();
 
 		HashMap<String, Object> module, ports, parameters, currentPort;
-		module = (HashMap<String, Object>) netlist.get(moduleType);
+		module = (HashMap<String, Object>) modules.get(moduleType);
 		ports = (HashMap<String, Object>) module.get("ports");
 		if (module.containsKey("parameter_default_values")) {
 			logger.atInfo().setMessage("Module name {}, type {} contains parameters").addArgument(moduleName).addArgument(moduleType).log();
@@ -132,7 +137,7 @@ public class HierarchyExtractor {
 		// Extract port information
 		for (String portName : ports.keySet()) {
 			currentPort = (HashMap<String, Object>) ports.get(portName);
-			List<Object> portDriverList = (ArrayList<Object>) currentPort.get("ports");
+			List<Object> portDriverList = (ArrayList<Object>) currentPort.get("bits");
 
 			int offset = 0;
 			Range portValueRange;
@@ -182,14 +187,23 @@ public class HierarchyExtractor {
 	private void createNode(String name, String type, List<ParameterInformation> parameters, List<PortInformation> ports, ElkNode parent) {
 		// Create module name node
 		ElkNode moduleNameNode = ElkElementCreator.createNewSimpleHierarchyNode(parent);
+		moduleNameNode.setProperty(FEntwumSOptions.HIERARCHY_CONTAINER_SUB_NODE_TYPE,
+								   HierarchyContainerSubNodeType.NAME);
+
 		ElkLabel moduleNameNodeLabel = ElkElementCreator.createNewSimpleHierarchyLabel(moduleNameNode, name);
 
 		// Create module type node
 		ElkNode moduleTypeNode = ElkElementCreator.createNewSimpleHierarchyNode(parent);
+		moduleTypeNode.setProperty(FEntwumSOptions.HIERARCHY_CONTAINER_SUB_NODE_TYPE,
+								   HierarchyContainerSubNodeType.TYPE);
+
 		ElkLabel moduleTypeNodeLabel = ElkElementCreator.createNewSimpleHierarchyLabel(moduleTypeNode, type);
 
 		// Create node for parameters
 		ElkNode moduleParameterNode = ElkElementCreator.createNewSimpleHierarchyNode(parent);
+		moduleParameterNode.setProperty(FEntwumSOptions.HIERARCHY_CONTAINER_SUB_NODE_TYPE,
+										HierarchyContainerSubNodeType.PARAMETERS);
+
 		ElkLabel moduleParameterNodeLabel = ElkElementCreator.createNewSimpleHierarchyLabel(moduleParameterNode, "Parameters");
 
 		// Add parameters
@@ -200,6 +214,9 @@ public class HierarchyExtractor {
 
 		// Create node for ports
 		ElkNode modulePortNode = ElkElementCreator.createNewSimpleHierarchyNode(parent);
+		modulePortNode.setProperty(FEntwumSOptions.HIERARCHY_CONTAINER_SUB_NODE_TYPE,
+                                   HierarchyContainerSubNodeType.PORTS);
+
 		ElkLabel modulePortNodeLabel = ElkElementCreator.createNewSimpleHierarchyLabel(modulePortNode, "Ports");
 
 		// Add ports
