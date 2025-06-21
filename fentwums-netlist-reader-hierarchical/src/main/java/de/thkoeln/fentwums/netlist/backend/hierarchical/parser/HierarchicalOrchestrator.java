@@ -1,9 +1,6 @@
 package de.thkoeln.fentwums.netlist.backend.hierarchical.parser;
 
-import de.thkoeln.fentwums.netlist.backend.datatypes.ModuleNode;
-import de.thkoeln.fentwums.netlist.backend.datatypes.NetInformation;
-import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
-import de.thkoeln.fentwums.netlist.backend.datatypes.SignalOccurences;
+import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
 import de.thkoeln.fentwums.netlist.backend.helpers.EdgeBundler;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
@@ -81,9 +78,12 @@ public class HierarchicalOrchestrator implements IGraphCreator {
 
         EdgeBundler.bundleEdges(topNode, settings);
 
-        for (String child : rootNode.getChildren().keySet()) {
-            addModulesRecursively(modules, blackBoxes, settings, (ModuleNode) rootNode.getChildren().get(child),
-                                  signalMaps, ((ModuleNode) rootNode.getChildren().get(child)).getCellType(), topName + " " + child);
+        if (settings.getPerformanceTarget() == PerformanceTarget.Preloading) {
+            for (String child : rootNode.getChildren().keySet()) {
+                addModulesRecursively(modules, blackBoxes, settings, (ModuleNode) rootNode.getChildren().get(child),
+                                      signalMaps, ((ModuleNode) rootNode.getChildren().get(child)).getCellType(),
+                                      topName + " " + child);
+            }
         }
 
         OutputReverser reverser = new OutputReverser();
