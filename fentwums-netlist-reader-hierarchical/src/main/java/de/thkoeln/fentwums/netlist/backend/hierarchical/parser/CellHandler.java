@@ -1,12 +1,15 @@
 package de.thkoeln.fentwums.netlist.backend.hierarchical.parser;
 
-import de.thkoeln.fentwums.netlist.backend.datatypes.ModuleNode;
-import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
-import de.thkoeln.fentwums.netlist.backend.datatypes.SignalOccurences;
+import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
+import de.thkoeln.fentwums.netlist.backend.elkoptions.PortType;
+import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
+import de.thkoeln.fentwums.netlist.backend.helpers.RangeCalculator;
 import org.eclipse.elk.core.options.CoreOptions;
+import org.eclipse.elk.core.options.EdgeLabelPlacement;
 import org.eclipse.elk.core.options.PortSide;
+import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkLabel;
 import org.eclipse.elk.graph.ElkNode;
 import org.eclipse.elk.graph.ElkPort;
@@ -15,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -32,7 +36,7 @@ public class CellHandler {
         String cellType, srcLocation = "", newSubModulePath;
         PortSide newPortSide, oppositeSide = PortSide.WEST;
         boolean isHidden, isDerived;
-        HashMap<Integer, String> constantValues;
+        // HashMap<Integer, String> constantValues;
         ArrayList<Object> currentCellPortDrivers;
         HashMap<Integer, SignalOccurences> signalMap = signalMaps.get(instancePath);
 
@@ -139,7 +143,7 @@ public class CellHandler {
             if (isDerived) {
                 for (String portName : currentCellPortDirections.keySet()) {
                     currentBitIndex = 0;
-                    constantValues = new HashMap<>();
+                    // constantValues = new HashMap<>();
 
                     if (currentCellConnections.size() != currentCellPortDirections.size() ||
                             !currentCellConnections.containsKey(portName)) {
@@ -156,6 +160,8 @@ public class CellHandler {
                     }
 
                     currentCellPortDrivers = (ArrayList<Object>) currentCellConnections.get(portName);
+
+                    List<SignalElement> constantSignalIndexList = new ArrayList<>();
 
                     for (Object driver : currentCellPortDrivers) {
                         if (driver instanceof Integer) {
@@ -185,10 +191,86 @@ public class CellHandler {
                             }
                         } else {
                             // Defer Port construction until all constant values have been gathered
-                            constantValues.put(currentBitIndex, (String) driver);
+                            // constantValues.put(currentBitIndex, (String) driver);
+
+                            constantSignalIndexList.add(new SignalElement(currentBitIndex, driver, null));
                         }
 
                         currentBitIndex++;
+                    }
+
+                    // Create pre-bundled constant ports
+                    List<BundleRange> constRanges = RangeCalculator.calculateRanges(constantSignalIndexList);
+
+                    for (BundleRange constRange : constRanges) {
+                        ElkPort constPort;
+                        ElkPort source, sink;
+                        ElkNode constNode;
+
+                        ElkPort newPort = ElkElementCreator.createNewPort(newCellNode, newPortSide);
+                        newPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portName);
+
+                        if (constRange.containedRange().singleElement()) {
+                            newPort.setProperty(FEntwumSOptions.CANONICAL_INDEX_IN_PORT_GROUP, constRange.containedRange().lower());
+
+                            ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(
+                                    portName + (currentCellPortDrivers.size() == 1 ? "" : " [" + (constRange.containedRange().lower()) + "]"), newPort,
+                                    settings);
+                        } else {
+                            ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(
+                                    portName + " [" + (constRange.containedRange().upper()) + ":" + (constRange.containedRange().lower()) + "]", newPort,
+                                    settings);
+                        }
+
+                        StringBuilder constantValues = new StringBuilder();
+
+                        for (Object driver : constRange.actualDrivers()) {
+                            if (driver instanceof String) {
+                                constantValues.append((String) driver);
+                            } else {
+                                logger.error("Non-String const driver");
+                            }
+                        }
+
+                        // Also generate the driver node
+                        if (newPortSide == PortSide.EAST) {
+                            logger.atWarn().setMessage("Cell {} supposedly has (partially) constant output").addArgument(cellName).log();
+
+                            // Const outputs are generated as a child
+                            constNode = ElkElementCreator.createNewConstantDriver(newCellNode);
+                            constNode.setDimensions(20d, 20d);
+
+                            ElkLabel constLabel = ElkElementCreator.createNewConstantDriverLabel(constantValues.toString(),
+                                                                                                 constNode, settings);
+
+                            constPort = ElkElementCreator.createNewPort(constNode, PortSide.WEST);
+
+                            source = newPort;
+                            sink = constPort;
+                        } else {
+                            // Const input
+                            constNode = ElkElementCreator.createNewConstantDriver(newCellNode.getParent());
+                            constNode.setDimensions(20d, 20d);
+
+                            ElkLabel constLabel = ElkElementCreator.createNewConstantDriverLabel(constantValues.toString(),
+                                                                                                 constNode, settings);
+
+                            constPort = ElkElementCreator.createNewPort(constNode, PortSide.EAST);
+
+                            source = constPort;
+                            sink = newPort;
+                        }
+
+                        newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT);
+                        constNode.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT);
+
+                        // Add connection
+                        ElkEdge constEdge = ElkElementCreator.createNewEdge(sink, source);
+                        constEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.CONSTANT);
+
+                        ElkLabel constEdgeLabel = ElkElementCreator.createNewEdgeLabel(constantValues.toString(), constEdge,
+                                                                                       settings);
+                        constEdgeLabel.setProperty(CoreOptions.EDGE_LABELS_PLACEMENT, EdgeLabelPlacement.HEAD);
                     }
 
                     currentPortIndex++;

@@ -215,6 +215,8 @@ public class PortHandler {
 
                     constPort = ElkElementCreator.createNewPort(constNode, createdPortSide);
 
+                    source = newPort;
+                    sink = constPort;
                 } else {
                     // Const input
                     constNode = ElkElementCreator.createNewConstantDriver(currentNode.getParent());
@@ -225,10 +227,9 @@ public class PortHandler {
 
                     constPort = ElkElementCreator.createNewPort(constNode, oppositePortSide);
 
+                    source = constPort;
+                    sink = newPort;
                 }
-
-                source = constPort;
-                sink = newPort;
 
                 // Add connection
                 ElkEdge constEdge = ElkElementCreator.createNewEdge(sink, source);
