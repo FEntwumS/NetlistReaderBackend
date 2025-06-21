@@ -182,6 +182,15 @@ public class NetlistReaderBackendSpringBootApplication {
 
             logger.info("done");
 
+            if (settings.getPerformanceTarget() == PerformanceTarget.IntelligentAheadOfTime) {
+                Thread t = new Thread(() -> {
+                    orchestrator.loadModulesIntelligently();
+                });
+
+                t.start();
+                logger.info("Started intelligent loading");
+            }
+
             NetlistInformation newNetlist = new NetlistInformation(orchestrator, null, collapser);
 
             mapLock.writeLock().lock();
@@ -290,30 +299,33 @@ public class NetlistReaderBackendSpringBootApplication {
                         HierarchicalOrchestrator orchestrator = (HierarchicalOrchestrator) currentNetlist.getCreator();
 
                         switch (orchestrator.getSettings().getPerformanceTarget()) {
-                            case Preloading -> currentNetlist.getCollapser().toggleCollapsed(nodePath);
                             case JustInTime -> {
                                 ModuleNode node = (ModuleNode) currentNetlist.getCollapser().findNode(nodePath);
 
                                 if (!node.isLoaded()) {
                                     orchestrator.loadModule(node, nodePath);
-
-                                    // TODO work around this in the collapser to remove this dirty hack
-                                    currentNetlist.getCollapser().collapseRecursively(node);
-                                    currentNetlist.getCollapser().expandCell(node);
-                                } else {
-                                    currentNetlist.getCollapser().toggleCollapsed(nodePath);
                                 }
                             }
                             case IntelligentAheadOfTime -> {
                                 // here, wait for lock to release
+
+                                ((HierarchicalOrchestrator) currentNetlist.getCreator()).waitForLock();
                             }
-                            default -> currentNetlist.getCollapser().toggleCollapsed(nodePath);
                         }
-                    } else {
-                        currentNetlist.getCollapser().toggleCollapsed(nodePath);
+
                     }
+                    currentNetlist.getCollapser().toggleCollapsed(nodePath);
 
                     expandedGraph = currentNetlist.getCreator().layoutGraph();
+
+                    if (currentNetlist.getCreator() instanceof HierarchicalOrchestrator && ((HierarchicalOrchestrator) currentNetlist.getCreator()).getSettings().getPerformanceTarget() == PerformanceTarget.IntelligentAheadOfTime) {
+                        Thread t = new Thread(() -> {
+                            ((HierarchicalOrchestrator) currentNetlist.getCreator()).loadModulesIntelligently();
+                        });
+
+                        t.start();
+                        logger.info("Started intelligent loading");
+                    }
                 } catch (Exception e) {
                     logger.error("Error expanding cell", e);
 
@@ -327,6 +339,8 @@ public class NetlistReaderBackendSpringBootApplication {
         } finally {
             mapLock.readLock().unlock();
         }
+
+        logger.info("Sending expanded graph to client");
 
         if (expandedGraph.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

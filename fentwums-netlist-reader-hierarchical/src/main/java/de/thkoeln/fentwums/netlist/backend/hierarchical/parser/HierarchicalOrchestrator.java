@@ -2,6 +2,7 @@ package de.thkoeln.fentwums.netlist.backend.hierarchical.parser;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
+import de.thkoeln.fentwums.netlist.backend.helpers.CellCollapser;
 import de.thkoeln.fentwums.netlist.backend.helpers.EdgeBundler;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
 import de.thkoeln.fentwums.netlist.backend.helpers.OutputReverser;
@@ -20,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.eclipse.elk.graph.util.ElkGraphUtil.createGraph;
 
@@ -32,6 +34,7 @@ public class HierarchicalOrchestrator implements IGraphCreator {
     private HashMap<String, Object> blackBoxes;
     private NetlistCreationSettings settings;
     private ConcurrentHashMap<String, HashMap<Integer, SignalOccurences>> signalMaps;
+    private ReentrantLock lock = new ReentrantLock();
 
     public ElkNode createGraphFromNetlist(HashMap<String, Object> netlist, String modulename, HashMap<String, Object> blackBoxes,
                                           NetlistCreationSettings settings) {
@@ -160,6 +163,7 @@ public class HierarchicalOrchestrator implements IGraphCreator {
     public void loadModule(ModuleNode toLoad, String instancePath) {
         CellHandler cellHandler = new CellHandler();
         NetnameHandler netnameHandler = new NetnameHandler();
+        CellCollapser collapser = new CellCollapser();
 
         logger.atInfo().setMessage("Loading module {}").addArgument(toLoad.getCellName()).log();
         cellHandler.createCells(this.modules, toLoad.getNode(), this.signalMaps, this.settings, this.blackBoxes, toLoad,
@@ -170,10 +174,43 @@ public class HierarchicalOrchestrator implements IGraphCreator {
 
         EdgeBundler.bundleEdges(toLoad.getNode(), this.settings);
 
+        collapser.collapseRecursively(toLoad);
+
         logger.atInfo().setMessage("Finished loading module {}").addArgument(toLoad.getCellName()).log();
     }
 
     public NetlistCreationSettings getSettings() {
         return settings;
+    }
+
+    private void loadClickableModulesRecursively(String instancePath, ModuleNode currentNode) {
+        if (currentNode.isVisible() && !currentNode.isLoaded()) {
+            loadModule(currentNode, instancePath);
+        }
+
+        for (String child : currentNode.getChildren().keySet()) {
+            loadClickableModulesRecursively(instancePath + " " + child,
+                                            (ModuleNode) currentNode.getChildren().get(child));
+        }
+    }
+
+    public void loadModulesIntelligently() {
+        try {
+            lock.lock();
+
+            logger.info("Lock acquired, beginning loading modules");
+            loadClickableModulesRecursively(this.toplevelName, (ModuleNode) this.rootNode);
+        } finally {
+            lock.unlock();
+            logger.info("Lock released");
+        }
+    }
+
+    public void waitForLock() {
+        try {
+            lock.lock();
+        } finally {
+            lock.unlock();
+        }
     }
 }
