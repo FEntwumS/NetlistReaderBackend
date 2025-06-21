@@ -216,8 +216,8 @@ public class PortHandler {
 
                     constPort = ElkElementCreator.createNewPort(constNode, createdPortSide);
 
-                    source = newPort;
-                    sink = constPort;
+                    source = constPort;
+                    sink = newPort;
                 } else {
                     // Const input
                     constNode = ElkElementCreator.createNewConstantDriver(currentNode.getParent());

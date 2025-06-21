@@ -245,8 +245,8 @@ public class CellHandler {
 
                             constPort = ElkElementCreator.createNewPort(constNode, PortSide.WEST);
 
-                            source = newPort;
-                            sink = constPort;
+                            source = constPort;
+                            sink = newPort;
                         } else {
                             // Const input
                             constNode = ElkElementCreator.createNewConstantDriver(newCellNode.getParent());

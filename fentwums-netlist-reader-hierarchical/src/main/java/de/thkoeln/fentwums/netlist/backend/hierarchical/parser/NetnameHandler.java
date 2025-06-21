@@ -7,10 +7,7 @@ import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.PortSide;
-import org.eclipse.elk.graph.ElkEdge;
-import org.eclipse.elk.graph.ElkNode;
-import org.eclipse.elk.graph.ElkLabel;
-import org.eclipse.elk.graph.ElkPort;
+import org.eclipse.elk.graph.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,7 +86,7 @@ public class NetnameHandler {
 
                         if (sourcePort != null) {
                             for (ElkPort sink : currentSignalOccurences.getSinkPorts()) {
-                                ElkEdge newEdge = ElkElementCreator.createNewEdge(sink, sourcePort);
+                                ElkEdge newEdge = createNewEdge(sink, sourcePort);
 
                                 newEdge.setProperty(FEntwumSOptions.SRC_LOCATION, currentNetSrc);
                                 newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, currentIndexInNet);
@@ -147,5 +144,15 @@ public class NetnameHandler {
                 }
             }
         }
+    }
+
+    private ElkEdge createNewEdge(ElkPort sink, ElkPort source) {
+        for (ElkEdge edge : source.getOutgoingEdges()) {
+            if (edge.getTargets().getFirst().equals(sink)) {
+                return edge;
+            }
+        }
+
+        return ElkElementCreator.createNewEdge(sink, source);
     }
 }
