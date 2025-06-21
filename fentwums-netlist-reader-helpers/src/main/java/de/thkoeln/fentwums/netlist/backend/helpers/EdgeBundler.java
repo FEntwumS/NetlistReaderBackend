@@ -6,6 +6,7 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
 import de.thkoeln.fentwums.netlist.backend.datatypes.Range;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalElement;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
+import de.thkoeln.fentwums.netlist.backend.elkoptions.PortType;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.PortSide;
@@ -29,8 +30,9 @@ public class EdgeBundler {
     public static void bundleEdges(ElkNode entityInstance, NetlistCreationSettings settings) {
         // Go through every child cell
         for (ElkNode childNode : entityInstance.getChildren()) {
-            if (childNode.getProperty(FEntwumSOptions.CELL_TYPE).equals("HDL_ENTITY")) {
-                // Skip entity instances
+            if (childNode.getProperty(FEntwumSOptions.CELL_TYPE).equals("HDL_ENTITY")
+                || childNode.getProperty(FEntwumSOptions.CELL_TYPE).equals("Constant driver")) {
+                // Skip entity instances and constant drivers/sinks
 
                 continue;
             }
@@ -41,6 +43,12 @@ public class EdgeBundler {
 
             // Go through every port, bundle as necessary
             for (ElkPort port : childNode.getPorts()) {
+                if (port.getProperty(FEntwumSOptions.PORT_TYPE).equals(PortType.CONSTANT)) {
+                    // skip constant ports
+
+                    continue;
+                }
+
                 String portGroupName = port.getProperty(FEntwumSOptions.PORT_GROUP_NAME);
                 List<ElkEdge> moveEdgeList = new ArrayList<>();
 
