@@ -70,7 +70,7 @@ public class CellHandler {
             cellType = (String) currentCell.get("type");
 
             // Check whether the module / cell is hidden or not
-            isHidden = currentCell.get("hide_name").equals("0");
+            isHidden = currentCell.get("hide_name").equals(1);
 
             if (currentCellAttributes.containsKey("src")) {
                 srcLocation = currentCellAttributes.get("src").toString();

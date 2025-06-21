@@ -54,7 +54,9 @@ public class NetnameHandler {
         for (String currentNetName : netnames.keySet()) {
             currentNet = (HashMap<String, Object>) netnames.get(currentNetName);
 
-            hideName = currentNet.containsKey("hide_name") && !currentNet.get("hide_name").equals(1);
+            // TODO filter better
+            // hideName = currentNet.containsKey("hide_name") && !currentNet.get("hide_name").equals(0);
+            hideName = true;
 
             currentNetBits = (ArrayList<Object>) currentNet.get("bits");
 
