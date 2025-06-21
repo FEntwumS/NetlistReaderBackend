@@ -3,6 +3,7 @@ package de.thkoeln.fentwums.netlist.backend.hierarchical.parser;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
+import de.thkoeln.fentwums.netlist.backend.elkoptions.PortType;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
 import de.thkoeln.fentwums.netlist.backend.helpers.RangeCalculator;
@@ -230,6 +231,9 @@ public class PortHandler {
                     source = constPort;
                     sink = newPort;
                 }
+
+                newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT);
+                constNode.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT);
 
                 // Add connection
                 ElkEdge constEdge = ElkElementCreator.createNewEdge(sink, source);
