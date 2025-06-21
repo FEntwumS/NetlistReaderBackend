@@ -14,6 +14,7 @@
 	    <module>fentwums-netlist-reader-helpers</module>
         <module>fentwums-netlist-reader-datatypes</module>
         <module>fentwums-netlist-reader-elkoptions</module>
+        <module>fentwums-netlist-reader-hierarchical</module>
     </modules>
 
     <properties>
@@ -100,6 +101,11 @@
             <dependency>
                 <groupId>fentwums.th-koeln.de</groupId>
                 <artifactId>fentwums-netlist-reader-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>fentwums.th-koeln.de</groupId>
+                <artifactId>fentwums-netlist-reader-hierarchical</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>

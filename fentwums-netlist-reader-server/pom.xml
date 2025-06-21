@@ -17,6 +17,12 @@
 		</license>
 	</licenses>
 
+	<properties>
+		<maven.compiler.source>${java.version}</maven.compiler.source>
+		<maven.compiler.target>${java.version}</maven.compiler.target>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
 	<dependencies>
 		<!-- Spring Boot -->
 		<dependency>
@@ -62,6 +68,10 @@
 		<dependency>
 			<groupId>fentwums.th-koeln.de</groupId>
 			<artifactId>fentwums-netlist-reader-service</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>fentwums.th-koeln.de</groupId>
+			<artifactId>fentwums-netlist-reader-hierarchical</artifactId>
 		</dependency>
 
 
@@ -209,6 +219,16 @@
 							<projectName>NetlistReaderBackend</projectName>
 							<generateBundle>true</generateBundle>
 							<outputDirectory>${project.build.directory}/generated-sources/THIRD-PARTY-LICENSES</outputDirectory>
+							<licenseUrlReplacements>
+								<licenseUrlReplacement>
+									<regexp>\Qhttp://www.gnu.org/licenses/old-licenses/lgpl-2.1.html\E</regexp>
+									<replacement>https://spdx.org/licenses/LGPL-2.1-only.html</replacement>
+								</licenseUrlReplacement>
+								<licenseUrlReplacement>
+									<regexp>\Qhttps://www.gnu.org/software/classpath/license.html\E</regexp>
+									<replacement>https://spdx.org/licenses/GPL-2.0-with-classpath-exception.html</replacement>
+								</licenseUrlReplacement>
+							</licenseUrlReplacements>
 						</configuration>
 					</execution>
 				</executions>

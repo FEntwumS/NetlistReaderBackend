@@ -124,7 +124,7 @@ public class NetnameHandler {
 
 				for (int i = 0; i < currentNetPathSplit.length - 1; i++) {
 					currentSignalNode = currentSignalNode.getHChildren().get(currentNetPathSplit[i]);
-					currentHNode = currentHNode.getChildren().get(currentNetPathSplit[i]);
+					currentHNode = (HierarchicalNode) currentHNode.getChildren().get(currentNetPathSplit[i]);
 
 					if (currentSignalNode == null || currentHNode == null) {
 						break;
@@ -158,7 +158,7 @@ public class NetnameHandler {
 
 					// Add bundle to relevant child hNodes
 					for (String key : currentHNode.getChildren().keySet()) {
-						childHNode = currentHNode.getChildren().get(key);
+						childHNode = (HierarchicalNode) currentHNode.getChildren().get(key);
 
 						if (currentSignalTree.getNodeAt(childHNode.getAbsolutePath()) != null && childHNode.getChildren().isEmpty()) {
 							childHNode.getPossibleBundles().put((int) bit, newBundle);

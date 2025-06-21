@@ -3,6 +3,8 @@ package de.thkoeln.fentwums.netlist.backend.parser;
 import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import de.thkoeln.fentwums.netlist.backend.helpers.*;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
+import de.thkoeln.fentwums.netlist.backend.interfaces.ICollapsableNode;
+import de.thkoeln.fentwums.netlist.backend.interfaces.IGraphCreator;
 import org.eclipse.elk.core.RecursiveGraphLayoutEngine;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.core.util.BasicProgressMonitor;
@@ -22,7 +24,7 @@ import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
  * Helper class abstracting away the tedious aspects of graph creation. Calls the handlers for the different sections
  * of the netlist in order, applies post-processing (eg signal bundling) and calls the layouter
  */
-public class GraphCreator {
+public class GraphCreator implements IGraphCreator {
 	private ElkNode root;
 	private HierarchyTree hierarchy;
 	private HashMap<Integer, SignalTree> signalMap;
@@ -49,7 +51,13 @@ public class GraphCreator {
 	 *
 	 * @return The root
 	 */
-	public ElkNode getGraph() {
+	@Override
+	public ICollapsableNode getRoot() {
+		return hierarchy.getRoot();
+	}
+
+	@Override
+	public ElkNode getGraphRoot() {
 		return root;
 	}
 
@@ -62,8 +70,9 @@ public class GraphCreator {
 	 * @param modulename The name of the top level entity
 	 * @param blackboxes HashMap containing the port directions of blackbox cells
 	 */
+	@Override
 	@SuppressWarnings("unchecked")
-	public void createGraphFromNetlist(HashMap<String, Object> module, String modulename, HashMap<String, Object> blackboxes, NetlistCreationSettings settings) {
+	public ElkNode createGraphFromNetlist(HashMap<String, Object> module, String modulename, HashMap<String, Object> blackboxes, NetlistCreationSettings settings) {
 		root.setIdentifier("root");
 		root.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
 
@@ -158,6 +167,8 @@ public class GraphCreator {
 		checker.checkGraph(root);
 
 		this.hierarchy = hierarchyTree;
+
+		return root;
 	}
 
 	/**
@@ -187,6 +198,7 @@ public class GraphCreator {
 	 *
 	 * @return JSON string containing a representation of the layouted graph
 	 */
+	@Override
 	public String layoutGraph() {
 		RecursiveGraphLayoutEngine engine = new RecursiveGraphLayoutEngine();
 		BasicProgressMonitor monitor = new BasicProgressMonitor();
