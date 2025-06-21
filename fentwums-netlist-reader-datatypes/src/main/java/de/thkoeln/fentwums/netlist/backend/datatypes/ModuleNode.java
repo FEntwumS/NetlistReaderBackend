@@ -14,6 +14,7 @@ public class ModuleNode implements ICollapsableNode {
     List<ElkNode> childList;
     List<ElkEdge> edgeList;
     String cellType, cellName;
+    private boolean isLoaded = false;
 
     public ModuleNode(ElkNode moduleNode) {
         this.moduleNode = moduleNode;
@@ -76,10 +77,6 @@ public class ModuleNode implements ICollapsableNode {
         this.cellName = cellName;
     }
 
-    public boolean isLoaded() {
-        return !this.moduleNode.getChildren().isEmpty() || !this.childList.isEmpty();
-    }
-
     public boolean isVisible() {
         ElkNode parent = this.moduleNode.getParent();
 
@@ -94,5 +91,13 @@ public class ModuleNode implements ICollapsableNode {
         }
 
         return false;
+    }
+
+    public void setAsLoaded() {
+        this.isLoaded = true;
+    }
+
+    public boolean isLoaded() {
+        return this.isLoaded;
     }
 }

@@ -27,6 +27,11 @@ public class HierarchicalOrchestrator implements IGraphCreator {
     private static Logger logger = LoggerFactory.getLogger(HierarchicalOrchestrator.class);
     private ElkNode root;
     private ICollapsableNode rootNode;
+    private String toplevelName = "";
+    private HashMap<String, Object> modules;
+    private HashMap<String, Object> blackBoxes;
+    private NetlistCreationSettings settings;
+    private ConcurrentHashMap<String, HashMap<Integer, SignalOccurences>> signalMaps;
 
     public ElkNode createGraphFromNetlist(HashMap<String, Object> netlist, String modulename, HashMap<String, Object> blackBoxes,
                                           NetlistCreationSettings settings) {
@@ -71,10 +76,17 @@ public class HierarchicalOrchestrator implements IGraphCreator {
 
         rootNode = new ModuleNode(topNode);
 
+        this.toplevelName = topName;
+        this.blackBoxes = blackBoxes;
+        this.settings = settings;
+        this.signalMaps = signalMaps;
+        this.modules = modules;
+
         portHandler.createPorts(modules, signalMaps, topNode, settings, topName, topName, null);
         cellHandler.createCells(modules, topNode, signalMaps, settings, blackBoxes, (ModuleNode) rootNode, topName,
                                 topName);
         netnameHandler.handleNetnames(modules, signalMaps, settings, (ModuleNode) rootNode, topName, topName);
+        ((ModuleNode) rootNode).setAsLoaded();
 
         EdgeBundler.bundleEdges(topNode, settings);
 
@@ -134,6 +146,7 @@ public class HierarchicalOrchestrator implements IGraphCreator {
         cellHandler.createCells(modules, currentModuleNode.getNode(), signalMaps, settings, blackBoxes,
                                 currentModuleNode, moduleName, instancePath);
         netnameHandler.handleNetnames(modules, signalMaps, settings, currentModuleNode, moduleName, instancePath);
+        currentModuleNode.setAsLoaded();
 
         EdgeBundler.bundleEdges(currentModuleNode.getNode(), settings);
 
@@ -142,5 +155,25 @@ public class HierarchicalOrchestrator implements IGraphCreator {
                                   signalMaps, ((ModuleNode) currentModuleNode.getChildren().get(child)).getCellType(), instancePath + " " + child);
         }
 
+    }
+
+    public void loadModule(ModuleNode toLoad, String instancePath) {
+        CellHandler cellHandler = new CellHandler();
+        NetnameHandler netnameHandler = new NetnameHandler();
+
+        logger.atInfo().setMessage("Loading module {}").addArgument(toLoad.getCellName()).log();
+        cellHandler.createCells(this.modules, toLoad.getNode(), this.signalMaps, this.settings, this.blackBoxes, toLoad,
+                                toLoad.getCellType(), instancePath);
+        netnameHandler.handleNetnames(this.modules, this.signalMaps, this.settings, toLoad, toLoad.getCellType(), instancePath);
+
+        toLoad.setAsLoaded();
+
+        EdgeBundler.bundleEdges(toLoad.getNode(), this.settings);
+
+        logger.atInfo().setMessage("Finished loading module {}").addArgument(toLoad.getCellName()).log();
+    }
+
+    public NetlistCreationSettings getSettings() {
+        return settings;
     }
 }

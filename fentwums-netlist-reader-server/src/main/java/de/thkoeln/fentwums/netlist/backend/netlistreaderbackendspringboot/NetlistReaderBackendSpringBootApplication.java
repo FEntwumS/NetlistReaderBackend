@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import de.thkoeln.fentwums.netlist.backend.datatypes.ModuleNode;
 import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
 import de.thkoeln.fentwums.netlist.backend.datatypes.PerformanceTarget;
 import de.thkoeln.fentwums.netlist.backend.helpers.CellCollapser;
@@ -283,7 +284,34 @@ public class NetlistReaderBackendSpringBootApplication {
                 try {
                     currentNetlist = currentNets.get(Long.parseUnsignedLong(hash));
 
-                    currentNetlist.getCollapser().toggleCollapsed(nodePath);
+                    // load module first, if necessary
+
+                    if (currentNetlist.getCreator() instanceof HierarchicalOrchestrator) {
+                        HierarchicalOrchestrator orchestrator = (HierarchicalOrchestrator) currentNetlist.getCreator();
+
+                        switch (orchestrator.getSettings().getPerformanceTarget()) {
+                            case Preloading -> currentNetlist.getCollapser().toggleCollapsed(nodePath);
+                            case JustInTime -> {
+                                ModuleNode node = (ModuleNode) currentNetlist.getCollapser().findNode(nodePath);
+
+                                if (!node.isLoaded()) {
+                                    orchestrator.loadModule(node, nodePath);
+
+                                    // TODO work around this in the collapser to remove this dirty hack
+                                    currentNetlist.getCollapser().collapseRecursively(node);
+                                    currentNetlist.getCollapser().expandCell(node);
+                                } else {
+                                    currentNetlist.getCollapser().toggleCollapsed(nodePath);
+                                }
+                            }
+                            case IntelligentAheadOfTime -> {
+                                // here, wait for lock to release
+                            }
+                            default -> currentNetlist.getCollapser().toggleCollapsed(nodePath);
+                        }
+                    } else {
+                        currentNetlist.getCollapser().toggleCollapsed(nodePath);
+                    }
 
                     expandedGraph = currentNetlist.getCreator().layoutGraph();
                 } catch (Exception e) {

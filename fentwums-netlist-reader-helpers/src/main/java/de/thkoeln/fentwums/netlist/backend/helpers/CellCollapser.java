@@ -1,7 +1,9 @@
 package de.thkoeln.fentwums.netlist.backend.helpers;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchicalNode;
+import de.thkoeln.fentwums.netlist.backend.datatypes.ModuleNode;
 import de.thkoeln.fentwums.netlist.backend.interfaces.ICollapsableNode;
+import de.thkoeln.fentwums.netlist.backend.interfaces.IGraphCreator;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.SizeConstraint;
 import org.eclipse.elk.graph.ElkEdge;
@@ -92,21 +94,23 @@ public class CellCollapser {
 			hNode.setChildList(new ArrayList<>());
 		}
 
-		if (hNode.getChildList().isEmpty()) {
-			hNode.getChildList().addAll(currentGraphNode.getChildren());
-		}
+        if (!hNode.getChildList().isEmpty()) {
+            hNode.getChildList().clear();
+        }
+        hNode.getChildList().addAll(currentGraphNode.getChildren());
 
-		currentGraphNode.getChildren().clear();
+        currentGraphNode.getChildren().clear();
 
 		if (hNode.getEdgeList() == null) {
 			hNode.setEdgeList(new ArrayList<ElkEdge>());
 		}
 
-		if (hNode.getEdgeList().isEmpty()) {
-			hNode.getEdgeList().addAll(currentGraphNode.getContainedEdges());
-		}
+        if (!hNode.getEdgeList().isEmpty()) {
+            hNode.getEdgeList().clear();
+        }
+        hNode.getEdgeList().addAll(currentGraphNode.getContainedEdges());
 
-		currentGraphNode.getContainedEdges().clear();
+        currentGraphNode.getContainedEdges().clear();
 
 		resetDimensionRecursively(currentGraphNode);
 	}
@@ -175,7 +179,7 @@ public class CellCollapser {
 	 * @param cellPath The location of the wanted cell
 	 * @return The found HierarchicalNode or null, if no matching cell could be found
 	 */
-	private ICollapsableNode findNode(String cellPath) {
+	public ICollapsableNode findNode(String cellPath) {
 		String[] cellPathSplit = cellPath.trim().split(" ");
 
 		ICollapsableNode currentNode = rootNode;
