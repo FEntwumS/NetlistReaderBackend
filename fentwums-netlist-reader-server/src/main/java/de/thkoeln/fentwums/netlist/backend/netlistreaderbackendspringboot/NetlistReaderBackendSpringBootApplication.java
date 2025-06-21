@@ -8,6 +8,7 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.ModuleNode;
 import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
 import de.thkoeln.fentwums.netlist.backend.datatypes.PerformanceTarget;
 import de.thkoeln.fentwums.netlist.backend.helpers.CellCollapser;
+import de.thkoeln.fentwums.netlist.backend.helpers.NetlistDifferentiator;
 import de.thkoeln.fentwums.netlist.backend.helpers.SignalBundler;
 import de.thkoeln.fentwums.netlist.backend.hierarchical.parser.HierarchicalOrchestrator;
 import de.thkoeln.fentwums.netlist.backend.netlistreaderbackendspringboot.types.NetlistInformation;
@@ -128,7 +129,7 @@ public class NetlistReaderBackendSpringBootApplication {
         NetlistParser parser = new NetlistParser();
         PerformanceTarget target;
 
-        logger.atInfo().setMessage("Selected performannce target: {}").addArgument(performanceTarget).log();
+        logger.atInfo().setMessage("Selected performance target: {}").addArgument(performanceTarget).log();
 
         try {
             target = PerformanceTarget.valueOf(performanceTarget);
@@ -139,23 +140,35 @@ public class NetlistReaderBackendSpringBootApplication {
         NetlistCreationSettings settings = new NetlistCreationSettings(entityLabelFontSize, cellLabelFontSize,
                                                                        edgeLabelFontSize, portLabelFontSize,
                                                                        target);
+        try {
+            switch (NetlistDifferentiator.differentiate(file.getInputStream())) {
+                case HIERARCHICAL -> {
+                    HierarchicalOrchestrator orchestrator = new HierarchicalOrchestrator();
 
-        HierarchicalOrchestrator orchestrator = new HierarchicalOrchestrator();
+                    return getStringResponseEntity(file, orchestrator, settings, Long.parseUnsignedLong(hash));
+                }
+                case FLATTENED_WITH_SEPERATOR -> {
+                    try {
+                        parser.setNetlistStream(file.getInputStream());
+                        // TODO remove
+                        parser.setNetlistFile(null);
+                    } catch (Exception e) {
+                        logger.error("Error reading netlist file", e);
 
-        return getStringResponseEntity(file, orchestrator, settings, Long.parseUnsignedLong(hash));
+                        return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+                    }
 
+                    return graphNetlist(creator, parser, Long.parseUnsignedLong(hash), settings);
+                }
+                default -> {
+                    return new ResponseEntity<>("Netlist could not be differentiated", HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            }
+        } catch (IOException e) {
+            logger.error("Error receiving netlist file", e);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
-//		try {
-//			parser.setNetlistStream(file.getInputStream());
-//			// TODO remove
-//			parser.setNetlistFile(null);
-//		} catch (Exception e) {
-//			logger.error("Error reading netlist file", e);
-//
-//			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-//		}
-//
-//		return graphNetlist(creator, parser, Long.parseUnsignedLong(hash), settings);
     }
 
     private ResponseEntity<String> getStringResponseEntity(MultipartFile file, HierarchicalOrchestrator orchestrator,
