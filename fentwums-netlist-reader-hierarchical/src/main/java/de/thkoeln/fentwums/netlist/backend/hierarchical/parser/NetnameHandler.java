@@ -107,7 +107,7 @@ public class NetnameHandler {
                     }
 
                 } else {
-                    logger.atInfo().setMessage("Net {} of module {} contains constant value. Skipping this bit...")
+                    logger.atDebug().setMessage("Net {} of module {} contains constant value. Skipping this bit...")
                             .addArgument(currentNetName).addArgument(moduleName).log();
                 }
 
