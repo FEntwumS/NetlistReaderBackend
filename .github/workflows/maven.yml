@@ -49,6 +49,7 @@ jobs:
         replacesArtifacts: false
         generateReleaseNotes: true
         artifacts: "fentwums-netlist-reader-server-${{ github.ref_name }}.tar.gz,fentwums-netlist-reader/*exec.jar"
+        omitBodyDuringUpdate: true
 
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
     # - name: Update dependency graph
