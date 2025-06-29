@@ -44,14 +44,12 @@ public class EdgeBundler {
             List<ElkPort> removePortList = new ArrayList<>();
             ElkNode oppositeNode;
 
-            if (childNode.getIdentifier().contains("neorv32_iceduino_top.v:25419$10186")) {
-                logger.info("Found");
-            }
-
             // Go through every port, bundle as necessary
             for (ElkPort port : childNode.getPorts()) {
-                if (port.getProperty(FEntwumSOptions.PORT_TYPE).equals(PortType.CONSTANT)) {
-                    // skip constant ports
+                if (port.getProperty(FEntwumSOptions.PORT_TYPE).equals(PortType.SIGNAL_SINGLE)
+                || port.getProperty(FEntwumSOptions.PORT_TYPE).equals(PortType.CONSTANT_MULTIPLE)
+                || port.getProperty(FEntwumSOptions.PORT_TYPE).equals(PortType.CONSTANT_SINGLE)) {
+                    // skip constant and single ports
 
                     continue;
                 }

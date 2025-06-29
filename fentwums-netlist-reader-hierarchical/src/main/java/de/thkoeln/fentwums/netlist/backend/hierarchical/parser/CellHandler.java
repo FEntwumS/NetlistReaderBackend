@@ -172,6 +172,12 @@ public class CellHandler {
                             newCellPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portName);
                             newCellPort.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, currentBitIndex);
 
+                            if (currentCellPortDrivers.size() == 1) {
+                                newCellPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.SIGNAL_SINGLE);
+                            } else {
+                                newCellPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.SIGNAL_MULTIPLE);
+                            }
+
                             ElkLabel newCellPortLabel = ElkElementCreator.createNewPortLabel(
                                     portName + (currentCellPortDrivers.size() == 1 ? "" : " [" + currentBitIndex + "]"),
                                     newCellPort, settings);
@@ -261,8 +267,13 @@ public class CellHandler {
                             sink = newPort;
                         }
 
-                        newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT);
-                        constNode.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT);
+                        if (currentCellPortDrivers.size() == 1) {
+                            newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
+                            constNode.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
+                        } else {
+                            newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
+                            constNode.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
+                        }
 
                         // Add connection
                         ElkEdge constEdge = ElkElementCreator.createNewEdge(sink, source);

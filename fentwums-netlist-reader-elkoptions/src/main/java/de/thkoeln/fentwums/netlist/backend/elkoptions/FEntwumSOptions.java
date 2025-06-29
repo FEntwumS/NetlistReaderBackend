@@ -132,7 +132,7 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 
 	public static final IProperty<PortType> PORT_TYPE = new Property<PortType>(
 			"de.thkoeln.fentwums.netlist.backend.port-type",
-			PortType.SIGNAL
+			PortType.SIGNAL_SINGLE
 	);
 
 	@Override
@@ -309,7 +309,7 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 
 		registry.register(new LayoutOptionData.Builder()
 			  .id("de.thkoeln.fentwums.netlist.backend.port-type")
-			  .defaultValue(PortType.SIGNAL)
+			  .defaultValue(PortType.SIGNAL_SINGLE)
 			  .type(LayoutOptionData.Type.ENUM)
 			  .optionClass(PortType.class)
 			  .targets(EnumSet.of(LayoutOptionData.Target.PORTS))

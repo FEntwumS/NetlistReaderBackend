@@ -232,8 +232,13 @@ public class PortHandler {
                     sink = newPort;
                 }
 
-                newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT);
-                constNode.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT);
+                if (portDrivers.size() == 1) {
+                    newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
+                    constNode.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
+                } else {
+                    newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_MULTIPLE);
+                    constNode.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_MULTIPLE);
+                }
 
                 // Add connection
                 ElkEdge constEdge = ElkElementCreator.createNewEdge(sink, source);
