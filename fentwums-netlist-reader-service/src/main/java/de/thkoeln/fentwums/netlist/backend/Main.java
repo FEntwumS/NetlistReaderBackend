@@ -45,7 +45,7 @@ public class Main {
 
 		start = Instant.now();
 		try {
-			layouter.layout(graphCreator.getGraph(), monitor);
+			layouter.layout(graphCreator.getGraphRoot(), monitor);
 		} catch (StackOverflowError e) {
 			logger.error("Stack overflow; Graph too big :(", e);
 		}
@@ -55,7 +55,7 @@ public class Main {
 		.log();
 
 		String jsongraph =
-				ElkGraphJson.forGraph(graphCreator.getGraph()).omitLayout(false).omitZeroDimension(true)
+				ElkGraphJson.forGraph(graphCreator.getGraphRoot()).omitLayout(false).omitZeroDimension(true)
 						.omitZeroPositions(true).shortLayoutOptionKeys(true).prettyPrint(false).toJson();
 
 		try {

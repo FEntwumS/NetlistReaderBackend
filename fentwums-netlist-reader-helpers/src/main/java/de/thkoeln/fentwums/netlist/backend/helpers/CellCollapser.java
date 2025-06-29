@@ -1,11 +1,14 @@
 package de.thkoeln.fentwums.netlist.backend.helpers;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchicalNode;
-import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchyTree;
+import de.thkoeln.fentwums.netlist.backend.datatypes.ModuleNode;
+import de.thkoeln.fentwums.netlist.backend.interfaces.ICollapsableNode;
+import de.thkoeln.fentwums.netlist.backend.interfaces.IGraphCreator;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.SizeConstraint;
 import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkNode;
+import org.eclipse.elk.graph.ElkPort;
 import org.eclipse.emf.common.util.EList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,28 +21,28 @@ import java.util.*;
  * layouting time
  */
 public class CellCollapser {
-	private HierarchyTree hierarchy;
+	private ICollapsableNode rootNode;
 	private static Logger logger = LoggerFactory.getLogger(CellCollapser.class);
 
 	public CellCollapser() {
 	}
 
 	/**
-	 * Sets the hierarchy
+	 * Sets the root node
 	 *
-	 * @param hierarchy
+	 * @param rootNode
 	 */
-	public void setHierarchy(HierarchyTree hierarchy) {
-		this.hierarchy = hierarchy;
+	public void setRootNode(ICollapsableNode rootNode) {
+		this.rootNode = rootNode;
 	}
 
 	/**
-	 * Gets the hierarchy
+	 * Gets the root node
 	 *
-	 * @return The hierarchy
+	 * @return The root node
 	 */
-	public HierarchyTree getHierarchy() {
-		return hierarchy;
+	public ICollapsableNode getRootNode() {
+		return rootNode;
 	}
 
 	/**
@@ -62,7 +65,7 @@ public class CellCollapser {
 		// stores the children and contained edges of each node in the hierarchyTree and clears the respective
 		// ElkNodes' lists
 
-		collapseRecursively(hierarchy.getRoot());
+		collapseRecursively(rootNode);
 	}
 
 	/**
@@ -70,7 +73,7 @@ public class CellCollapser {
 	 *
 	 * @param hNode The cell that is to be collapsed
 	 */
-	public void collapseRecursively(HierarchicalNode hNode) {
+	public void collapseRecursively(ICollapsableNode hNode) {
 		collapseCell(hNode);
 
 		for (String hChild : hNode.getChildren().keySet()) {
@@ -85,28 +88,45 @@ public class CellCollapser {
 	 *
 	 * @param hNode The cell to be collapsed
 	 */
-	public void collapseCell(HierarchicalNode hNode) {
+	public void collapseCell(ICollapsableNode hNode) {
 		ElkNode currentGraphNode = hNode.getNode();
 
 		if (hNode.getChildList() == null) {
 			hNode.setChildList(new ArrayList<>());
 		}
 
-		if (hNode.getChildList().isEmpty()) {
-			hNode.getChildList().addAll(currentGraphNode.getChildren());
-		}
+        if (!hNode.getChildList().isEmpty()) {
+            hNode.getChildList().clear();
+        }
+        hNode.getChildList().addAll(currentGraphNode.getChildren());
 
-		currentGraphNode.getChildren().clear();
+        currentGraphNode.getChildren().clear();
 
 		if (hNode.getEdgeList() == null) {
 			hNode.setEdgeList(new ArrayList<ElkEdge>());
 		}
 
-		if (hNode.getEdgeList().isEmpty()) {
-			hNode.getEdgeList().addAll(currentGraphNode.getContainedEdges());
-		}
+        if (!hNode.getEdgeList().isEmpty()) {
+            hNode.getEdgeList().clear();
+        }
+        hNode.getEdgeList().addAll(currentGraphNode.getContainedEdges());
 
-		currentGraphNode.getContainedEdges().clear();
+        currentGraphNode.getContainedEdges().clear();
+
+		if (hNode instanceof ModuleNode && hNode.getNode().getParent() != null) {
+
+			if (((ModuleNode) hNode).getInnerSelfLoopEdgeList() == null) {
+				((ModuleNode) hNode).setInnerSelfLoopEdgeList(new ArrayList<>());
+			}
+
+			for (ElkEdge edge : hNode.getNode().getParent().getContainedEdges()) {
+				if (((ElkPort) edge.getTargets().getFirst()).getParent().equals(hNode.getNode()) && edge.getProperty(CoreOptions.INSIDE_SELF_LOOPS_YO).equals(true)) {
+					((ModuleNode) hNode).getInnerSelfLoopEdgeList().add(edge);
+				}
+			}
+
+			hNode.getNode().getParent().getContainedEdges().removeAll(((ModuleNode) hNode).getInnerSelfLoopEdgeList());
+		}
 
 		resetDimensionRecursively(currentGraphNode);
 	}
@@ -115,7 +135,7 @@ public class CellCollapser {
 	 * Expands all cells
 	 */
 	public void expandAllCells() {
-		expandRecursively(hierarchy.getRoot());
+		expandRecursively(rootNode);
 	}
 
 	/**
@@ -123,11 +143,11 @@ public class CellCollapser {
 	 *
 	 * @param hNode The cell that is to be expanded
 	 */
-	public void expandRecursively(HierarchicalNode hNode) {
+	public void expandRecursively(ICollapsableNode hNode) {
 		expandCell(hNode);
 
 		for (String hChild : hNode.getChildren().keySet()) {
-			expandRecursively(hNode.getChildren().get(hChild));
+			expandRecursively((HierarchicalNode) hNode.getChildren().get(hChild));
 		}
 	}
 
@@ -143,13 +163,13 @@ public class CellCollapser {
 	}
 
 	/**
-	 * Expands the cell associated with <code>hNode</code>. The associated <code>ElkNode</code>'s child and contained
+	 * Expands the cell associated with <code>cNode</code>. The associated <code>ElkNode</code>'s child and contained
 	 * edge lists are repopulated from the hierarchy. If the cell is already expanded, do nothing
 	 *
-	 * @param hNode The cell to be expanded
+	 * @param cNode The cell to be expanded
 	 */
-	public void expandCell(HierarchicalNode hNode) {
-		ElkNode currentGraphNode = hNode.getNode();
+	public void expandCell(ICollapsableNode cNode) {
+		ElkNode currentGraphNode = cNode.getNode();
 		EList<ElkNode> graphChildren = currentGraphNode.getChildren();
 		EList<ElkEdge> graphContainedEdges = currentGraphNode.getContainedEdges();
 
@@ -157,12 +177,18 @@ public class CellCollapser {
 			return;
 		}
 
-		ArrayList<ElkNode> storedChildren = hNode.getChildList();
-		ArrayList<ElkEdge> storedEdges = hNode.getEdgeList();
+		List<ElkNode> storedChildren = cNode.getChildList();
+		List<ElkEdge> storedEdges = cNode.getEdgeList();
 
 		graphChildren.addAll(storedChildren);
 
 		graphContainedEdges.addAll(storedEdges);
+
+		if (cNode instanceof ModuleNode && cNode.getNode().getParent() != null) {
+			if (((ModuleNode) cNode).getInnerSelfLoopEdgeList() != null) {
+				cNode.getNode().getParent().getContainedEdges().addAll(((ModuleNode) cNode).getInnerSelfLoopEdgeList());
+			}
+		}
 
 		resetDimensionRecursively(currentGraphNode);
 	}
@@ -175,17 +201,20 @@ public class CellCollapser {
 	 * @param cellPath The location of the wanted cell
 	 * @return The found HierarchicalNode or null, if no matching cell could be found
 	 */
-	private HierarchicalNode findNode(String cellPath) {
+	public ICollapsableNode findNode(String cellPath) {
 		String[] cellPathSplit = cellPath.trim().split(" ");
 
-		HierarchicalNode currentNode = hierarchy.getRoot();
-		HierarchicalNode nextNode;
+		ICollapsableNode currentNode = rootNode;
 
-		for (String fragment : cellPathSplit) {
-			currentNode = currentNode.getChildren().get(fragment);
+		for (int i = 0; i < cellPathSplit.length; i++) {
+			if (i == 0 && cellPathSplit.length > 1 && rootNode.getChildren().containsKey(cellPathSplit[i + 1])) {
+				continue;
+			}
+
+			currentNode = currentNode.getChildren().get(cellPathSplit[i]);
 
 			if (currentNode == null) {
-				logger.atError().setMessage("Could not find cell {} from cellpath {}").addArgument(fragment).addArgument(cellPath).log();
+				logger.atError().setMessage("Could not find cell {} from cellpath {}").addArgument(cellPathSplit[i]).addArgument(cellPath).log();
 
 				return null;
 			}
@@ -202,7 +231,7 @@ public class CellCollapser {
 	 * @param cellPath The path of the cell
 	 */
 	public void toggleCollapsed(String cellPath) {
-		HierarchicalNode node = findNode(cellPath);
+		ICollapsableNode node = findNode(cellPath);
 
 		if (!node.getEdgeList().isEmpty() || !node.getChildList().isEmpty()) {
 			// node can have child elements
