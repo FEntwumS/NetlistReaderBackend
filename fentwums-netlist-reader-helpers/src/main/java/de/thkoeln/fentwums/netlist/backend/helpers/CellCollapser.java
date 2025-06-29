@@ -8,6 +8,7 @@ import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.SizeConstraint;
 import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkNode;
+import org.eclipse.elk.graph.ElkPort;
 import org.eclipse.emf.common.util.EList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -112,6 +113,21 @@ public class CellCollapser {
 
         currentGraphNode.getContainedEdges().clear();
 
+		if (hNode instanceof ModuleNode && hNode.getNode().getParent() != null) {
+
+			if (((ModuleNode) hNode).getInnerSelfLoopEdgeList() == null) {
+				((ModuleNode) hNode).setInnerSelfLoopEdgeList(new ArrayList<>());
+			}
+
+			for (ElkEdge edge : hNode.getNode().getParent().getContainedEdges()) {
+				if (((ElkPort) edge.getTargets().getFirst()).getParent().equals(hNode.getNode()) && edge.getProperty(CoreOptions.INSIDE_SELF_LOOPS_YO).equals(true)) {
+					((ModuleNode) hNode).getInnerSelfLoopEdgeList().add(edge);
+				}
+			}
+
+			hNode.getNode().getParent().getContainedEdges().removeAll(((ModuleNode) hNode).getInnerSelfLoopEdgeList());
+		}
+
 		resetDimensionRecursively(currentGraphNode);
 	}
 
@@ -167,6 +183,12 @@ public class CellCollapser {
 		graphChildren.addAll(storedChildren);
 
 		graphContainedEdges.addAll(storedEdges);
+
+		if (cNode instanceof ModuleNode && cNode.getNode().getParent() != null) {
+			if (((ModuleNode) cNode).getInnerSelfLoopEdgeList() != null) {
+				cNode.getNode().getParent().getContainedEdges().addAll(((ModuleNode) cNode).getInnerSelfLoopEdgeList());
+			}
+		}
 
 		resetDimensionRecursively(currentGraphNode);
 	}

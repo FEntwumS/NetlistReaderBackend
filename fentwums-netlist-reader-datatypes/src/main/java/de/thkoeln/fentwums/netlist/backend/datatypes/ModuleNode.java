@@ -13,6 +13,7 @@ public class ModuleNode implements ICollapsableNode {
     AbstractMap<String, ICollapsableNode> children;
     List<ElkNode> childList;
     List<ElkEdge> edgeList;
+    List<ElkEdge> innerSelfLoopEdgeList;
     String cellType, cellName;
     private boolean isLoaded = false;
 
@@ -99,5 +100,13 @@ public class ModuleNode implements ICollapsableNode {
 
     public boolean isLoaded() {
         return this.isLoaded;
+    }
+
+    public List<ElkEdge> getInnerSelfLoopEdgeList() {
+        return innerSelfLoopEdgeList;
+    }
+
+    public void setInnerSelfLoopEdgeList(List<ElkEdge> innerSelfLoopEdgeList) {
+        this.innerSelfLoopEdgeList = innerSelfLoopEdgeList;
     }
 }
