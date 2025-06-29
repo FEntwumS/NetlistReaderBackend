@@ -318,6 +318,8 @@ public class CellHandler {
                                 logger.atError().setMessage("Module {} portgroup {} index {} not found").addArgument(
                                         cellName).addArgument(portName).addArgument(currentBitIndex).log();
                             } else {
+                                // This can occur in special cases
+                                // TODO find better solution
                                 if (matchingPorts.size() > 1) {
                                     logger.atWarn().setMessage(
                                                     "Module {} portgroup {} index {} found more than one matching port")
