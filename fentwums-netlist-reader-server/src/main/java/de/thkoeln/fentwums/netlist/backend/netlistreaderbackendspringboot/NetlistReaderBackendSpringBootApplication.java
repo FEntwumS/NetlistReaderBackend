@@ -145,7 +145,7 @@ public class NetlistReaderBackendSpringBootApplication {
                 case HIERARCHICAL -> {
                     HierarchicalOrchestrator orchestrator = new HierarchicalOrchestrator();
 
-                    return getStringResponseEntity(file, orchestrator, settings, Long.parseUnsignedLong(hash));
+                    return graphHierarchicalNetlist(file, orchestrator, settings, Long.parseUnsignedLong(hash));
                 }
                 case FLATTENED_WITH_SEPERATOR -> {
                     try {
@@ -158,7 +158,7 @@ public class NetlistReaderBackendSpringBootApplication {
                         return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
                     }
 
-                    return graphNetlist(creator, parser, Long.parseUnsignedLong(hash), settings);
+                    return graphFlattenedNetlist(creator, parser, Long.parseUnsignedLong(hash), settings);
                 }
                 default -> {
                     return new ResponseEntity<>("Netlist could not be differentiated", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -171,8 +171,8 @@ public class NetlistReaderBackendSpringBootApplication {
 
     }
 
-    private ResponseEntity<String> getStringResponseEntity(MultipartFile file, HierarchicalOrchestrator orchestrator,
-                                                           NetlistCreationSettings settings, long hash) {
+    private ResponseEntity<String> graphHierarchicalNetlist(MultipartFile file, HierarchicalOrchestrator orchestrator,
+                                                            NetlistCreationSettings settings, long hash) {
         try {
             ObjectMapper mapper = new ObjectMapper();
             TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
@@ -222,8 +222,8 @@ public class NetlistReaderBackendSpringBootApplication {
         }
     }
 
-    private ResponseEntity<String> graphNetlist(GraphCreator creator, NetlistParser parser, long hash,
-                                                NetlistCreationSettings settings) {
+    private ResponseEntity<String> graphFlattenedNetlist(GraphCreator creator, NetlistParser parser, long hash,
+                                                         NetlistCreationSettings settings) {
         CellCollapser collapser = new CellCollapser();
         SignalBundler bundler = new SignalBundler();
 
