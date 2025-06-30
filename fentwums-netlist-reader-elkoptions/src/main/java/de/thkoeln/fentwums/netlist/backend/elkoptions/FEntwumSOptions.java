@@ -135,6 +135,21 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 			PortType.SIGNAL_SINGLE
 	);
 
+	public static final IProperty<String> PORT_DIRECTION = new Property<String>(
+			"de.thkoeln.fentwums.netlist.backend.hierarchy-view.port-direction",
+			"UNKNOWN"
+	);
+
+	public static final IProperty<String> HIERARCHY_ANCESTOR_NAME = new Property<String>(
+			"de.thkoeln.fentwums.netlist.backend.hierarchy-ancestor-name",
+			"root"
+	);
+
+	public static final IProperty<HierarchyContainerSubNodeType> HIERARCHY_CONTAINER_SUB_NODE_TYPE = new Property<HierarchyContainerSubNodeType>(
+			"de.thkoeln.fentwums.netlist.backend.hierarchy-container-sub-node-type",
+			HierarchyContainerSubNodeType.TYPE
+	);
+
 	@Override
 	public void apply(Registry registry) {
 		registry.register(new LayoutOptionData.Builder()
@@ -305,6 +320,36 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
               .targets(EnumSet.of(LayoutOptionData.Target.PORTS))
               .visibility(LayoutOptionData.Visibility.HIDDEN)
               .create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+				.id("de.thkoeln.fentwums.netlist.backend.hierarchy-view.port-direction")
+				.defaultValue("UNKNOWN")
+				.type(LayoutOptionData.Type.STRING)
+				.optionClass(String.class)
+				.targets(EnumSet.of(LayoutOptionData.Target.PORTS))
+				.visibility(LayoutOptionData.Visibility.VISIBLE)
+				.create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+			  .id("de.thkoeln.fentwums.netlist.backend.hierarchy-ancestor-name")
+			  .defaultValue("root")
+			  .type(LayoutOptionData.Type.STRING)
+			  .optionClass(String.class)
+			  .targets(EnumSet.of(LayoutOptionData.Target.NODES))
+			  .visibility(LayoutOptionData.Visibility.VISIBLE)
+			  .create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+			  .id("de.thkoeln.fentwums.netlist.backend.hierarchy-container-sub-node-type")
+			  .defaultValue(HierarchyContainerSubNodeType.TYPE)
+			  .type(LayoutOptionData.Type.ENUM)
+			  .optionClass(HierarchyContainerSubNodeType.class)
+			  .targets(EnumSet.of(LayoutOptionData.Target.NODES))
+			  .visibility(LayoutOptionData.Visibility.VISIBLE)
+			  .create()
 		);
 
 		registry.register(new LayoutOptionData.Builder()

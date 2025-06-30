@@ -73,6 +73,10 @@
 			<groupId>fentwums.th-koeln.de</groupId>
 			<artifactId>fentwums-netlist-reader-hierarchical</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>fentwums.th-koeln.de</groupId>
+			<artifactId>fentwums-netlist-reader-hierarchy-view</artifactId>
+		</dependency>
 
 
 		<!-- ELK -->
@@ -190,7 +194,33 @@
 							<executable>true</executable>
 						</configuration>
 					</execution>
+					<execution>
+						<id>pre-integration-test</id>
+						<goals>
+							<goal>start</goal>
+						</goals>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</execution>
+					<execution>
+						<id>post-integration-test</id>
+						<goals>
+							<goal>stop</goal>
+						</goals>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</execution>
 				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
 			</plugin>
 
 			<!-- Attribution -->

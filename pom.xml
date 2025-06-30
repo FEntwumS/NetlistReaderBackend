@@ -51,6 +51,11 @@
                 <artifactId>org.eclipse.elk.graph.json</artifactId>
                 <version>${dependency.version.eclipse.elk}</version>
             </dependency>
+            <dependency>
+                <groupId>org.eclipse.elk</groupId>
+                <artifactId>org.eclipse.elk.alg.rectpacking</artifactId>
+                <version>${dependency.version.eclipse.elk}</version>
+            </dependency>
 
             <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core -->
             <dependency>
@@ -106,6 +111,11 @@
             <dependency>
                 <groupId>fentwums.th-koeln.de</groupId>
                 <artifactId>fentwums-netlist-reader-hierarchical</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>fentwums.th-koeln.de</groupId>
+                <artifactId>fentwums-netlist-reader-hierarchy-view</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>
