@@ -4,9 +4,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import de.thkoeln.fentwums.netlist.backend.datatypes.ModuleNode;
 import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
 import de.thkoeln.fentwums.netlist.backend.datatypes.PerformanceTarget;
 import de.thkoeln.fentwums.netlist.backend.helpers.CellCollapser;
+import de.thkoeln.fentwums.netlist.backend.helpers.NetlistDifferentiator;
 import de.thkoeln.fentwums.netlist.backend.helpers.SignalBundler;
 import de.thkoeln.fentwums.netlist.backend.hierarchical.parser.HierarchicalOrchestrator;
 import de.thkoeln.fentwums.netlist.backend.netlistreaderbackendspringboot.types.NetlistInformation;
@@ -127,7 +129,7 @@ public class NetlistReaderBackendSpringBootApplication {
         NetlistParser parser = new NetlistParser();
         PerformanceTarget target;
 
-        logger.atInfo().setMessage("Selected performannce target: {}").addArgument(performanceTarget).log();
+        logger.atInfo().setMessage("Selected performance target: {}").addArgument(performanceTarget).log();
 
         try {
             target = PerformanceTarget.valueOf(performanceTarget);
@@ -138,27 +140,39 @@ public class NetlistReaderBackendSpringBootApplication {
         NetlistCreationSettings settings = new NetlistCreationSettings(entityLabelFontSize, cellLabelFontSize,
                                                                        edgeLabelFontSize, portLabelFontSize,
                                                                        target);
+        try {
+            switch (NetlistDifferentiator.differentiate(file.getInputStream())) {
+                case HIERARCHICAL -> {
+                    HierarchicalOrchestrator orchestrator = new HierarchicalOrchestrator();
 
-        HierarchicalOrchestrator orchestrator = new HierarchicalOrchestrator();
+                    return graphHierarchicalNetlist(file, orchestrator, settings, Long.parseUnsignedLong(hash));
+                }
+                case FLATTENED_WITH_SEPERATOR -> {
+                    try {
+                        parser.setNetlistStream(file.getInputStream());
+                        // TODO remove
+                        parser.setNetlistFile(null);
+                    } catch (Exception e) {
+                        logger.error("Error reading netlist file", e);
 
-        return getStringResponseEntity(file, orchestrator, settings, Long.parseUnsignedLong(hash));
+                        return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+                    }
 
+                    return graphFlattenedNetlist(creator, parser, Long.parseUnsignedLong(hash), settings);
+                }
+                default -> {
+                    return new ResponseEntity<>("Netlist could not be differentiated", HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            }
+        } catch (IOException e) {
+            logger.error("Error receiving netlist file", e);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
-//		try {
-//			parser.setNetlistStream(file.getInputStream());
-//			// TODO remove
-//			parser.setNetlistFile(null);
-//		} catch (Exception e) {
-//			logger.error("Error reading netlist file", e);
-//
-//			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-//		}
-//
-//		return graphNetlist(creator, parser, Long.parseUnsignedLong(hash), settings);
     }
 
-    private ResponseEntity<String> getStringResponseEntity(MultipartFile file, HierarchicalOrchestrator orchestrator,
-                                                           NetlistCreationSettings settings, long hash) {
+    private ResponseEntity<String> graphHierarchicalNetlist(MultipartFile file, HierarchicalOrchestrator orchestrator,
+                                                            NetlistCreationSettings settings, long hash) {
         try {
             ObjectMapper mapper = new ObjectMapper();
             TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
@@ -181,6 +195,15 @@ public class NetlistReaderBackendSpringBootApplication {
 
             logger.info("done");
 
+            if (settings.getPerformanceTarget() == PerformanceTarget.IntelligentAheadOfTime) {
+                Thread t = new Thread(() -> {
+                    orchestrator.loadModulesIntelligently();
+                });
+
+                t.start();
+                logger.info("Started intelligent loading");
+            }
+
             NetlistInformation newNetlist = new NetlistInformation(orchestrator, null, collapser);
 
             mapLock.writeLock().lock();
@@ -199,8 +222,8 @@ public class NetlistReaderBackendSpringBootApplication {
         }
     }
 
-    private ResponseEntity<String> graphNetlist(GraphCreator creator, NetlistParser parser, long hash,
-                                                NetlistCreationSettings settings) {
+    private ResponseEntity<String> graphFlattenedNetlist(GraphCreator creator, NetlistParser parser, long hash,
+                                                         NetlistCreationSettings settings) {
         CellCollapser collapser = new CellCollapser();
         SignalBundler bundler = new SignalBundler();
 
@@ -283,9 +306,39 @@ public class NetlistReaderBackendSpringBootApplication {
                 try {
                     currentNetlist = currentNets.get(Long.parseUnsignedLong(hash));
 
+                    // load module first, if necessary
+
+                    if (currentNetlist.getCreator() instanceof HierarchicalOrchestrator) {
+                        HierarchicalOrchestrator orchestrator = (HierarchicalOrchestrator) currentNetlist.getCreator();
+
+                        switch (orchestrator.getSettings().getPerformanceTarget()) {
+                            case JustInTime -> {
+                                ModuleNode node = (ModuleNode) currentNetlist.getCollapser().findNode(nodePath);
+
+                                if (!node.isLoaded()) {
+                                    orchestrator.loadModule(node, nodePath);
+                                }
+                            }
+                            case IntelligentAheadOfTime -> {
+                                // here, wait for lock to release
+
+                                ((HierarchicalOrchestrator) currentNetlist.getCreator()).waitForLock();
+                            }
+                        }
+
+                    }
                     currentNetlist.getCollapser().toggleCollapsed(nodePath);
 
                     expandedGraph = currentNetlist.getCreator().layoutGraph();
+
+                    if (currentNetlist.getCreator() instanceof HierarchicalOrchestrator && ((HierarchicalOrchestrator) currentNetlist.getCreator()).getSettings().getPerformanceTarget() == PerformanceTarget.IntelligentAheadOfTime) {
+                        Thread t = new Thread(() -> {
+                            ((HierarchicalOrchestrator) currentNetlist.getCreator()).loadModulesIntelligently();
+                        });
+
+                        t.start();
+                        logger.info("Started intelligent loading");
+                    }
                 } catch (Exception e) {
                     logger.error("Error expanding cell", e);
 
@@ -299,6 +352,8 @@ public class NetlistReaderBackendSpringBootApplication {
         } finally {
             mapLock.readLock().unlock();
         }
+
+        logger.info("Sending expanded graph to client");
 
         if (expandedGraph.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

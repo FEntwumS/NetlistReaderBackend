@@ -1,11 +1,14 @@
 package de.thkoeln.fentwums.netlist.backend.helpers;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.HierarchicalNode;
+import de.thkoeln.fentwums.netlist.backend.datatypes.ModuleNode;
 import de.thkoeln.fentwums.netlist.backend.interfaces.ICollapsableNode;
+import de.thkoeln.fentwums.netlist.backend.interfaces.IGraphCreator;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.SizeConstraint;
 import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkNode;
+import org.eclipse.elk.graph.ElkPort;
 import org.eclipse.emf.common.util.EList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,21 +95,38 @@ public class CellCollapser {
 			hNode.setChildList(new ArrayList<>());
 		}
 
-		if (hNode.getChildList().isEmpty()) {
-			hNode.getChildList().addAll(currentGraphNode.getChildren());
-		}
+        if (!hNode.getChildList().isEmpty()) {
+            hNode.getChildList().clear();
+        }
+        hNode.getChildList().addAll(currentGraphNode.getChildren());
 
-		currentGraphNode.getChildren().clear();
+        currentGraphNode.getChildren().clear();
 
 		if (hNode.getEdgeList() == null) {
 			hNode.setEdgeList(new ArrayList<ElkEdge>());
 		}
 
-		if (hNode.getEdgeList().isEmpty()) {
-			hNode.getEdgeList().addAll(currentGraphNode.getContainedEdges());
-		}
+        if (!hNode.getEdgeList().isEmpty()) {
+            hNode.getEdgeList().clear();
+        }
+        hNode.getEdgeList().addAll(currentGraphNode.getContainedEdges());
 
-		currentGraphNode.getContainedEdges().clear();
+        currentGraphNode.getContainedEdges().clear();
+
+		if (hNode instanceof ModuleNode && hNode.getNode().getParent() != null) {
+
+			if (((ModuleNode) hNode).getInnerSelfLoopEdgeList() == null) {
+				((ModuleNode) hNode).setInnerSelfLoopEdgeList(new ArrayList<>());
+			}
+
+			for (ElkEdge edge : hNode.getNode().getParent().getContainedEdges()) {
+				if (((ElkPort) edge.getTargets().getFirst()).getParent().equals(hNode.getNode()) && edge.getProperty(CoreOptions.INSIDE_SELF_LOOPS_YO).equals(true)) {
+					((ModuleNode) hNode).getInnerSelfLoopEdgeList().add(edge);
+				}
+			}
+
+			hNode.getNode().getParent().getContainedEdges().removeAll(((ModuleNode) hNode).getInnerSelfLoopEdgeList());
+		}
 
 		resetDimensionRecursively(currentGraphNode);
 	}
@@ -164,6 +184,12 @@ public class CellCollapser {
 
 		graphContainedEdges.addAll(storedEdges);
 
+		if (cNode instanceof ModuleNode && cNode.getNode().getParent() != null) {
+			if (((ModuleNode) cNode).getInnerSelfLoopEdgeList() != null) {
+				cNode.getNode().getParent().getContainedEdges().addAll(((ModuleNode) cNode).getInnerSelfLoopEdgeList());
+			}
+		}
+
 		resetDimensionRecursively(currentGraphNode);
 	}
 
@@ -175,7 +201,7 @@ public class CellCollapser {
 	 * @param cellPath The location of the wanted cell
 	 * @return The found HierarchicalNode or null, if no matching cell could be found
 	 */
-	private ICollapsableNode findNode(String cellPath) {
+	public ICollapsableNode findNode(String cellPath) {
 		String[] cellPathSplit = cellPath.trim().split(" ");
 
 		ICollapsableNode currentNode = rootNode;

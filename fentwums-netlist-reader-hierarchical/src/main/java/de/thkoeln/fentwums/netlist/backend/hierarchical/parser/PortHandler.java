@@ -3,6 +3,7 @@ package de.thkoeln.fentwums.netlist.backend.hierarchical.parser;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
+import de.thkoeln.fentwums.netlist.backend.elkoptions.PortType;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
 import de.thkoeln.fentwums.netlist.backend.helpers.RangeCalculator;
@@ -102,6 +103,11 @@ public class PortHandler {
                 currentIndexInPort += portDrivers.size() - 1;
             } else {
                 canonicalIndex = 0;
+            }
+
+            if (instanceConnection.isEmpty()) {
+                logger.atWarn().setMessage("Module type {} port {} has no connections. Skipping...").addArgument(moduleType).addArgument(portname).log();
+                continue;
             }
 
             for (int i = 0; i < portDrivers.size(); i++) {
@@ -210,6 +216,8 @@ public class PortHandler {
 
                     constPort = ElkElementCreator.createNewPort(constNode, createdPortSide);
 
+                    source = constPort;
+                    sink = newPort;
                 } else {
                     // Const input
                     constNode = ElkElementCreator.createNewConstantDriver(currentNode.getParent());
@@ -220,10 +228,17 @@ public class PortHandler {
 
                     constPort = ElkElementCreator.createNewPort(constNode, oppositePortSide);
 
+                    source = constPort;
+                    sink = newPort;
                 }
 
-                source = constPort;
-                sink = newPort;
+                if (portDrivers.size() == 1) {
+                    newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
+                    constNode.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
+                } else {
+                    newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_MULTIPLE);
+                    constNode.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_MULTIPLE);
+                }
 
                 // Add connection
                 ElkEdge constEdge = ElkElementCreator.createNewEdge(sink, source);

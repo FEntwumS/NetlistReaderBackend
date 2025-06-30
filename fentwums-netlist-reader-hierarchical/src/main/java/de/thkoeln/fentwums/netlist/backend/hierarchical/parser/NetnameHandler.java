@@ -5,9 +5,9 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalOccurences;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
-import org.eclipse.elk.graph.ElkEdge;
-import org.eclipse.elk.graph.ElkLabel;
-import org.eclipse.elk.graph.ElkPort;
+import org.eclipse.elk.core.options.CoreOptions;
+import org.eclipse.elk.core.options.PortSide;
+import org.eclipse.elk.graph.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +51,9 @@ public class NetnameHandler {
         for (String currentNetName : netnames.keySet()) {
             currentNet = (HashMap<String, Object>) netnames.get(currentNetName);
 
-            hideName = currentNet.containsKey("hide_name") && !currentNet.get("hide_name").equals(1);
+            // TODO filter better
+            // hideName = currentNet.containsKey("hide_name") && !currentNet.get("hide_name").equals(0);
+            hideName = true;
 
             currentNetBits = (ArrayList<Object>) currentNet.get("bits");
 
@@ -84,7 +86,7 @@ public class NetnameHandler {
 
                         if (sourcePort != null) {
                             for (ElkPort sink : currentSignalOccurences.getSinkPorts()) {
-                                ElkEdge newEdge = ElkElementCreator.createNewEdge(sink, sourcePort);
+                                ElkEdge newEdge = createNewEdge(sink, sourcePort);
 
                                 newEdge.setProperty(FEntwumSOptions.SRC_LOCATION, currentNetSrc);
                                 newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, currentIndexInNet);
@@ -105,7 +107,7 @@ public class NetnameHandler {
                     }
 
                 } else {
-                    logger.atInfo().setMessage("Net {} of module {} contains constant value. Skipping this bit...")
+                    logger.atDebug().setMessage("Net {} of module {} contains constant value. Skipping this bit...")
                             .addArgument(currentNetName).addArgument(moduleName).log();
                 }
 
@@ -116,5 +118,41 @@ public class NetnameHandler {
                 }
             }
         }
+
+        // Now check for inside self loops
+        // All matches are marked appropriately
+        ElkNode currentNode = currentModuleNode.getNode();
+
+        for (int index : signalMap.keySet()) {
+            SignalOccurences signalOccurences = signalMap.get(index);
+
+            ElkPort source = signalOccurences.getSourcePort();
+
+            if (source == null) {
+                continue;
+            }
+
+            if (source.getProperty(CoreOptions.PORT_SIDE) != PortSide.WEST || source.getParent() != currentNode) {
+                continue;
+            }
+
+            for (ElkEdge candidate : source.getOutgoingEdges()) {
+                ElkPort sink = (ElkPort) candidate.getTargets().getFirst();
+
+                if (sink.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST && sink.getParent() == currentNode) {
+                    candidate.setProperty(CoreOptions.INSIDE_SELF_LOOPS_YO, true);
+                }
+            }
+        }
+    }
+
+    private ElkEdge createNewEdge(ElkPort sink, ElkPort source) {
+        for (ElkEdge edge : source.getOutgoingEdges()) {
+            if (edge.getTargets().getFirst().equals(sink)) {
+                return edge;
+            }
+        }
+
+        return ElkElementCreator.createNewEdge(sink, source);
     }
 }
