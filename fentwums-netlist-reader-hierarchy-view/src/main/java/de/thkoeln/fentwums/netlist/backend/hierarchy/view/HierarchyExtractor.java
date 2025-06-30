@@ -105,9 +105,9 @@ public class HierarchyExtractor {
 			isDerived = !(currentCellAttributes.containsKey("module_not_derived") || cellType.contains("paramod"));
 
 			if (!isHidden && !isDerived) {
-				ElkNode a = addModuleToHierarchy(netlist, cellType, cellName, root, ancestor, ancestorName);
+				ElkNode a = addModuleToHierarchy(netlist, cellType, ancestorName + " " + cellName, root, ancestor, ancestorName);
 
-				extractModuleRecursively(netlist, cellType, root, a, cellName);
+				extractModuleRecursively(netlist, cellType, root, a, ancestorName + " " + cellName);
 			}
 		}
 	}
@@ -129,7 +129,7 @@ public class HierarchyExtractor {
 		ports = (HashMap<String, Object>) module.get("ports");
 		if (module.containsKey("parameter_default_values")) {
 			logger.atInfo().setMessage("Module name {}, type {} contains parameters").addArgument(moduleName).addArgument(moduleType).log();
-			parameters = (HashMap<String, Object>) module.get("parameters");
+			parameters = (HashMap<String, Object>) module.get("parameter_default_values");
 		} else {
 			parameters = new HashMap<>();
 		}
@@ -166,9 +166,11 @@ public class HierarchyExtractor {
 			portList.add(new PortInformation(portName, portValueRange, portDirection));
 		}
 
-		// Extract parameter information
-		for (String parameterName : parameters.keySet()) {
-			parameterList.add(new ParameterInformation(parameterName, (String) parameters.get(parameterName)));
+		if (parameters != null) {
+			// Extract parameter information
+			for (String parameterName : parameters.keySet()) {
+				parameterList.add(new ParameterInformation(parameterName, parameters.get(parameterName).toString()));
+			}
 		}
 
 		ElkNode newModuleNode = ElkElementCreator.createNewHierarchyContainer(root);
@@ -222,7 +224,7 @@ public class HierarchyExtractor {
 		// Add ports
 		for (PortInformation portInformation : ports) {
 			ElkPort modulePortPort = ElkElementCreator.createNewSimpleHierarchyPort(modulePortNode, 10.0d, 10.0d);
-			ElkLabel modulePortPortLabel = ElkElementCreator.createNewSimpleHierarchyLabel(modulePortPort, portInformation.name() + (portInformation.dimension().singleElement() ? " [" + portInformation.dimension().lower() + ":" + portInformation.dimension().upper() + "]" : ""));
+			ElkLabel modulePortPortLabel = ElkElementCreator.createNewSimpleHierarchyLabel(modulePortPort, portInformation.name() + (!portInformation.dimension().singleElement() ? " [" + portInformation.dimension().lower() + ":" + portInformation.dimension().upper() + "]" : ""));
 
 			modulePortPort.setProperty(FEntwumSOptions.PORT_DIRECTION, portInformation.direction().name());
 		}
