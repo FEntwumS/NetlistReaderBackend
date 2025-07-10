@@ -8,6 +8,8 @@ import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.HierarchyContainerSubNodeType;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
 import org.eclipse.elk.core.RecursiveGraphLayoutEngine;
+import org.eclipse.elk.core.options.CoreOptions;
+import org.eclipse.elk.core.options.Direction;
 import org.eclipse.elk.core.util.BasicProgressMonitor;
 import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkLabel;
@@ -29,6 +31,8 @@ public class HierarchyExtractor {
 	public String extractHierarchy(HashMap<String, Object> netlist) {
 		ElkNode root = createGraph();
 		root.setIdentifier("root");
+		root.setProperty(CoreOptions.ALGORITHM, "layered");
+		root.setProperty(CoreOptions.DIRECTION, Direction.DOWN);
 
 		String topName = "", topType = "";
 
@@ -191,6 +195,7 @@ public class HierarchyExtractor {
 		ElkNode moduleNameNode = ElkElementCreator.createNewSimpleHierarchyNode(parent);
 		moduleNameNode.setProperty(FEntwumSOptions.HIERARCHY_CONTAINER_SUB_NODE_TYPE,
 								   HierarchyContainerSubNodeType.NAME);
+		moduleNameNode.setProperty(CoreOptions.PARTITIONING_PARTITION, 1);
 
 		ElkLabel moduleNameNodeLabel = ElkElementCreator.createNewSimpleHierarchyLabel(moduleNameNode, name);
 
@@ -198,6 +203,7 @@ public class HierarchyExtractor {
 		ElkNode moduleTypeNode = ElkElementCreator.createNewSimpleHierarchyNode(parent);
 		moduleTypeNode.setProperty(FEntwumSOptions.HIERARCHY_CONTAINER_SUB_NODE_TYPE,
 								   HierarchyContainerSubNodeType.TYPE);
+		moduleTypeNode.setProperty(CoreOptions.PARTITIONING_PARTITION, 2);
 
 		ElkLabel moduleTypeNodeLabel = ElkElementCreator.createNewSimpleHierarchyLabel(moduleTypeNode, type);
 
@@ -205,6 +211,7 @@ public class HierarchyExtractor {
 		ElkNode moduleParameterNode = ElkElementCreator.createNewSimpleHierarchyNode(parent);
 		moduleParameterNode.setProperty(FEntwumSOptions.HIERARCHY_CONTAINER_SUB_NODE_TYPE,
 										HierarchyContainerSubNodeType.PARAMETERS);
+		moduleParameterNode.setProperty(CoreOptions.PARTITIONING_PARTITION, 3);
 
 		ElkLabel moduleParameterNodeLabel = ElkElementCreator.createNewSimpleHierarchyLabel(moduleParameterNode, "Parameters");
 
@@ -218,6 +225,7 @@ public class HierarchyExtractor {
 		ElkNode modulePortNode = ElkElementCreator.createNewSimpleHierarchyNode(parent);
 		modulePortNode.setProperty(FEntwumSOptions.HIERARCHY_CONTAINER_SUB_NODE_TYPE,
                                    HierarchyContainerSubNodeType.PORTS);
+		modulePortNode.setProperty(CoreOptions.PARTITIONING_PARTITION, 4);
 
 		ElkLabel modulePortNodeLabel = ElkElementCreator.createNewSimpleHierarchyLabel(modulePortNode, "Ports");
 
