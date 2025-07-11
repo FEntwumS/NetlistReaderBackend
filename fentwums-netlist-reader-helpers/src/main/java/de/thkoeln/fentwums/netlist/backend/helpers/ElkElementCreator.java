@@ -263,8 +263,6 @@ public class ElkElementCreator {
         newNode.setProperty(CoreOptions.EXPAND_NODES, true);
         newNode.setProperty(CoreOptions.SPACING_NODE_NODE, 0.0d);
         newNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
-        // Set aspect ratio to really small value to ensure vertical layout
-        newNode.setProperty(CoreOptions.ASPECT_RATIO, 0.00000000001d);
         newNode.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.of(SizeConstraint.NODE_LABELS, SizeConstraint.PORTS, SizeConstraint.PORT_LABELS));
 
         return newNode;
