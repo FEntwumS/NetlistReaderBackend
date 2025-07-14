@@ -80,6 +80,10 @@ public class HierarchyExtractor {
 		}
 		logger.info("Finished layout");
 
+		logger.info("Starting post-layout fixup");
+		postLayoutFixup(root);
+		logger.info("Finished post-layout fixup");
+
 		return ElkGraphJson.forGraph(root).omitLayout(false).omitZeroDimension(true)
 				.omitZeroPositions(true).shortLayoutOptionKeys(true).prettyPrint(false).toJson();
 	}
@@ -235,6 +239,52 @@ public class HierarchyExtractor {
 			ElkLabel modulePortPortLabel = ElkElementCreator.createNewSimpleHierarchyLabel(modulePortPort, portInformation.name() + (!portInformation.dimension().singleElement() ? " [" + portInformation.dimension().lower() + ":" + portInformation.dimension().upper() + "]" : ""));
 
 			modulePortPort.setProperty(FEntwumSOptions.PORT_DIRECTION, portInformation.direction().name());
+		}
+	}
+
+	private void postLayoutFixup(ElkNode root) {
+		for (ElkNode container : root.getChildren()) {
+			logger.info("Stretching subnodes to equal widths");
+			stretchContainerSubNodes(container);
+
+			logger.info("Centering subnode labels");
+			centerContainerSubNodeLabels(container);
+		}
+	}
+
+	private void stretchContainerSubNodes(ElkNode container) {
+		double maxWidth = 0.0d;
+
+		for (ElkNode subNode : container.getChildren()) {
+			if (subNode.getWidth() > maxWidth) {
+				maxWidth = subNode.getWidth();
+			}
+		}
+
+		for (ElkNode subNode : container.getChildren()) {
+			subNode.setWidth(maxWidth);
+		}
+	}
+
+	private void centerContainerSubNodeLabels(ElkNode container) {
+		double deltaWidth;
+
+		// Center name and type labels
+		for (ElkNode subNode : container.getChildren()) {
+			switch (subNode.getProperty(FEntwumSOptions.HIERARCHY_CONTAINER_SUB_NODE_TYPE)) {
+				case NAME:
+					deltaWidth = subNode.getWidth() - subNode.getLabels().getFirst().getWidth();
+					subNode.getLabels().getFirst().setX(subNode.getLabels().getFirst().getX() + deltaWidth / 2.0d);
+					break;
+
+				case TYPE:
+					deltaWidth = subNode.getWidth() - subNode.getLabels().getFirst().getWidth();
+					subNode.getLabels().getFirst().setX(subNode.getLabels().getFirst().getX() + deltaWidth / 2.0d);
+					break;
+
+				default:
+					break;
+			}
 		}
 	}
 }
