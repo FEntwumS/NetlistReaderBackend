@@ -271,7 +271,6 @@ public class ElkElementCreator {
     public static ElkNode createNewSimpleHierarchyNode(ElkNode parent) {
         ElkNode newNode = createNode(parent);
         newNode.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.of(SizeConstraint.NODE_LABELS, SizeConstraint.PORTS, SizeConstraint.PORT_LABELS));
-        newNode.setProperty(CoreOptions.NODE_SIZE_MINIMUM, new KVector(100, 10));
         newNode.setProperty(CoreOptions.PORT_LABELS_PLACEMENT, EnumSet.of(PortLabelPlacement.INSIDE, PortLabelPlacement.NEXT_TO_PORT_IF_POSSIBLE));
         newNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_ORDER);
         newNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
@@ -288,7 +287,7 @@ public class ElkElementCreator {
         ElkLabel newLabel = createNewLabel(content, parent, 10.0d);
 
         newLabel.setProperty(CoreOptions.NODE_LABELS_PLACEMENT, EnumSet.of(NodeLabelPlacement.H_CENTER,
-                NodeLabelPlacement.V_TOP, NodeLabelPlacement.INSIDE));
+                NodeLabelPlacement.V_CENTER, NodeLabelPlacement.INSIDE));
 
         return newLabel;
     }
