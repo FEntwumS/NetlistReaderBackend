@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -201,7 +202,7 @@ public class HierarchyExtractor {
 								   HierarchyContainerSubNodeType.NAME);
 		moduleNameNode.setProperty(CoreOptions.PARTITIONING_PARTITION, 1);
 
-		ElkLabel moduleNameNodeLabel = ElkElementCreator.createNewSimpleHierarchyLabel(moduleNameNode, name);
+		ElkLabel moduleNameNodeLabel = ElkElementCreator.createNewSimpleHierarchyLabel(moduleNameNode, Arrays.stream(name.split(" ")).toList().getLast());
 
 		// Create module type node
 		ElkNode moduleTypeNode = ElkElementCreator.createNewSimpleHierarchyNode(parent);
@@ -267,19 +268,34 @@ public class HierarchyExtractor {
 	}
 
 	private void centerContainerSubNodeLabels(ElkNode container) {
-		double deltaWidth;
+		double deltaWidth = 0.0d;
+		double widestLabelWidth = 0.0d;
+		double maxPortWidth = 0.0d;
 
 		// Center name and type labels
 		for (ElkNode subNode : container.getChildren()) {
 			switch (subNode.getProperty(FEntwumSOptions.HIERARCHY_CONTAINER_SUB_NODE_TYPE)) {
-				case NAME:
+				case NAME, TYPE:
 					deltaWidth = subNode.getWidth() - subNode.getLabels().getFirst().getWidth();
 					subNode.getLabels().getFirst().setX(subNode.getLabels().getFirst().getX() + deltaWidth / 2.0d);
 					break;
 
-				case TYPE:
-					deltaWidth = subNode.getWidth() - subNode.getLabels().getFirst().getWidth();
-					subNode.getLabels().getFirst().setX(subNode.getLabels().getFirst().getX() + deltaWidth / 2.0d);
+				case PORTS, PARAMETERS:
+					for (ElkPort port : subNode.getPorts()) {
+						if (port.getLabels().getFirst().getWidth() > widestLabelWidth) {
+							widestLabelWidth = port.getLabels().getFirst().getWidth();
+						}
+
+						if (port.getWidth() > maxPortWidth) {
+							maxPortWidth = port.getWidth();
+						}
+					}
+
+					deltaWidth = subNode.getWidth() - maxPortWidth - widestLabelWidth;
+
+					for (ElkPort port : subNode.getPorts()) {
+						port.setX(port.getX() + deltaWidth / 2.0d);
+					}
 					break;
 
 				default:
