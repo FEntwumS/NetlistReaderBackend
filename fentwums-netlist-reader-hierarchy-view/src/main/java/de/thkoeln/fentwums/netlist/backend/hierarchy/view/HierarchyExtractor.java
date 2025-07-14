@@ -202,7 +202,8 @@ public class HierarchyExtractor {
 								   HierarchyContainerSubNodeType.NAME);
 		moduleNameNode.setProperty(CoreOptions.PARTITIONING_PARTITION, 1);
 
-		ElkLabel moduleNameNodeLabel = ElkElementCreator.createNewSimpleHierarchyLabel(moduleNameNode, Arrays.stream(name.split(" ")).toList().getLast());
+		ElkLabel moduleNameNodeLabel = ElkElementCreator.createNewSimpleHierarchyLabel(moduleNameNode, name);
+		ElkLabel moduleNameTitleLabel = ElkElementCreator.createNewTitleHierarchyLabel(moduleNameNode, "Name");
 
 		// Create module type node
 		ElkNode moduleTypeNode = ElkElementCreator.createNewSimpleHierarchyNode(parent);
@@ -211,6 +212,7 @@ public class HierarchyExtractor {
 		moduleTypeNode.setProperty(CoreOptions.PARTITIONING_PARTITION, 2);
 
 		ElkLabel moduleTypeNodeLabel = ElkElementCreator.createNewSimpleHierarchyLabel(moduleTypeNode, type);
+		ElkLabel moduleTypeTitleLabel = ElkElementCreator.createNewTitleHierarchyLabel(moduleTypeNode, "Type");
 
 		// Create node for parameters
 		ElkNode moduleParameterNode = ElkElementCreator.createNewSimpleHierarchyNode(parent);
@@ -218,7 +220,12 @@ public class HierarchyExtractor {
 										HierarchyContainerSubNodeType.PARAMETERS);
 		moduleParameterNode.setProperty(CoreOptions.PARTITIONING_PARTITION, 3);
 
-		ElkLabel moduleParameterNodeLabel = ElkElementCreator.createNewSimpleHierarchyLabel(moduleParameterNode, "Parameters");
+		ElkLabel moduleParameterTitleLabel = ElkElementCreator.createNewTitleHierarchyLabel(moduleParameterNode, "Parameters");
+
+		if (parameters.isEmpty()) {
+			ElkPort dummyPort = ElkElementCreator.createNewSimpleHierarchyPort(moduleParameterNode, 10.0d, 10.0d);
+			ElkLabel dummyPortLabel = ElkElementCreator.createNewSimpleHierarchyLabel(dummyPort, " ");
+		}
 
 		// Add parameters
 		for (ParameterInformation parameterInformation : parameters) {
@@ -232,7 +239,12 @@ public class HierarchyExtractor {
                                    HierarchyContainerSubNodeType.PORTS);
 		modulePortNode.setProperty(CoreOptions.PARTITIONING_PARTITION, 4);
 
-		ElkLabel modulePortNodeLabel = ElkElementCreator.createNewSimpleHierarchyLabel(modulePortNode, "Ports");
+		ElkLabel modulePortTitleLabel = ElkElementCreator.createNewTitleHierarchyLabel(modulePortNode, "Ports");
+
+		if (ports.isEmpty()) {
+			ElkPort dummyPort = ElkElementCreator.createNewSimpleHierarchyPort(modulePortNode, 10.0d, 10.0d);
+			ElkLabel dummyPortLabel = ElkElementCreator.createNewSimpleHierarchyLabel(dummyPort, " ");
+		}
 
 		// Add ports
 		for (PortInformation portInformation : ports) {
@@ -276,8 +288,10 @@ public class HierarchyExtractor {
 		for (ElkNode subNode : container.getChildren()) {
 			switch (subNode.getProperty(FEntwumSOptions.HIERARCHY_CONTAINER_SUB_NODE_TYPE)) {
 				case NAME, TYPE:
-					deltaWidth = subNode.getWidth() - subNode.getLabels().getFirst().getWidth();
-					subNode.getLabels().getFirst().setX(subNode.getLabels().getFirst().getX() + deltaWidth / 2.0d);
+					for (ElkLabel label : subNode.getLabels()) {
+						deltaWidth = subNode.getWidth() - label.getWidth();
+						label.setX(label.getX() + deltaWidth / 2.0d);
+					}
 					break;
 
 				case PORTS, PARAMETERS:

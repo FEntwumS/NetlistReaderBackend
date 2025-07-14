@@ -292,6 +292,15 @@ public class ElkElementCreator {
         return newLabel;
     }
 
+    public static ElkLabel createNewTitleHierarchyLabel(ElkConnectableShape parent, String content) {
+        ElkLabel newLabel = createNewLabel(content, parent, 15.0d);
+
+        newLabel.setProperty(CoreOptions.NODE_LABELS_PLACEMENT, EnumSet.of(NodeLabelPlacement.H_CENTER,
+                NodeLabelPlacement.V_TOP, NodeLabelPlacement.OUTSIDE));
+
+        return newLabel;
+    }
+
     public static ElkPort createNewSimpleHierarchyPort(ElkNode parent, double width, double height) {
         ElkPort newPort = createPort(parent);
         newPort.setDimensions(width, height);
