@@ -118,7 +118,7 @@ public class NetlistReaderBackendSpringBootApplication {
                                                                    @RequestParam(value = "portLabelFontSize",
                                                                            defaultValue = "10") int portLabelFontSize,
                                                                    @RequestParam(value = "performance-target",
-                                                                           defaultValue = "Preloading")
+                                                                           defaultValue = "UNKNOWN")
                                                                    String performanceTarget,
                                                                    @RequestParam(value = "test-mode", defaultValue =
                                                                            "0") String testMode) {
@@ -160,6 +160,30 @@ public class NetlistReaderBackendSpringBootApplication {
 
                     return graphFlattenedNetlist(creator, parser, Long.parseUnsignedLong(hash), settings, startTime,
                                                  testMode);
+                }
+                case UNKNOWN -> {
+                    if (target == PerformanceTarget.UNKNOWN) {
+                        try {
+                            parser.setNetlistStream(file.getInputStream());
+                            // TODO remove
+                            parser.setNetlistFile(null);
+                        } catch (Exception e) {
+                            logger.error("Error reading netlist file", e);
+
+                            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+                        }
+
+                        return graphFlattenedNetlist(creator, parser, Long.parseUnsignedLong(hash), settings, startTime,
+                                                     testMode);
+                    } else {
+                        HierarchicalOrchestrator orchestrator = new HierarchicalOrchestrator();
+
+                        return graphHierarchicalNetlist(file, orchestrator, settings, Long.parseUnsignedLong(hash),
+                                                        startTime, testMode);
+                    }
+                }
+                case INCOMPLETE -> {
+                    return new ResponseEntity<>("Netlist is incomplete", HttpStatus.BAD_REQUEST);
                 }
                 default -> {
                     return new ResponseEntity<>("Netlist could not be differentiated", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -222,7 +246,7 @@ public class NetlistReaderBackendSpringBootApplication {
 
                 logger.info("Test mode is active. Returning performance results");
                 long executionTime = endTime - startTime;
-                return new ResponseEntity<>("Execution time: " + executionTime, HttpStatus.OK);
+                return new ResponseEntity<>("Execution time: " + executionTime , HttpStatus.OK);
             }
 
             NetlistInformation newNetlist = new NetlistInformation(orchestrator, null, collapser);

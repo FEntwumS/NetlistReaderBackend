@@ -14,6 +14,8 @@ public class NetlistDifferentiator {
     private static final Logger logger = LoggerFactory.getLogger(NetlistDifferentiator.class);
 
     public static NetlistType differentiate(InputStream netlistStream) {
+        String topLevelName = null;
+
         try {
             ObjectMapper mapper = new ObjectMapper();
             TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {};
@@ -28,6 +30,7 @@ public class NetlistDifferentiator {
                 currentModuleAttributes = (HashMap<String, Object>) currentModule.get("attributes");
 
                 if (currentModuleAttributes.containsKey("top")) {
+                    topLevelName = key;
                     continue;
                 } else if (currentModuleAttributes.containsKey("blackbox")) {
                     continue;
@@ -39,10 +42,24 @@ public class NetlistDifferentiator {
                     return NetlistType.HIERARCHICAL;
                 }
             }
+
+            if (topLevelName == null) {
+                return NetlistType.INCOMPLETE;
+            }
+
+            HashMap<String, Object> toplevel = (HashMap<String, Object>) modules.get(topLevelName);
+            HashMap<String, Object> toplevelCells = (HashMap<String, Object>) toplevel.get("cells");
+
+            for (String key : toplevelCells.keySet()) {
+                if (key.contains(";"))
+                {
+                    return NetlistType.FLATTENED_WITH_SEPERATOR;
+                }
+            }
         } catch (IOException e) {
             logger.error("Could not parse netlist", e);
         }
 
-        return NetlistType.FLATTENED_WITH_SEPERATOR;
+        return NetlistType.UNKNOWN;
     }
 }
