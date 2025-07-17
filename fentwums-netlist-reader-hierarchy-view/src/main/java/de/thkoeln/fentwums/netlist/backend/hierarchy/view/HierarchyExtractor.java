@@ -8,6 +8,8 @@ import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.HierarchyContainerSubNodeType;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
 import org.eclipse.elk.core.RecursiveGraphLayoutEngine;
+import org.eclipse.elk.core.options.CoreOptions;
+import org.eclipse.elk.core.options.Direction;
 import org.eclipse.elk.core.util.BasicProgressMonitor;
 import org.eclipse.elk.graph.ElkEdge;
 import org.eclipse.elk.graph.ElkLabel;
@@ -18,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -29,6 +32,8 @@ public class HierarchyExtractor {
 	public String extractHierarchy(HashMap<String, Object> netlist) {
 		ElkNode root = createGraph();
 		root.setIdentifier("root");
+		root.setProperty(CoreOptions.ALGORITHM, "layered");
+		root.setProperty(CoreOptions.DIRECTION, Direction.DOWN);
 
 		String topName = "", topType = "";
 
@@ -75,6 +80,10 @@ public class HierarchyExtractor {
 			return null;
 		}
 		logger.info("Finished layout");
+
+		logger.info("Starting post-layout fixup");
+		postLayoutFixup(root);
+		logger.info("Finished post-layout fixup");
 
 		return ElkGraphJson.forGraph(root).omitLayout(false).omitZeroDimension(true)
 				.omitZeroPositions(true).shortLayoutOptionKeys(true).prettyPrint(false).toJson();
@@ -174,39 +183,49 @@ public class HierarchyExtractor {
 		}
 
 		ElkNode newModuleNode = ElkElementCreator.createNewHierarchyContainer(root);
-		newModuleNode.setProperty(FEntwumSOptions.HIERARCHY_ANCESTOR_NAME, ancestorName);
 
 		if (ancestor != null) {
 			ElkEdge newEdge = ElkElementCreator.createNewSimpleHierarchyEdge(newModuleNode, ancestor);
 			logger.info("Connected ancestor to new hierarchy container");
 		}
 
-		createNode(moduleName, moduleType, parameterList, portList, newModuleNode);
+		createNode(moduleName, moduleName, moduleType, parameterList, portList, newModuleNode);
 
 		return newModuleNode;
 	}
 
-	private void createNode(String name, String type, List<ParameterInformation> parameters, List<PortInformation> ports, ElkNode parent) {
+	private void createNode(String moduleName, String name, String type, List<ParameterInformation> parameters, List<PortInformation> ports, ElkNode parent) {
 		// Create module name node
 		ElkNode moduleNameNode = ElkElementCreator.createNewSimpleHierarchyNode(parent);
 		moduleNameNode.setProperty(FEntwumSOptions.HIERARCHY_CONTAINER_SUB_NODE_TYPE,
 								   HierarchyContainerSubNodeType.NAME);
+		moduleNameNode.setProperty(CoreOptions.PARTITIONING_PARTITION, 1);
+		moduleNameNode.setProperty(FEntwumSOptions.HIERARCHY_ANCESTOR_PATH, moduleName);
 
-		ElkLabel moduleNameNodeLabel = ElkElementCreator.createNewSimpleHierarchyLabel(moduleNameNode, name);
+		ElkLabel moduleNameNodeLabel = ElkElementCreator.createNewSimpleHierarchyLabel(moduleNameNode, Arrays.stream(name.split(" ")).toList().getLast());
+		ElkLabel moduleNameTitleLabel = ElkElementCreator.createNewTitleHierarchyLabel(moduleNameNode, "Name");
 
 		// Create module type node
 		ElkNode moduleTypeNode = ElkElementCreator.createNewSimpleHierarchyNode(parent);
 		moduleTypeNode.setProperty(FEntwumSOptions.HIERARCHY_CONTAINER_SUB_NODE_TYPE,
 								   HierarchyContainerSubNodeType.TYPE);
+		moduleTypeNode.setProperty(CoreOptions.PARTITIONING_PARTITION, 2);
 
 		ElkLabel moduleTypeNodeLabel = ElkElementCreator.createNewSimpleHierarchyLabel(moduleTypeNode, type);
+		ElkLabel moduleTypeTitleLabel = ElkElementCreator.createNewTitleHierarchyLabel(moduleTypeNode, "Type");
 
 		// Create node for parameters
 		ElkNode moduleParameterNode = ElkElementCreator.createNewSimpleHierarchyNode(parent);
 		moduleParameterNode.setProperty(FEntwumSOptions.HIERARCHY_CONTAINER_SUB_NODE_TYPE,
 										HierarchyContainerSubNodeType.PARAMETERS);
+		moduleParameterNode.setProperty(CoreOptions.PARTITIONING_PARTITION, 3);
 
-		ElkLabel moduleParameterNodeLabel = ElkElementCreator.createNewSimpleHierarchyLabel(moduleParameterNode, "Parameters");
+		ElkLabel moduleParameterTitleLabel = ElkElementCreator.createNewTitleHierarchyLabel(moduleParameterNode, "Parameters");
+
+		if (parameters.isEmpty()) {
+			ElkPort dummyPort = ElkElementCreator.createNewSimpleHierarchyPort(moduleParameterNode, 10.0d, 10.0d);
+			ElkLabel dummyPortLabel = ElkElementCreator.createNewSimpleHierarchyLabel(dummyPort, " ");
+		}
 
 		// Add parameters
 		for (ParameterInformation parameterInformation : parameters) {
@@ -218,8 +237,14 @@ public class HierarchyExtractor {
 		ElkNode modulePortNode = ElkElementCreator.createNewSimpleHierarchyNode(parent);
 		modulePortNode.setProperty(FEntwumSOptions.HIERARCHY_CONTAINER_SUB_NODE_TYPE,
                                    HierarchyContainerSubNodeType.PORTS);
+		modulePortNode.setProperty(CoreOptions.PARTITIONING_PARTITION, 4);
 
-		ElkLabel modulePortNodeLabel = ElkElementCreator.createNewSimpleHierarchyLabel(modulePortNode, "Ports");
+		ElkLabel modulePortTitleLabel = ElkElementCreator.createNewTitleHierarchyLabel(modulePortNode, "Ports");
+
+		if (ports.isEmpty()) {
+			ElkPort dummyPort = ElkElementCreator.createNewSimpleHierarchyPort(modulePortNode, 10.0d, 10.0d);
+			ElkLabel dummyPortLabel = ElkElementCreator.createNewSimpleHierarchyLabel(dummyPort, " ");
+		}
 
 		// Add ports
 		for (PortInformation portInformation : ports) {
@@ -227,6 +252,74 @@ public class HierarchyExtractor {
 			ElkLabel modulePortPortLabel = ElkElementCreator.createNewSimpleHierarchyLabel(modulePortPort, portInformation.name() + (!portInformation.dimension().singleElement() ? " [" + portInformation.dimension().lower() + ":" + portInformation.dimension().upper() + "]" : ""));
 
 			modulePortPort.setProperty(FEntwumSOptions.PORT_DIRECTION, portInformation.direction().name());
+		}
+	}
+
+	private void postLayoutFixup(ElkNode root) {
+		for (ElkNode container : root.getChildren()) {
+			logger.info("Stretching subnodes to equal widths");
+			stretchContainerSubNodes(container);
+
+			logger.info("Centering subnode labels");
+			centerContainerSubNodeLabels(container);
+		}
+	}
+
+	private void stretchContainerSubNodes(ElkNode container) {
+		double maxWidth = 0.0d;
+
+		for (ElkNode subNode : container.getChildren()) {
+			if (subNode.getWidth() > maxWidth) {
+				maxWidth = subNode.getWidth();
+			}
+		}
+
+		for (ElkNode subNode : container.getChildren()) {
+			subNode.setWidth(maxWidth);
+		}
+	}
+
+	private void centerContainerSubNodeLabels(ElkNode container) {
+		double deltaWidth = 0.0d;
+		double widestLabelWidth = 0.0d;
+		double maxPortWidth = 0.0d;
+
+		// Center name and type labels
+		for (ElkNode subNode : container.getChildren()) {
+			switch (subNode.getProperty(FEntwumSOptions.HIERARCHY_CONTAINER_SUB_NODE_TYPE)) {
+				case NAME, TYPE:
+					for (ElkLabel label : subNode.getLabels()) {
+						deltaWidth = subNode.getWidth() - label.getWidth();
+						label.setX(subNode.getX() + deltaWidth / 2.0d);
+					}
+					break;
+
+				case PORTS, PARAMETERS:
+					for (ElkLabel label : subNode.getLabels()) {
+						deltaWidth = subNode.getWidth() - label.getWidth();
+						label.setX(subNode.getX() + deltaWidth / 2.0d);
+					}
+
+					for (ElkPort port : subNode.getPorts()) {
+						if (port.getLabels().getFirst().getWidth() > widestLabelWidth) {
+							widestLabelWidth = port.getLabels().getFirst().getWidth();
+						}
+
+						if (port.getWidth() > maxPortWidth) {
+							maxPortWidth = port.getWidth();
+						}
+					}
+
+					deltaWidth = subNode.getWidth() - maxPortWidth - widestLabelWidth;
+
+					for (ElkPort port : subNode.getPorts()) {
+						port.setX(port.getX() + deltaWidth / 2.0d);
+					}
+					break;
+
+				default:
+					break;
+			}
 		}
 	}
 }

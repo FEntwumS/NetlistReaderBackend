@@ -34,7 +34,7 @@ public class ElkElementCreator {
         newNode.setProperty(CoreOptions.NODE_LABELS_PLACEMENT, EnumSet.of(NodeLabelPlacement.H_CENTER,
                 NodeLabelPlacement.V_TOP, NodeLabelPlacement.OUTSIDE));
         newNode.setProperty(CoreOptions.PORT_LABELS_PLACEMENT,
-                EnumSet.of(PortLabelPlacement.INSIDE));
+                EnumSet.of(PortLabelPlacement.INSIDE, PortLabelPlacement.NEXT_TO_PORT_IF_POSSIBLE));
         newNode.setProperty(CoreOptions.SPACING_LABEL_PORT_HORIZONTAL, 1.0d);
         newNode.setProperty(CoreOptions.SPACING_LABEL_PORT_VERTICAL, 1.0d);
         newNode.setProperty(CoreOptions.SPACING_EDGE_LABEL, 3.0d);
@@ -257,29 +257,46 @@ public class ElkElementCreator {
     public static ElkNode createNewHierarchyContainer(ElkNode parent) {
         ElkNode newNode = createNode(parent);
 
-        newNode.setProperty(CoreOptions.ALGORITHM, "rectpacking");
+        newNode.setProperty(CoreOptions.ALGORITHM, "layered");
+        newNode.setProperty(CoreOptions.DIRECTION, Direction.DOWN);
+        newNode.setProperty(CoreOptions.PARTITIONING_ACTIVATE, true);
         newNode.setProperty(CoreOptions.EXPAND_NODES, true);
         newNode.setProperty(CoreOptions.SPACING_NODE_NODE, 0.0d);
         newNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
-        // Set aspect ratio to really small value to ensure vertical layout
-        newNode.setProperty(CoreOptions.ASPECT_RATIO, 0.00000000001d);
         newNode.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.of(SizeConstraint.NODE_LABELS, SizeConstraint.PORTS, SizeConstraint.PORT_LABELS));
-        newNode.setDimensions(100, 100);
 
         return newNode;
     }
 
     public static ElkNode createNewSimpleHierarchyNode(ElkNode parent) {
         ElkNode newNode = createNode(parent);
-        newNode.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.allOf(SizeConstraint.class));
-        newNode.setDimensions(100, 100);
-        newNode.setProperty(CoreOptions.NODE_SIZE_MINIMUM, new KVector(100, 100));
+        newNode.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.of(SizeConstraint.NODE_LABELS, SizeConstraint.PORTS, SizeConstraint.PORT_LABELS));
+        newNode.setProperty(CoreOptions.PORT_LABELS_PLACEMENT, EnumSet.of(PortLabelPlacement.INSIDE, PortLabelPlacement.NEXT_TO_PORT_IF_POSSIBLE));
+        newNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_ORDER);
+        newNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
+        newNode.setProperty(CoreOptions.SPACING_PORT_PORT, 0.0d);
+        newNode.setProperty(CoreOptions.SPACING_LABEL_NODE, 0.0d);
+        newNode.setProperty(CoreOptions.SPACING_LABEL_LABEL, 2.0d);
+        newNode.setProperty(CoreOptions.SPACING_LABEL_PORT_VERTICAL, 0.0d);
+        newNode.setProperty(CoreOptions.SPACING_COMPONENT_COMPONENT, 0.0d);
 
         return newNode;
     }
 
     public static ElkLabel createNewSimpleHierarchyLabel(ElkConnectableShape parent, String content) {
         ElkLabel newLabel = createNewLabel(content, parent, 10.0d);
+
+        newLabel.setProperty(CoreOptions.NODE_LABELS_PLACEMENT, EnumSet.of(NodeLabelPlacement.H_LEFT,
+                NodeLabelPlacement.V_CENTER, NodeLabelPlacement.INSIDE));
+
+        return newLabel;
+    }
+
+    public static ElkLabel createNewTitleHierarchyLabel(ElkConnectableShape parent, String content) {
+        ElkLabel newLabel = createNewLabel(content, parent, 15.0d);
+
+        newLabel.setProperty(CoreOptions.NODE_LABELS_PLACEMENT, EnumSet.of(NodeLabelPlacement.H_LEFT,
+                NodeLabelPlacement.V_TOP, NodeLabelPlacement.OUTSIDE));
 
         return newLabel;
     }
@@ -288,7 +305,8 @@ public class ElkElementCreator {
         ElkPort newPort = createPort(parent);
         newPort.setDimensions(width, height);
         newPort.setProperty(CoreOptions.PORT_SIDE, PortSide.WEST);
-        newPort.setProperty(CoreOptions.PORT_BORDER_OFFSET, -width);
+        newPort.setProperty(CoreOptions.PORT_BORDER_OFFSET, -width - 2);
+        newPort.setProperty(CoreOptions.PORT_LABELS_PLACEMENT, EnumSet.of(PortLabelPlacement.INSIDE, PortLabelPlacement.NEXT_TO_PORT_IF_POSSIBLE));
 
         return newPort;
     }
