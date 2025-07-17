@@ -140,8 +140,8 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 			"UNKNOWN"
 	);
 
-	public static final IProperty<String> HIERARCHY_ANCESTOR_NAME = new Property<String>(
-			"de.thkoeln.fentwums.netlist.backend.hierarchy-ancestor-name",
+	public static final IProperty<String> HIERARCHY_ANCESTOR_PATH = new Property<String>(
+			"de.thkoeln.fentwums.netlist.backend.hierarchy-ancestor-path",
 			"root"
 	);
 
@@ -333,7 +333,7 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 		);
 
 		registry.register(new LayoutOptionData.Builder()
-			  .id("de.thkoeln.fentwums.netlist.backend.hierarchy-ancestor-name")
+			  .id("de.thkoeln.fentwums.netlist.backend.hierarchy-ancestor-path")
 			  .defaultValue("root")
 			  .type(LayoutOptionData.Type.STRING)
 			  .optionClass(String.class)

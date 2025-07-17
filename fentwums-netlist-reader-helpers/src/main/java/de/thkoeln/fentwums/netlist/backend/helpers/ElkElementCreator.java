@@ -286,7 +286,7 @@ public class ElkElementCreator {
     public static ElkLabel createNewSimpleHierarchyLabel(ElkConnectableShape parent, String content) {
         ElkLabel newLabel = createNewLabel(content, parent, 10.0d);
 
-        newLabel.setProperty(CoreOptions.NODE_LABELS_PLACEMENT, EnumSet.of(NodeLabelPlacement.H_CENTER,
+        newLabel.setProperty(CoreOptions.NODE_LABELS_PLACEMENT, EnumSet.of(NodeLabelPlacement.H_LEFT,
                 NodeLabelPlacement.V_CENTER, NodeLabelPlacement.INSIDE));
 
         return newLabel;
@@ -295,7 +295,7 @@ public class ElkElementCreator {
     public static ElkLabel createNewTitleHierarchyLabel(ElkConnectableShape parent, String content) {
         ElkLabel newLabel = createNewLabel(content, parent, 15.0d);
 
-        newLabel.setProperty(CoreOptions.NODE_LABELS_PLACEMENT, EnumSet.of(NodeLabelPlacement.H_CENTER,
+        newLabel.setProperty(CoreOptions.NODE_LABELS_PLACEMENT, EnumSet.of(NodeLabelPlacement.H_LEFT,
                 NodeLabelPlacement.V_TOP, NodeLabelPlacement.OUTSIDE));
 
         return newLabel;

@@ -183,26 +183,26 @@ public class HierarchyExtractor {
 		}
 
 		ElkNode newModuleNode = ElkElementCreator.createNewHierarchyContainer(root);
-		newModuleNode.setProperty(FEntwumSOptions.HIERARCHY_ANCESTOR_NAME, ancestorName);
 
 		if (ancestor != null) {
 			ElkEdge newEdge = ElkElementCreator.createNewSimpleHierarchyEdge(newModuleNode, ancestor);
 			logger.info("Connected ancestor to new hierarchy container");
 		}
 
-		createNode(moduleName, moduleType, parameterList, portList, newModuleNode);
+		createNode(moduleName, moduleName, moduleType, parameterList, portList, newModuleNode);
 
 		return newModuleNode;
 	}
 
-	private void createNode(String name, String type, List<ParameterInformation> parameters, List<PortInformation> ports, ElkNode parent) {
+	private void createNode(String moduleName, String name, String type, List<ParameterInformation> parameters, List<PortInformation> ports, ElkNode parent) {
 		// Create module name node
 		ElkNode moduleNameNode = ElkElementCreator.createNewSimpleHierarchyNode(parent);
 		moduleNameNode.setProperty(FEntwumSOptions.HIERARCHY_CONTAINER_SUB_NODE_TYPE,
 								   HierarchyContainerSubNodeType.NAME);
 		moduleNameNode.setProperty(CoreOptions.PARTITIONING_PARTITION, 1);
+		moduleNameNode.setProperty(FEntwumSOptions.HIERARCHY_ANCESTOR_PATH, moduleName);
 
-		ElkLabel moduleNameNodeLabel = ElkElementCreator.createNewSimpleHierarchyLabel(moduleNameNode, name);
+		ElkLabel moduleNameNodeLabel = ElkElementCreator.createNewSimpleHierarchyLabel(moduleNameNode, Arrays.stream(name.split(" ")).toList().getLast());
 		ElkLabel moduleNameTitleLabel = ElkElementCreator.createNewTitleHierarchyLabel(moduleNameNode, "Name");
 
 		// Create module type node
@@ -290,11 +290,16 @@ public class HierarchyExtractor {
 				case NAME, TYPE:
 					for (ElkLabel label : subNode.getLabels()) {
 						deltaWidth = subNode.getWidth() - label.getWidth();
-						label.setX(label.getX() + deltaWidth / 2.0d);
+						label.setX(subNode.getX() + deltaWidth / 2.0d);
 					}
 					break;
 
 				case PORTS, PARAMETERS:
+					for (ElkLabel label : subNode.getLabels()) {
+						deltaWidth = subNode.getWidth() - label.getWidth();
+						label.setX(subNode.getX() + deltaWidth / 2.0d);
+					}
+
 					for (ElkPort port : subNode.getPorts()) {
 						if (port.getLabels().getFirst().getWidth() > widestLabelWidth) {
 							widestLabelWidth = port.getLabels().getFirst().getWidth();
