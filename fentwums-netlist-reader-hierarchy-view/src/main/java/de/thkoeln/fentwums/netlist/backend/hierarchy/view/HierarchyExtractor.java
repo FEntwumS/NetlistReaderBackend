@@ -201,6 +201,7 @@ public class HierarchyExtractor {
 								   HierarchyContainerSubNodeType.NAME);
 		moduleNameNode.setProperty(CoreOptions.PARTITIONING_PARTITION, 1);
 		moduleNameNode.setProperty(FEntwumSOptions.HIERARCHY_ANCESTOR_PATH, moduleName);
+		parent.setProperty(FEntwumSOptions.HIERARCHY_ANCESTOR_PATH, moduleName);
 
 		ElkLabel moduleNameNodeLabel = ElkElementCreator.createNewSimpleHierarchyLabel(moduleNameNode, Arrays.stream(name.split(" ")).toList().getLast());
 		ElkLabel moduleNameTitleLabel = ElkElementCreator.createNewTitleHierarchyLabel(moduleNameNode, "Name");
