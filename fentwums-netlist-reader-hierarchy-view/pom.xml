@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>fentwums.th-koeln.de</groupId>
 		<artifactId>fentwums-parent</artifactId>
-		<version>0.11.1</version>
+		<version>0.11.2</version>
 	</parent>
 
 	<artifactId>fentwums-netlist-reader-hierarchy-view</artifactId>
