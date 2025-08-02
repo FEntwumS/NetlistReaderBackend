@@ -122,6 +122,11 @@ public class NetlistReaderBackendSpringBootApplication {
                                                                    String performanceTarget,
                                                                    @RequestParam(value = "test-mode", defaultValue =
                                                                            "0") String testMode) {
+        System.gc();
+        System.gc();
+
+        logger.info("Used memory: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
+
         long startTime = System.nanoTime();
 
         GraphCreator creator = new GraphCreator();
@@ -261,6 +266,11 @@ public class NetlistReaderBackendSpringBootApplication {
             HttpHeaders headers = new HttpHeaders();
             headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
 
+            System.gc();
+            System.gc();
+
+            logger.info("Used memory: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
+
             return new ResponseEntity<>(layoutedGraph, headers, HttpStatus.OK);
         } catch (IOException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -337,6 +347,9 @@ public class NetlistReaderBackendSpringBootApplication {
 
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
+
+        System.gc();
+        System.gc();
 
         logger.info("Used memory: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
 
