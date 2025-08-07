@@ -203,6 +203,8 @@ public class HierarchicalOrchestrator implements IGraphCreator {
         } finally {
             lock.unlock();
             logger.info("Lock released");
+
+			logger.info("Used memory: {}", Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
         }
     }
 

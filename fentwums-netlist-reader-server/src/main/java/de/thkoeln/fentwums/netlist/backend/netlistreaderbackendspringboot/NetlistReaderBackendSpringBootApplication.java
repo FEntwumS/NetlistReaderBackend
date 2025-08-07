@@ -46,8 +46,6 @@ public class NetlistReaderBackendSpringBootApplication {
     private static Logger logger = LoggerFactory.getLogger(NetlistReaderBackendSpringBootApplication.class);
     private static HashMap<Long, NetlistInformation> currentNets = new HashMap<Long, NetlistInformation>();
     private static ReentrantReadWriteLock mapLock = new ReentrantReadWriteLock(true);
-    @Value("${JAVA_HOME}")
-    private static String javaHome;
     @Autowired
     private ApplicationContext context;
 
@@ -79,7 +77,6 @@ public class NetlistReaderBackendSpringBootApplication {
                 logger.info("Start reading bundled blackbox description files");
 
                 for (File file : files) {
-                    logger.atInfo().setMessage("JAVA_HOME: {}").addArgument(javaHome).log();
                     logger.atInfo().log("Reading blackbox description file: " + file.getAbsolutePath());
                     HashMap<String, Object> map = mapper.readValue(file, typeRef);
                     ArrayList<String> keyRemovalList = new ArrayList<>();
@@ -121,9 +118,16 @@ public class NetlistReaderBackendSpringBootApplication {
                                                                    @RequestParam(value = "portLabelFontSize",
                                                                            defaultValue = "10") int portLabelFontSize,
                                                                    @RequestParam(value = "performance-target",
-                                                                           defaultValue = "Preloading")
-                                                                   String performanceTarget) {
+                                                                           defaultValue = "UNKNOWN")
+                                                                   String performanceTarget,
+                                                                   @RequestParam(value = "test-mode", defaultValue =
+                                                                           "0") String testMode) {
+        System.gc();
+        System.gc();
 
+        logger.info("Used memory: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
+
+        long startTime = System.nanoTime();
 
         GraphCreator creator = new GraphCreator();
         NetlistParser parser = new NetlistParser();
@@ -145,7 +149,8 @@ public class NetlistReaderBackendSpringBootApplication {
                 case HIERARCHICAL -> {
                     HierarchicalOrchestrator orchestrator = new HierarchicalOrchestrator();
 
-                    return graphHierarchicalNetlist(file, orchestrator, settings, Long.parseUnsignedLong(hash));
+                    return graphHierarchicalNetlist(file, orchestrator, settings, Long.parseUnsignedLong(hash),
+                                                    startTime, testMode);
                 }
                 case FLATTENED_WITH_SEPERATOR -> {
                     try {
@@ -158,7 +163,32 @@ public class NetlistReaderBackendSpringBootApplication {
                         return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
                     }
 
-                    return graphFlattenedNetlist(creator, parser, Long.parseUnsignedLong(hash), settings);
+                    return graphFlattenedNetlist(creator, parser, Long.parseUnsignedLong(hash), settings, startTime,
+                                                 testMode);
+                }
+                case UNKNOWN -> {
+                    if (target == PerformanceTarget.UNKNOWN) {
+                        try {
+                            parser.setNetlistStream(file.getInputStream());
+                            // TODO remove
+                            parser.setNetlistFile(null);
+                        } catch (Exception e) {
+                            logger.error("Error reading netlist file", e);
+
+                            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+                        }
+
+                        return graphFlattenedNetlist(creator, parser, Long.parseUnsignedLong(hash), settings, startTime,
+                                                     testMode);
+                    } else {
+                        HierarchicalOrchestrator orchestrator = new HierarchicalOrchestrator();
+
+                        return graphHierarchicalNetlist(file, orchestrator, settings, Long.parseUnsignedLong(hash),
+                                                        startTime, testMode);
+                    }
+                }
+                case INCOMPLETE -> {
+                    return new ResponseEntity<>("Netlist is incomplete", HttpStatus.BAD_REQUEST);
                 }
                 default -> {
                     return new ResponseEntity<>("Netlist could not be differentiated", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -172,8 +202,10 @@ public class NetlistReaderBackendSpringBootApplication {
     }
 
     private ResponseEntity<String> graphHierarchicalNetlist(MultipartFile file, HierarchicalOrchestrator orchestrator,
-                                                            NetlistCreationSettings settings, long hash) {
+                                                            NetlistCreationSettings settings, long hash,
+                                                            long startTime, String testMode) {
         try {
+            String layoutedGraph = "";
             ObjectMapper mapper = new ObjectMapper();
             TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
             };
@@ -189,9 +221,11 @@ public class NetlistReaderBackendSpringBootApplication {
                 collapser.collapseRecursively(orchestrator.getRoot().getChildren().get(key));
             }
 
-            logger.info("Start layouting");
-            String layoutedGraph = orchestrator.layoutGraph();
-            logger.info("Graph layouted successfully");
+            if (!testMode.equals("1")) {
+                logger.info("Start layouting");
+                layoutedGraph = orchestrator.layoutGraph();
+                logger.info("Graph layouted successfully");
+            }
 
             logger.info("done");
 
@@ -202,6 +236,22 @@ public class NetlistReaderBackendSpringBootApplication {
 
                 t.start();
                 logger.info("Started intelligent loading");
+
+                if (testMode.equals("1")) {
+                    try {
+                        t.join();
+                    } catch (InterruptedException e) {
+
+                    }
+                }
+            }
+
+            if (testMode.equals("1")) {
+                long endTime = System.nanoTime();
+
+                logger.info("Test mode is active. Returning performance results");
+                long executionTime = endTime - startTime;
+                return new ResponseEntity<>("Execution time: " + executionTime , HttpStatus.OK);
             }
 
             NetlistInformation newNetlist = new NetlistInformation(orchestrator, null, collapser);
@@ -216,6 +266,8 @@ public class NetlistReaderBackendSpringBootApplication {
             HttpHeaders headers = new HttpHeaders();
             headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
 
+            logger.info("Used memory: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
+
             return new ResponseEntity<>(layoutedGraph, headers, HttpStatus.OK);
         } catch (IOException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -223,7 +275,8 @@ public class NetlistReaderBackendSpringBootApplication {
     }
 
     private ResponseEntity<String> graphFlattenedNetlist(GraphCreator creator, NetlistParser parser, long hash,
-                                                         NetlistCreationSettings settings) {
+                                                         NetlistCreationSettings settings, long startTime,
+                                                         String testMode) {
         CellCollapser collapser = new CellCollapser();
         SignalBundler bundler = new SignalBundler();
 
@@ -264,6 +317,14 @@ public class NetlistReaderBackendSpringBootApplication {
 
         for (String child : creator.getHierarchyTree().getRoot().getChildren().keySet()) {
             collapser.collapseRecursively(creator.getHierarchyTree().getRoot().getChildren().get(child));
+        }
+
+        long endTime = System.nanoTime();
+
+        if (testMode.equals("1")) {
+            logger.info("Test mode is active. Returning performance results");
+            long executionTime = endTime - startTime;
+            return new ResponseEntity<>("Execution time: " + executionTime, HttpStatus.OK);
         }
 
         logger.info("Start layouting");
