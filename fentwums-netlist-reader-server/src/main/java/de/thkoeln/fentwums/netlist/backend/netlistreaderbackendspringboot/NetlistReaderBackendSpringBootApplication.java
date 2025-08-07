@@ -266,10 +266,7 @@ public class NetlistReaderBackendSpringBootApplication {
             HttpHeaders headers = new HttpHeaders();
             headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
 
-//            System.gc();
-//            System.gc();
-//
-//            logger.info("Used memory: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
+            logger.info("Used memory: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
 
             return new ResponseEntity<>(layoutedGraph, headers, HttpStatus.OK);
         } catch (IOException e) {
@@ -347,9 +344,6 @@ public class NetlistReaderBackendSpringBootApplication {
 
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
-
-        System.gc();
-        System.gc();
 
         logger.info("Used memory: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
 
