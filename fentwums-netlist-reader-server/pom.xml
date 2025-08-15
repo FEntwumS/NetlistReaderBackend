@@ -259,6 +259,12 @@
 									<replacement>https://spdx.org/licenses/GPL-2.0-with-classpath-exception.html</replacement>
 								</licenseUrlReplacement>
 							</licenseUrlReplacements>
+
+							<failOnBlacklist>true</failOnBlacklist>
+							<excludedLicenses>
+								<excludedLicense>GNU Lesser General Public License</excludedLicense>
+								<excludedLicense>GPL2 w/ CPE</excludedLicense>
+							</excludedLicenses>
 						</configuration>
 					</execution>
 				</executions>
