@@ -18,7 +18,8 @@ to contain the new releases version
 7. Wait until the release pipeline has finished building and publishing the release artifact
 8. If the release pipeline successfully finishes, add a new entry to the `NetlistViewerBackendPackage.Versions` field in
 `src/FEntwumS.NetlistViewer/FEntwumSNetlistReaderFrontendModule.cs` in the repository containing the FEntwumS Netlist
-Viewer Extension for OneWare Studio (https://github.com/FEntwumS/FEntwumS.NetlistViewer)
+Viewer Extension for OneWare Studio (https://github.com/FEntwumS/FEntwumS.NetlistViewer). This allows for direct usage
+of the new backend version from the frontend
 
 # Updating the dependency license overrides
 
@@ -28,4 +29,4 @@ These overrides are stored in `fentwums-netlist-reader-server/src/license/overri
 Updates to the dependencies listed in the override file will necessitate a modification of their override.
 The build will fail if the overrides are not updated.
 The output produced during the build will warn about all packages using a "*forbidden*" license.
-The overrides will be modified or added for these packages.
+The packages' overrides will need to be modified or added.
