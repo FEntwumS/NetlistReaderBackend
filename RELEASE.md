@@ -26,4 +26,6 @@ Since some of the dependencies used in this project are available under multiple
 identify under which license these dependencies are used here.
 These overrides are stored in `fentwums-netlist-reader-server/src/license/override-THIRD-PARTY.properties`.
 Updates to the dependencies listed in the override file will necessitate a modification of their override.
-The build will fail if the overrides are not updated
+The build will fail if the overrides are not updated.
+The output produced during the build will warn about all packages using a "*forbidden*" license.
+The overrides will be modified or added for these packages.
