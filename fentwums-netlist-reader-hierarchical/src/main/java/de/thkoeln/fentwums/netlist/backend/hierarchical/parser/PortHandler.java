@@ -150,7 +150,7 @@ public class PortHandler {
                     newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP, signalRange.containedRange().upper());
 
                     ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(
-                            portname + (reversedPort ? " [" + (signalRange.containedRange().upper()) + ":" + (signalRange.containedRange().lower()) : " [" + (signalRange.containedRange().lower()) + ":" + (signalRange.containedRange().upper())) + "]", newPort,
+                            portname + (reversedPort ? " [" + (signalRange.containedRange().lower()) + ":" + (signalRange.containedRange().upper()) : " [" + (signalRange.containedRange().upper()) + ":" + (signalRange.containedRange().lower())) + "]", newPort,
                             settings);
                 }
 
@@ -191,7 +191,7 @@ public class PortHandler {
                             settings);
                 } else {
                     ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(
-                            portname + (reversedPort ? " [" + (constRange.containedRange().upper()) + ":" + (constRange.containedRange().lower()) : " [" + (constRange.containedRange().lower()) + ":" + (constRange.containedRange().upper())) + "]", newPort,
+                            portname + (reversedPort ? " [" + (constRange.containedRange().lower()) + ":" + (constRange.containedRange().upper()) : " [" + (constRange.containedRange().upper()) + ":" + (constRange.containedRange().lower())) + "]", newPort,
                             settings);
                 }
 

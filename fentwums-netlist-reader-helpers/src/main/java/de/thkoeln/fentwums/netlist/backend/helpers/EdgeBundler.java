@@ -205,8 +205,8 @@ public class EdgeBundler {
 					ElkElementCreator.createNewPortLabel(portGroupName + (containedRange.singleElement() ?
 									" [" + containedRange.lower() + "]" :
 									(isReversed ?
-											" [" + containedRange.upper() + ":" + containedRange.lower() + "]" :
-											" [" + containedRange.lower() + ":" + containedRange.upper() + "]")),
+											" [" + containedRange.lower() + ":" + containedRange.upper() + "]" :
+											" [" + containedRange.upper() + ":" + containedRange.lower() + "]")),
 							currentCellPortGroupMap.get(portGroupName), settings);
 				}
 			}
