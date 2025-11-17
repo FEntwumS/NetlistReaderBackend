@@ -150,6 +150,11 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 			HierarchyContainerSubNodeType.TYPE
 	);
 
+	public static final IProperty<Boolean> MSB_FIRST = new Property<Boolean>(
+			"de.thkoeln.fentwums.netlist.backend.msb-first",
+			false
+	);
+
 	@Override
 	public void apply(Registry registry) {
 		registry.register(new LayoutOptionData.Builder()
@@ -360,6 +365,16 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 			  .targets(EnumSet.of(LayoutOptionData.Target.PORTS))
 			  .visibility(LayoutOptionData.Visibility.HIDDEN)
 			  .create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+				.id("de.thkoeln.fentwums.netlist.backend.msb-first")
+				.defaultValue(false)
+				.type(LayoutOptionData.Type.BOOLEAN)
+				.optionClass(Boolean.class)
+				.targets(EnumSet.of(LayoutOptionData.Target.PORTS, LayoutOptionData.Target.EDGES))
+				.visibility(LayoutOptionData.Visibility.HIDDEN)
+				.create()
 		);
 	}
 }
