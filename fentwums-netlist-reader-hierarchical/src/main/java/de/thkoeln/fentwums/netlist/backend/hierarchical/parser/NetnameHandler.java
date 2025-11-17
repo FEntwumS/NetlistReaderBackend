@@ -85,12 +85,17 @@ public class NetnameHandler {
                         sourcePort = currentSignalOccurences.getSourcePort();
 
                         if (sourcePort != null) {
+                            sourcePort.setProperty(FEntwumSOptions.MSB_FIRST, isReversed);
+
                             for (ElkPort sink : currentSignalOccurences.getSinkPorts()) {
+                                sink.setProperty(FEntwumSOptions.MSB_FIRST, isReversed);
+
                                 ElkEdge newEdge = createNewEdge(sink, sourcePort);
 
                                 newEdge.setProperty(FEntwumSOptions.SRC_LOCATION, currentNetSrc);
                                 newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, currentIndexInNet);
                                 newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, currentNetName);
+                                newEdge.setProperty(FEntwumSOptions.MSB_FIRST, isReversed);
 
                                 if (!hideName) {
                                     ElkLabel newEdgeLabel = ElkElementCreator.createNewEdgeLabel(currentNetName +
