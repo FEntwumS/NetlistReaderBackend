@@ -238,6 +238,9 @@ public class CellHandler {
                             }
                         }
 
+                        // Reverse the order of the constant values for an MSB-first interpretation
+                        constantValues.reverse();
+
                         // Also generate the driver node
                         if (newPortSide == PortSide.EAST) {
                             logger.atWarn().setMessage("Cell {} supposedly has (partially) constant output").addArgument(cellName).log();
@@ -278,6 +281,7 @@ public class CellHandler {
                         // Add connection
                         ElkEdge constEdge = ElkElementCreator.createNewEdge(sink, source);
                         constEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.CONSTANT);
+
 
                         ElkLabel constEdgeLabel = ElkElementCreator.createNewEdgeLabel(constantValues.toString(), constEdge,
                                                                                        settings);
