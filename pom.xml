@@ -27,10 +27,10 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
         <!-- Dependencies Properties -->
-        <dependency.version.eclipse.elk>0.10.0</dependency.version.eclipse.elk>
-        <dependency.version.fasterxml.jackson>2.18.3</dependency.version.fasterxml.jackson>
-        <dependency.version.spring.spring-boot>3.4.3</dependency.version.spring.spring-boot>
-        <dependency.version.ch.qos.logback>1.5.18</dependency.version.ch.qos.logback>
+        <dependency.version.eclipse.elk>0.11.0</dependency.version.eclipse.elk>
+        <dependency.version.fasterxml.jackson>2.20.1</dependency.version.fasterxml.jackson>
+        <dependency.version.spring.spring-boot>3.5.7</dependency.version.spring.spring-boot>
+        <dependency.version.ch.qos.logback>1.5.21</dependency.version.ch.qos.logback>
     </properties>
 
     <dependencyManagement>
