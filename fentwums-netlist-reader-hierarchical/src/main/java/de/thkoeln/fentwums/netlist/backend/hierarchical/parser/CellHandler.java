@@ -353,9 +353,54 @@ public class CellHandler {
                                 }
                             }
                         } else {
-                            // Constant drivers can be ignored
-                            logger.atDebug().setMessage("Module {} portgroup {} index {} is constant. Skipping...")
-                                    .addArgument(cellName).addArgument(portName).addArgument(currentBitIndex).log();
+                            // Get internal driver indexes
+                            HashMap<String, Object> internalCellDescription = (HashMap<String, Object>) netlist.get(cellType);
+
+                            // Get signalMap
+                            HashMap<Integer, SignalOccurences> moduleInternalSignalMap = new HashMap<Integer, SignalOccurences>();
+
+                            if (signalMaps.containsKey(newSubModulePath)) {
+                                moduleInternalSignalMap = signalMaps.get(newSubModulePath);
+                            } else {
+                                moduleInternalSignalMap = new HashMap<>();
+                                signalMaps.put(newSubModulePath, moduleInternalSignalMap);
+                            }
+
+                            if (internalCellDescription == null) {
+                                logger.atError().setMessage("Module {} not found in netlist, therefore the constant port cannot be associated").addArgument(cellType).log();
+                            } else {
+                                HashMap<String, Object> internalCellPorts = (HashMap<String, Object>) internalCellDescription.get("ports");
+
+                                if (!internalCellPorts.containsKey(portName)) {
+                                    logger.atError().setMessage("Module {} does not contain description for portgroup {}").addArgument(cellType).addArgument(portName).log();
+                                } else {
+                                    HashMap<String, Object> wantedInternalCellPort = (HashMap<String, Object>) internalCellPorts.get(portName);
+
+                                    if (wantedInternalCellPort.get("direction").equals("output")) {
+                                        logger.atError().setMessage("Module {} portgroup {} is a constant output. Aborting...").addArgument(cellType).addArgument(portName).log();
+                                    } else {
+                                        List<Object> wantedInternalCellPortDrivers = (List<Object>) wantedInternalCellPort.get("bits");
+
+                                        for (Object internalDriver : wantedInternalCellPortDrivers) {
+                                            if (internalDriver instanceof Integer) {
+                                                if (!moduleInternalSignalMap.containsKey((Integer) internalDriver)) {
+                                                    moduleInternalSignalMap.put((Integer) internalDriver, new SignalOccurences());
+                                                }
+
+                                                Set<ElkPort> matchingPort = newCellNode.getPorts().stream().filter(
+                                                        port -> port.getProperty(FEntwumSOptions.PORT_GROUP_NAME).equals(portName))
+                                                        .collect(Collectors.toSet());
+                                                if (matchingPort.isEmpty()) {
+                                                    logger.error("Found no matching const port");
+                                                } else {
+                                                    moduleInternalSignalMap.get(internalDriver).setSourcePort(matchingPort.iterator().next());
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
                         }
 
                         currentBitIndex++;

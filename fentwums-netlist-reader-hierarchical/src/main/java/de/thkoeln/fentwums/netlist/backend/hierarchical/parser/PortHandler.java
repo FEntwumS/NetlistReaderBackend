@@ -205,6 +205,10 @@ public class PortHandler {
                     }
                 }
 
+                if (!reversedPort) {
+                    constantValues.reverse();
+                }
+
                 // Also generate the driver node
                 if (createdPortSide == PortSide.EAST) {
                     // Const outputs are generated as a child

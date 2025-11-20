@@ -41,6 +41,7 @@ public class ElkElementCreator {
         newNode.setProperty(CoreOptions.SPACING_LABEL_NODE, 3.0d);
         newNode.setProperty(CoreOptions.SPACING_EDGE_EDGE, 10.0d);
         newNode.setProperty(CoreOptions.RANDOM_SEED, 1);
+        newNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
 
         return newNode;
     }
