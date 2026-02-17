@@ -1,7 +1,7 @@
 package de.thkoeln.fentwums.netlist.backend.helpers;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +56,7 @@ public class NetlistDifferentiator {
                     return NetlistType.FLATTENED_WITH_SEPERATOR;
                 }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             logger.error("Could not parse netlist", e);
         }
 

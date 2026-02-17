@@ -1,7 +1,7 @@
 package de.thkoeln.fentwums.netlist.backend.netlistreaderbackendspringboot;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import de.thkoeln.fentwums.netlist.backend.helpers.CellCollapser;
 import de.thkoeln.fentwums.netlist.backend.hierarchy.view.HierarchyExtractor;
 import jakarta.annotation.PostConstruct;

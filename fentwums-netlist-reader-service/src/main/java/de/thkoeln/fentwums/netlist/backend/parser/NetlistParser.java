@@ -1,7 +1,7 @@
 package de.thkoeln.fentwums.netlist.backend.parser;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import jdk.jshell.spi.ExecutionControl;
 
 import java.io.File;
@@ -190,7 +190,7 @@ public class NetlistParser {
 
 		try {
 			readNetlist = mapper.readValue(netlistFile, typeRef);
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new RuntimeException("Error parsing netlist", e);
 		}
 	}
@@ -207,7 +207,7 @@ public class NetlistParser {
 
 		try {
 			readNetlist = mapper.readValue(netlistStream, typeRef);
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new RuntimeException("Error parsing netlist", e);
 		}
 	}

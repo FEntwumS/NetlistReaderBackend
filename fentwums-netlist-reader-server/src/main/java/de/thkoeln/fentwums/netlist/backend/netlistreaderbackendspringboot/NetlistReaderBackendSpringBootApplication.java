@@ -1,9 +1,9 @@
 package de.thkoeln.fentwums.netlist.backend.netlistreaderbackendspringboot;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectWriter;
+import tools.jackson.databind.SerializationFeature;
 import de.thkoeln.fentwums.netlist.backend.datatypes.ModuleNode;
 import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
 import de.thkoeln.fentwums.netlist.backend.datatypes.PerformanceTarget;
@@ -501,7 +501,7 @@ public class NetlistReaderBackendSpringBootApplication {
         String serializedNetInformation = "";
 
         ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(SerializationFeature.WRAP_ROOT_VALUE, true);
+        mapper = mapper.rebuild().configure(SerializationFeature.WRAP_ROOT_VALUE, true).build();
         ObjectWriter writer = mapper.writer().withRootName("signals");
 
         HttpHeaders headers = new HttpHeaders();
