@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>fentwums.th-koeln.de</groupId>
 		<artifactId>fentwums-parent</artifactId>
-		<version>0.11.6</version>
+		<version>0.11.7</version>
 	</parent>
 
 	<licenses>
@@ -41,11 +41,11 @@
 
 		<!-- Jackson -->
 		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
+			<groupId>tools.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
+			<groupId>tools.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 		</dependency>
 
