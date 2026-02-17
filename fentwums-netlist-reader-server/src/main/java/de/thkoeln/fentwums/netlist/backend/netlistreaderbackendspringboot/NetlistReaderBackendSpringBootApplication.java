@@ -518,7 +518,7 @@ public class NetlistReaderBackendSpringBootApplication {
                     serializedNetInformation = writer.writeValueAsString(
                             currentNetlist.getCreator().getNetInformationMap());
                 } catch (Exception e) {
-                    logger.error("Error expanding cell", e);
+                    logger.error("An error occurred during net information retrieval", e);
 
                     return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
                 } finally {

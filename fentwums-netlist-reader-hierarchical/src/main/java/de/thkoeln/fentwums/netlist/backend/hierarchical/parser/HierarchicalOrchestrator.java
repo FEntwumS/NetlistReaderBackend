@@ -136,7 +136,7 @@ public class HierarchicalOrchestrator implements IGraphCreator {
 
     @Override
     public HashMap<String, NetInformation> getNetInformationMap() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        throw new UnsupportedOperationException("Calls to /get-net-information are not yet supported for hierarchical netlists.");
     }
 
     public void addModulesRecursively(HashMap<String, Object> modules, HashMap<String, Object> blackBoxes,
