@@ -5,7 +5,9 @@ import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class ElkAsserter {
 	public static void assertEquals(File expected, HashMap<String, Object> actual) {
@@ -21,7 +23,18 @@ public class ElkAsserter {
 	public static void assertEqualsNode(HashMap<String, Object> expected, HashMap<String, Object> actual) {
 		if (expected.containsKey("children")) {
 			if (actual.containsKey("children")) {
-				if (!expected.keySet().containsAll(actual.keySet())) {
+				ArrayList<Object> expectedChildrenList = (ArrayList<Object>) expected.get("children");
+				ArrayList<Object> actualChildrenList = (ArrayList<Object>) actual.get("children");
+
+				List<String> expectedChildrenIdList = expectedChildrenList.stream().map(c -> {
+					return (String) ((HashMap<String, Object>) c).get("id");
+				}).toList();
+
+				List<String> actualChildrenIdList = actualChildrenList.stream().map(c -> {
+					return (String) ((HashMap<String, Object>) c).get("id");
+				}).toList();
+
+				if (!expectedChildrenIdList.containsAll(actualChildrenIdList)) {
 					AssertionFailureBuilder.assertionFailure()
 							.message("ACTUAL has more children than EXPECTED has")
 							.actual(actual)
@@ -29,7 +42,7 @@ public class ElkAsserter {
 							.buildAndThrow();
 				}
 
-				if (!actual.keySet().containsAll(expected.keySet())) {
+				if (!actualChildrenIdList.containsAll(expectedChildrenIdList)) {
 					AssertionFailureBuilder.assertionFailure()
 							.message("ACTUAL has less children than EXPECTED has")
 							.actual(actual)
@@ -37,19 +50,23 @@ public class ElkAsserter {
 							.buildAndThrow();
 				}
 
-				for (String key : expected.keySet()) {
-					HashMap<String, Object> expectedChild = (HashMap<String, Object>) expected.get(key);
-					HashMap<String, Object> actualChild = (HashMap<String, Object>) actual.get(key);
+				for (String id : expectedChildrenIdList) {
+					HashMap<String, Object> expectedChild =
+							(HashMap<String, Object>) expectedChildrenList.stream().
+									filter(c -> ((String) ((HashMap<String, Object>) c).get("id")).equals(id));
+					HashMap<String, Object> actualChild =
+							(HashMap<String, Object>) actualChildrenList.stream().
+									filter(c -> ((String) ((HashMap<String, Object>) c).get("id")).equals(id));
 
 					assertEqualsNode(expectedChild, actualChild);
 				}
 
 			} else {
-					AssertionFailureBuilder.assertionFailure()
-							.message("ACTUAL has no children, EXPECTED has")
-							.actual(actual)
-							.expected(expected)
-							.buildAndThrow();
+				AssertionFailureBuilder.assertionFailure()
+						.message("ACTUAL has no children, EXPECTED has")
+						.actual(actual)
+						.expected(expected)
+						.buildAndThrow();
 			}
 		} else {
 			if (actual.containsKey("children")) {
