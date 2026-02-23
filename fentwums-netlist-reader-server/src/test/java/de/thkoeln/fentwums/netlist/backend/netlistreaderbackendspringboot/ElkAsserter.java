@@ -103,7 +103,62 @@ public class ElkAsserter {
 	}
 
 	public static void assertEqualsPort(HashMap<String, Object> expected, HashMap<String, Object> actual) {
+		if (expected.containsKey("ports")) {
+			if (actual.containsKey("ports")) {
+				ArrayList<Object> expectedPortList = (ArrayList<Object>) expected.get("ports");
+				ArrayList<Object> actualPortList = (ArrayList<Object>) actual.get("ports");
 
+				List<String> expectedPortIdList = ((ArrayList<Object>) expectedPortList.clone()).stream().map(l -> {
+					return (String) ((HashMap<String, Object>) l).get("id");
+				}).toList();
+
+				List<String> actualPortIdList = ((ArrayList<Object>) actualPortList.clone()).stream().map(l -> {
+					return (String) ((HashMap<String, Object>) l).get("id");
+				}).toList();
+
+				if (!expectedPortIdList.containsAll(actualPortIdList)) {
+					AssertionFailureBuilder.assertionFailure()
+							.message("ACTUAL has ports that EXPECTED has not")
+							.actual(actual)
+							.expected(expected)
+							.buildAndThrow();
+				}
+
+				if (!actualPortIdList.containsAll(expectedPortIdList)) {
+					AssertionFailureBuilder.assertionFailure()
+							.message("EXPECTED has ports that ACTUAL has not")
+							.actual(actual)
+							.expected(expected)
+							.buildAndThrow();
+				}
+
+				for (String id : expectedPortIdList) {
+					HashMap<String, Object> expectedPort =
+							(HashMap<String, Object>) expectedPortList.stream().filter(c -> ((String) ((HashMap<String, Object>) c).get("id")).equals(id)).toList().getFirst();
+					HashMap<String, Object> actualPort =
+							(HashMap<String, Object>) actualPortList.stream().
+									filter(c -> ((String) ((HashMap<String, Object>) c).get("id")).equals(id)).toList().getFirst();
+
+					assertEqualsLabel(expectedPort, actualPort);
+
+					assertEqualsLayoutOptions((HashMap<String, Object>) expectedPort.get("layoutOptions"), (HashMap<String, Object>) actualPort.get("layoutOptions"));
+				}
+			} else {
+				AssertionFailureBuilder.assertionFailure()
+						.message("ACTUAL has no ports, EXPECTED has")
+						.actual(actual)
+						.expected(expected)
+						.buildAndThrow();
+			}
+		} else {
+			if (actual.containsKey("ports")) {
+				AssertionFailureBuilder.assertionFailure()
+						.message("EXPECTED has no ports, ACTUAL has")
+						.actual(actual)
+						.expected(expected)
+						.buildAndThrow();
+			}
+		}
 	}
 
 	public static void assertEqualsLabel(HashMap<String, Object> expected, HashMap<String, Object> actual) {
