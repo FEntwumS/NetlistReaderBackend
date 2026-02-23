@@ -214,14 +214,6 @@
 				</executions>
 			</plugin>
 
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-failsafe-plugin</artifactId>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
-			</plugin>
-
 			<!-- Attribution -->
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>

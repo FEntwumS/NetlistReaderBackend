@@ -45,6 +45,8 @@ public class ElkAsserter {
 		assertEqualsLayoutOptions(expectedLayoutOptions, actualLayoutOptions);
 
 		assertEqualsLabel(expected, actual);
+		assertEqualsPort(expected, actual);
+		assertEqualsEdge(expected, actual);
 
 		if (expected.containsKey("children")) {
 			if (actual.containsKey("children")) {
@@ -261,6 +263,61 @@ public class ElkAsserter {
 	}
 
 	public static void assertEqualsEdge(HashMap<String, Object> expected, HashMap<String, Object> actual) {
+		if (expected.containsKey("edges")) {
+			if (actual.containsKey("edges")) {
+				ArrayList<Object> expectedEdgeList = (ArrayList<Object>) expected.get("edges");
+				ArrayList<Object> actualEdgeList = (ArrayList<Object>) actual.get("edges");
 
+				List<String> expectedEdgeIdList = ((ArrayList<Object>) expectedEdgeList.clone()).stream().map(l -> {
+					return (String) ((HashMap<String, Object>) l).get("id");
+				}).toList();
+
+				List<String> actualEdgeIdList = ((ArrayList<Object>) actualEdgeList.clone()).stream().map(l -> {
+					return (String) ((HashMap<String, Object>) l).get("id");
+				}).toList();
+
+				if (!expectedEdgeIdList.containsAll(actualEdgeIdList)) {
+					AssertionFailureBuilder.assertionFailure()
+							.message("ACTUAL has ports that EXPECTED has not")
+							.actual(actual)
+							.expected(expected)
+							.buildAndThrow();
+				}
+
+				if (!actualEdgeIdList.containsAll(expectedEdgeIdList)) {
+					AssertionFailureBuilder.assertionFailure()
+							.message("EXPECTED has ports that ACTUAL has not")
+							.actual(actual)
+							.expected(expected)
+							.buildAndThrow();
+				}
+
+				for (String id : expectedEdgeIdList) {
+					HashMap<String, Object> expectedEdge =
+							(HashMap<String, Object>) expectedEdgeList.stream().filter(c -> ((String) ((HashMap<String, Object>) c).get("id")).equals(id)).toList().getFirst();
+					HashMap<String, Object> actualEdge =
+							(HashMap<String, Object>) actualEdgeList.stream().
+									filter(c -> ((String) ((HashMap<String, Object>) c).get("id")).equals(id)).toList().getFirst();
+
+					assertEqualsLabel(expectedEdge, actualEdge);
+
+					assertEqualsLayoutOptions((HashMap<String, Object>) expectedEdge.get("layoutOptions"), (HashMap<String, Object>) actualEdge.get("layoutOptions"));
+				}
+			} else {
+				AssertionFailureBuilder.assertionFailure()
+						.message("ACTUAL has no edges, EXPECTED has")
+						.actual(actual)
+						.expected(expected)
+						.buildAndThrow();
+			}
+		} else {
+			if (actual.containsKey("edges")) {
+				AssertionFailureBuilder.assertionFailure()
+						.message("EXPECTED has no edges, ACTUAL has")
+						.actual(actual)
+						.expected(expected)
+						.buildAndThrow();
+			}
+		}
 	}
 }
