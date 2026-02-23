@@ -5,11 +5,27 @@ import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class ElkAsserter {
+	private static final Set<String> checkedLayoutOptions = new HashSet<>(Arrays.asList(
+			"canonical-index-in-port-group",
+			"msb-first",
+			"port.index",
+			"port.side",
+			"port-group-name",
+			"celltype",
+			"src-location",
+			"signaltype",
+			"signalname",
+			"edge.thickness",
+			"index-in-signal",
+			"celltype",
+			"cellname"
+	));
+
+	private static Logger logger = LoggerFactory.getLogger(ElkAsserter.class);
+
 	public static void assertEquals(File expected, HashMap<String, Object> actual) {
 		ObjectMapper mapper = new ObjectMapper();
 		TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
@@ -21,6 +37,12 @@ public class ElkAsserter {
 	}
 
 	public static void assertEqualsNode(HashMap<String, Object> expected, HashMap<String, Object> actual) {
+		HashMap<String, Object> expectedLayoutOptions = (HashMap<String, Object>) expected.get("layoutOptions");
+		HashMap<String, Object> actualLayoutOptions = (HashMap<String, Object>) actual.get("layoutOptions");
+		assertEqualsLayoutOptions(expectedLayoutOptions, actualLayoutOptions);
+
+		assertEqualsLabel(expected, actual);
+
 		if (expected.containsKey("children")) {
 			if (actual.containsKey("children")) {
 				ArrayList<Object> expectedChildrenList = (ArrayList<Object>) expected.get("children");
@@ -85,7 +107,31 @@ public class ElkAsserter {
 	}
 
 	public static void assertEqualsLayoutOptions(HashMap<String, Object> expected, HashMap<String, Object> actual) {
+		HashSet<String> expectedKeys = new HashSet<>(expected.keySet());
+		expectedKeys.retainAll(checkedLayoutOptions);
 
+		HashSet<String> actualKeys = new HashSet<>(actual.keySet());
+		actualKeys.retainAll(checkedLayoutOptions);
+
+		if (!expectedKeys.containsAll(actualKeys)) {
+			AssertionFailureBuilder.assertionFailure()
+					.message("ACTUAL has keys that EXPECTED has not")
+					.actual(actual)
+					.expected(expected)
+					.buildAndThrow();
+		}
+
+		if (!actualKeys.containsAll(expectedKeys)) {
+			AssertionFailureBuilder.assertionFailure()
+					.message("EXPECTED has keys that ACTUAL has not")
+					.actual(actual)
+					.expected(expected)
+					.buildAndThrow();
+		}
+
+		for (String key : expectedKeys) {
+			Assertions.assertEquals(expected.get(key), actual.get(key), "Value for key " + key + " has changed");
+		}
 	}
 
 	public static void assertEqualsEdge(HashMap<String, Object> expected, HashMap<String, Object> actual) {
