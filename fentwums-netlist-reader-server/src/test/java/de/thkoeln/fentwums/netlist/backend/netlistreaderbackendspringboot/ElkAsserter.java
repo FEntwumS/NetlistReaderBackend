@@ -1,6 +1,9 @@
 package de.thkoeln.fentwums.netlist.backend.netlistreaderbackendspringboot;
 
 import org.junit.jupiter.api.AssertionFailureBuilder;
+import org.junit.jupiter.api.Assertions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
@@ -103,7 +106,74 @@ public class ElkAsserter {
 	}
 
 	public static void assertEqualsLabel(HashMap<String, Object> expected, HashMap<String, Object> actual) {
+		if (expected.containsKey("labels")) {
+			if (actual.containsKey("labels")) {
+				ArrayList<Object> expectedLabelList = (ArrayList<Object>) expected.get("labels");
+				ArrayList<Object> actualLabelList = (ArrayList<Object>) actual.get("labels");
 
+				List<String> expectedLabelTextList = ((ArrayList<Object>) expectedLabelList.clone()).stream().map(l -> {
+					return (String) ((HashMap<String, Object>) l).get("text");
+				}).toList();
+
+				List<String> actualLabelTextList = ((ArrayList<Object>) actualLabelList.clone()).stream().map(l -> {
+					return (String) ((HashMap<String, Object>) l).get("text");
+				}).toList();
+
+				if (!expectedLabelTextList.containsAll(actualLabelTextList)) {
+					AssertionFailureBuilder.assertionFailure()
+							.message("ACTUAL has labels that EXPECTED has not")
+							.actual(actual)
+							.expected(expected)
+							.buildAndThrow();
+				}
+
+				if (!actualLabelTextList.containsAll(expectedLabelTextList)) {
+					AssertionFailureBuilder.assertionFailure()
+							.message("EXPECTED has labels that ACTUAL has not")
+							.actual(actual)
+							.expected(expected)
+							.buildAndThrow();
+				}
+
+				if (expectedLabelList.size() > 1) {
+					logger.atWarn()
+							.setMessage("EXPECTED contains more than one label: {}")
+							.addArgument(expectedLabelList)
+							.log();
+				}
+
+				if (actualLabelList.size() > 1) {
+					logger.atWarn()
+							.setMessage("ACTUAL contains more than one label: {}")
+							.addArgument(actualLabelList)
+							.log();
+				}
+
+				for (String id : expectedLabelTextList) {
+					HashMap<String, Object> expectedLabel =
+							(HashMap<String, Object>) expectedLabelList.stream().filter(c -> ((String) ((HashMap<String, Object>) c).get("text")).equals(id)).toList().getFirst();
+					HashMap<String, Object> actualLabel =
+							(HashMap<String, Object>) actualLabelList.stream().
+									filter(c -> ((String) ((HashMap<String, Object>) c).get("text")).equals(id)).toList().getFirst();
+
+					Assertions.assertEquals(expectedLabel.get("text"), actualLabel.get("text"));
+				}
+			} else {
+				AssertionFailureBuilder.assertionFailure()
+						.message("ACTUAL has no labels, EXPECTED has")
+						.actual(actual)
+						.expected(expected)
+						.buildAndThrow();
+			}
+		} else {
+			if (actual.containsKey("labels")) {
+				AssertionFailureBuilder.assertionFailure()
+						.message("EXPECTED has no labels, ACTUAL has")
+						.actual(actual)
+						.expected(expected)
+						.buildAndThrow();
+			}
+		}
 	}
 
 	public static void assertEqualsLayoutOptions(HashMap<String, Object> expected, HashMap<String, Object> actual) {
