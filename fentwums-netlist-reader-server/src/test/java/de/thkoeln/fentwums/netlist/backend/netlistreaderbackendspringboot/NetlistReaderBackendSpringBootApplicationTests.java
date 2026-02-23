@@ -50,7 +50,7 @@ class NetlistReaderBackendSpringBootApplicationTests {
 		};
 
 		// TODO: Get actual JSON from ELK graph
-		HashMap<String, Object> actualMap = mapper.readValue("a", typeRef);
+		HashMap<String, Object> actualMap = mapper.readValue(expectedOutput, typeRef);
 
 		ElkAsserter.assertEquals(expectedOutput, actualMap);
 		//assertEquals(input.getName(), output.getName());

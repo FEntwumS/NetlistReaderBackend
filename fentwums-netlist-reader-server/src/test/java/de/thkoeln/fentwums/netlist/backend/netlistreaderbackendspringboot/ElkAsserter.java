@@ -51,17 +51,19 @@ public class ElkAsserter {
 				ArrayList<Object> expectedChildrenList = (ArrayList<Object>) expected.get("children");
 				ArrayList<Object> actualChildrenList = (ArrayList<Object>) actual.get("children");
 
-				List<String> expectedChildrenIdList = expectedChildrenList.stream().map(c -> {
+				List<String> expectedChildrenIdList =
+						((ArrayList<Object>) expectedChildrenList.clone()).stream().map(c -> {
 					return (String) ((HashMap<String, Object>) c).get("id");
 				}).toList();
 
-				List<String> actualChildrenIdList = actualChildrenList.stream().map(c -> {
+				List<String> actualChildrenIdList =
+						((ArrayList<Object>) actualChildrenList.clone()).stream().map(c -> {
 					return (String) ((HashMap<String, Object>) c).get("id");
 				}).toList();
 
 				if (!expectedChildrenIdList.containsAll(actualChildrenIdList)) {
 					AssertionFailureBuilder.assertionFailure()
-							.message("ACTUAL has more children than EXPECTED has")
+							.message("ACTUAL has children that EXPECTED has not")
 							.actual(actual)
 							.expected(expected)
 							.buildAndThrow();
@@ -69,7 +71,7 @@ public class ElkAsserter {
 
 				if (!actualChildrenIdList.containsAll(expectedChildrenIdList)) {
 					AssertionFailureBuilder.assertionFailure()
-							.message("ACTUAL has less children than EXPECTED has")
+							.message("EXPECTED has children that ACTUAL has not")
 							.actual(actual)
 							.expected(expected)
 							.buildAndThrow();
@@ -77,11 +79,10 @@ public class ElkAsserter {
 
 				for (String id : expectedChildrenIdList) {
 					HashMap<String, Object> expectedChild =
-							(HashMap<String, Object>) expectedChildrenList.stream().
-									filter(c -> ((String) ((HashMap<String, Object>) c).get("id")).equals(id));
+							(HashMap<String, Object>) expectedChildrenList.stream().filter(c -> ((String) ((HashMap<String, Object>) c).get("id")).equals(id)).toList().getFirst();
 					HashMap<String, Object> actualChild =
 							(HashMap<String, Object>) actualChildrenList.stream().
-									filter(c -> ((String) ((HashMap<String, Object>) c).get("id")).equals(id));
+									filter(c -> ((String) ((HashMap<String, Object>) c).get("id")).equals(id)).toList().getFirst();
 
 					assertEqualsNode(expectedChild, actualChild);
 				}
