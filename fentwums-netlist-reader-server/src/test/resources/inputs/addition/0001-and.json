@@ -1,78 +1,78 @@
 {
-  "creator": "Yosys 0.56+186 (git sha1 51eaaffe0, x86_64-w64-mingw32-g++ 13.2.1 -O3)",
-  "modules": {
-    "testcase": {
-      "attributes": {
-        "top": 1,
-        "src": "C:\\Users\\Florian\\OneWareStudio\\Projects\\testcase\\build\\netlist\\testcase.v:1.1-9.10"
+  "creator" : "Yosys 0.56+186 (git sha1 51eaaffe0, x86_64-w64-mingw32-g++ 13.2.1 -O3)",
+  "modules" : {
+    "testcase" : {
+      "attributes" : {
+        "top" : 1,
+        "src" : "C:\\Users\\Florian\\OneWareStudio\\Projects\\testcase\\build\\netlist\\testcase.v:1.1-9.10"
       },
-      "ports": {
-        "A": {
-          "direction": "input",
-          "bits": [ 2 ]
+      "ports" : {
+        "A" : {
+          "direction" : "input",
+          "bits" : [ 2 ]
         },
-        "B": {
-          "direction": "input",
-          "bits": [ 3 ]
+        "B" : {
+          "direction" : "input",
+          "bits" : [ 3 ]
         },
-        "Y": {
-          "direction": "output",
-          "bits": [ 4 ]
+        "Y" : {
+          "direction" : "output",
+          "bits" : [ 4 ]
         }
       },
-      "cells": {
-        "$and$C:\\Users\\Florian\\OneWareStudio\\Projects\\testcase\\build\\netlist\\testcase.v:8$1": {
-          "hide_name": 1,
-          "type": "$and",
-          "parameters": {
-            "A_SIGNED": 0,
-            "A_WIDTH": 1,
-            "B_SIGNED": 0,
-            "B_WIDTH": 1,
-            "Y_WIDTH": 1
+      "cells" : {
+        "$and$C:\\Users\\Florian\\OneWareStudio\\Projects\\testcase\\build\\netlist\\testcase.v:8$1" : {
+          "hide_name" : 1,
+          "type" : "$and",
+          "parameters" : {
+            "A_SIGNED" : 0,
+            "A_WIDTH" : 1,
+            "B_SIGNED" : 0,
+            "B_WIDTH" : 1,
+            "Y_WIDTH" : 1
           },
-          "attributes": {
-            "src": "C:\\Users\\Florian\\OneWareStudio\\Projects\\testcase\\build\\netlist\\testcase.v:8.15-8.20"
+          "attributes" : {
+            "src" : "C:\\Users\\Florian\\OneWareStudio\\Projects\\testcase\\build\\netlist\\testcase.v:8.15-8.20"
           },
-          "port_directions": {
-            "A": "input",
-            "B": "input",
-            "Y": "output"
+          "port_directions" : {
+            "A" : "input",
+            "B" : "input",
+            "Y" : "output"
           },
-          "connections": {
-            "A": [ 2 ],
-            "B": [ 3 ],
-            "Y": [ 4 ]
+          "connections" : {
+            "A" : [ 2 ],
+            "B" : [ 3 ],
+            "Y" : [ 4 ]
           }
         }
       },
-      "netnames": {
-        "A": {
-          "hide_name": 0,
-          "bits": [ 2 ],
-          "attributes": {
-            "src": "C:\\Users\\Florian\\OneWareStudio\\Projects\\testcase\\build\\netlist\\testcase.v:2.11-2.12"
+      "netnames" : {
+        "A" : {
+          "hide_name" : 0,
+          "bits" : [ 2 ],
+          "attributes" : {
+            "src" : "C:\\Users\\Florian\\OneWareStudio\\Projects\\testcase\\build\\netlist\\testcase.v:2.11-2.12"
           }
         },
-        "B": {
-          "hide_name": 0,
-          "bits": [ 3 ],
-          "attributes": {
-            "src": "C:\\Users\\Florian\\OneWareStudio\\Projects\\testcase\\build\\netlist\\testcase.v:3.11-3.12"
+        "B" : {
+          "hide_name" : 0,
+          "bits" : [ 3 ],
+          "attributes" : {
+            "src" : "C:\\Users\\Florian\\OneWareStudio\\Projects\\testcase\\build\\netlist\\testcase.v:3.11-3.12"
           }
         },
-        "Y": {
-          "hide_name": 0,
-          "bits": [ 4 ],
-          "attributes": {
-            "src": "C:\\Users\\Florian\\OneWareStudio\\Projects\\testcase\\build\\netlist\\testcase.v:4.11-4.12"
+        "Y" : {
+          "hide_name" : 0,
+          "bits" : [ 4 ],
+          "attributes" : {
+            "src" : "C:\\Users\\Florian\\OneWareStudio\\Projects\\testcase\\build\\netlist\\testcase.v:4.11-4.12"
           }
         },
-        "n2": {
-          "hide_name": 0,
-          "bits": [ 4 ],
-          "attributes": {
-            "src": "C:\\Users\\Florian\\OneWareStudio\\Projects\\testcase\\build\\netlist\\testcase.v:5.8-5.10"
+        "n2" : {
+          "hide_name" : 0,
+          "bits" : [ 4 ],
+          "attributes" : {
+            "src" : "C:\\Users\\Florian\\OneWareStudio\\Projects\\testcase\\build\\netlist\\testcase.v:5.8-5.10"
           }
         }
       }
