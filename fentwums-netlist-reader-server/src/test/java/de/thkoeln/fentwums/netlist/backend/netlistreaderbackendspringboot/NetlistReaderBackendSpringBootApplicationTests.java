@@ -29,6 +29,15 @@ import java.util.stream.Stream;
 @WebMvcTest(NetlistReaderBackendSpringBootApplication.class)
 class NetlistReaderBackendSpringBootApplicationTests {
 
+	@BeforeAll
+	static void setup() {
+		// Register custom ELK options
+		LayoutMetaDataService service = LayoutMetaDataService.getInstance();
+		service.registerLayoutMetaDataProviders(new FEntwumSOptions());
+		service.registerLayoutMetaDataProviders(
+				new LayeredOptions());  // https://github.com/eclipse/elk/issues/654#issuecomment-656184498
+	}
+
 	@Test
 	void contextLoads() {
 	}
@@ -86,5 +95,10 @@ class NetlistReaderBackendSpringBootApplicationTests {
 			// do nothing
 		}
 	}
+
+//	@AfterEach
+//	void cleanServer(@Autowired RestTestClient restTestClient) {
+//
+//	}
 
 }
