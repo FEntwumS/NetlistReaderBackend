@@ -184,8 +184,41 @@ public class EdgeBundler {
 					List<BundleRange> rangeList = RangeCalculator.calculateRanges(
 							currentCellPortIndecesMap.get(portGroupName));
 
+					Boolean isReversed =
+							currentCellPortGroupMap.get(portGroupName).getProperty(FEntwumSOptions.MSB_FIRST);
+
 					if (rangeList.size() > 1) {
-						logger.atError().setMessage("Found more than one range for group {}. Skipping...").addArgument(
+
+						StringBuilder builder = new StringBuilder(portGroupName);
+
+						builder.append(" [");
+
+						boolean first = true;
+
+						for (BundleRange range : isReversed ? rangeList : rangeList.reversed()) {
+							if (!first) {
+								builder.append("; ");
+							}
+
+							if (isReversed) {
+								builder.append(range.containedRange().lower());
+								builder.append(":");
+								builder.append(range.containedRange().upper());
+							} else {
+								builder.append(range.containedRange().upper());
+								builder.append(":");
+								builder.append(range.containedRange().lower());
+							}
+
+							first = false;
+						}
+
+						builder.append("]");
+
+						currentCellPortGroupMap.get(portGroupName).getLabels().clear();
+						ElkElementCreator.createNewPortLabel(builder.toString(), currentCellPortGroupMap.get(portGroupName), settings);
+
+						logger.atWarn().setMessage("Found more than one range for group {}. Skipping...").addArgument(
 								portGroupName).log();
 						continue;
 					}
@@ -198,9 +231,6 @@ public class EdgeBundler {
 
 					Range containedRange = rangeList.getFirst().containedRange();
 					currentCellPortGroupMap.get(portGroupName).getLabels().clear();
-
-					Boolean isReversed =
-							currentCellPortGroupMap.get(portGroupName).getProperty(FEntwumSOptions.MSB_FIRST);
 
 					ElkElementCreator.createNewPortLabel(portGroupName + (containedRange.singleElement() ?
 									" [" + containedRange.lower() + "]" :
