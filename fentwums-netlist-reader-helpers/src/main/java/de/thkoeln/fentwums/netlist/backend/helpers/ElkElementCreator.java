@@ -432,4 +432,26 @@ public class ElkElementCreator {
 
         return newAggNode;
     }
+
+    public static ElkNode insertVectorAggNode(ElkNode parent, ElkPort source1, ElkPort source2, BundleRange bundle1,
+                                      BundleRange bundle2, String netname, boolean msbFirst,
+                                      NetlistCreationSettings settings) {
+        ElkNode newSplitNode = createNewSplitNode(parent);
+
+        // Create ports
+        ElkPort outPort = createNewAggSplitPort(parent, PortSide.EAST);
+
+        ElkPort inPort1 = createNewAggSplitPort(parent, PortSide.NORTH);
+        ElkPort inPort2 = createNewAggSplitPort(parent, PortSide.SOUTH);
+
+        // Create edges
+        ElkEdge inEdge1 = createNewAggSplitEdge(source1, inPort1, bundle1);
+        ElkEdge inEdge2 = createNewAggSplitEdge(source2, inPort2, bundle2);
+
+        // Create labels for pre-aggregated edges
+        ElkLabel inLabel1 = createNewAggSplitLabel(inPort1, bundle1, netname, settings, msbFirst);
+        ElkLabel inLabel2 = createNewAggSplitLabel(inPort2, bundle2, netname, settings, msbFirst);
+
+        return newSplitNode;
+    }
 }
