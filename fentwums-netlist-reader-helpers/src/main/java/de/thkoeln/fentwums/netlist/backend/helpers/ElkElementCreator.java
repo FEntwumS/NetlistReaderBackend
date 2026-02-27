@@ -1,5 +1,6 @@
 package de.thkoeln.fentwums.netlist.backend.helpers;
 
+import de.thkoeln.fentwums.netlist.backend.datatypes.BundleRange;
 import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
@@ -316,5 +317,76 @@ public class ElkElementCreator {
         ElkEdge newEdge = createSimpleEdge(source, sink);
 
         return newEdge;
+    }
+
+    // Insertions for splitting/aggregating nodes
+
+    public static ElkNode createNewAggNode(ElkNode parent) {
+        ElkNode newAggNode = createNode(parent);
+        newAggNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_ORDER);
+        newAggNode.setProperty(CoreOptions.NODE_SIZE_MINIMUM, new KVector(4, 4));
+        newAggNode.setProperty(CoreOptions.PORT_LABELS_PLACEMENT, EnumSet.of(PortLabelPlacement.OUTSIDE,
+                                                                             PortLabelPlacement.ALWAYS_SAME_SIDE));
+        newAggNode.setProperty(CoreOptions.SPACING_LABEL_PORT_HORIZONTAL, 1.0d);
+        newAggNode.setProperty(CoreOptions.SPACING_LABEL_PORT_VERTICAL, 1.0d);
+        newAggNode.setProperty(CoreOptions.SPACING_EDGE_LABEL, 3.0d);
+        newAggNode.setProperty(CoreOptions.SPACING_LABEL_NODE, 3.0d);
+        newAggNode.setProperty(CoreOptions.SPACING_EDGE_EDGE, 10.0d);
+        newAggNode.setProperty(CoreOptions.RANDOM_SEED, 1);
+        newAggNode.setProperty(FEntwumSOptions.CELL_TYPE, "AGG_NODE");
+
+        return newAggNode;
+    }
+
+    public static ElkNode createNewSplitNode(ElkNode parent) {
+        ElkNode newSplitNode = createNode(parent);
+        newSplitNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_ORDER);
+        newSplitNode.setProperty(CoreOptions.NODE_SIZE_MINIMUM, new KVector(4, 4));
+        newSplitNode.setProperty(CoreOptions.PORT_LABELS_PLACEMENT, EnumSet.of(PortLabelPlacement.OUTSIDE,
+                                                                             PortLabelPlacement.ALWAYS_OTHER_SAME_SIDE));
+        newSplitNode.setProperty(CoreOptions.SPACING_LABEL_PORT_HORIZONTAL, 1.0d);
+        newSplitNode.setProperty(CoreOptions.SPACING_LABEL_PORT_VERTICAL, 1.0d);
+        newSplitNode.setProperty(CoreOptions.SPACING_EDGE_LABEL, 3.0d);
+        newSplitNode.setProperty(CoreOptions.SPACING_LABEL_NODE, 3.0d);
+        newSplitNode.setProperty(CoreOptions.SPACING_EDGE_EDGE, 10.0d);
+        newSplitNode.setProperty(CoreOptions.RANDOM_SEED, 1);
+        newSplitNode.setProperty(FEntwumSOptions.CELL_TYPE, "SPLIT_NODE");
+
+        return newSplitNode;
+    }
+
+    public static ElkPort createNewAggSplitPort(ElkNode parent, PortSide side) {
+        ElkPort newAggSplitPort = createPort(parent);
+        newAggSplitPort.setProperty(CoreOptions.PORT_SIDE, side);
+        newAggSplitPort.setDimensions(0, 0);
+
+        return newAggSplitPort;
+    }
+
+    public static ElkEdge createNewAggSplitEdge(ElkPort source, ElkPort sink, BundleRange indexes) {
+        ElkEdge newAggSplitEdge = createNewEdge(sink, source);
+
+        newAggSplitEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
+
+        return newAggSplitEdge;
+    }
+
+    public static ElkNode insertVectorSplitNode(ElkNode parent, ElkPort target1, ElkPort target2, BundleRange bundle1,
+                                                BundleRange bundle2) {
+        ElkNode newAggNode = createNewSplitNode(parent);
+
+        ElkPort inPort = createNewAggSplitPort(parent, PortSide.WEST);
+
+        ElkPort outPort1 = createNewAggSplitPort(parent, PortSide.NORTH);
+
+        ElkPort outPort2 = createNewAggSplitPort(parent, PortSide.SOUTH);
+
+        // Create edges
+
+        ElkEdge outEdge1 = createNewAggSplitEdge(outPort1, target1, bundle1);
+
+        ElkEdge outEdge2 = createNewAggSplitEdge(outPort2, target2, bundle2);
+
+        return newAggNode;
     }
 }
