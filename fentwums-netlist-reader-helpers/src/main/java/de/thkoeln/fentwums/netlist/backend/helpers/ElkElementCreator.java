@@ -411,25 +411,23 @@ public class ElkElementCreator {
         return newAggSplitLabel;
     }
 
-    public static ElkNode insertVectorSplitNode(ElkNode parent, ElkPort target1, ElkPort target2, BundleRange bundle1,
-                                                BundleRange bundle2, String netname, boolean msbFirst, NetlistCreationSettings settings) {
+    public static ElkNode insertVectorSplitNode(ElkNode parent, ElkPort sink1, ElkPort sink2, BundleRange bundle1,
+                                                BundleRange bundle2, String netname, boolean msbFirst,
+                                                NetlistCreationSettings settings) {
         ElkNode newAggNode = createNewSplitNode(parent);
 
         // Create ports
         ElkPort inPort = createNewAggSplitPort(parent, PortSide.WEST);
 
         ElkPort outPort1 = createNewAggSplitPort(parent, PortSide.NORTH);
-
         ElkPort outPort2 = createNewAggSplitPort(parent, PortSide.SOUTH);
 
         // Create edges
-        ElkEdge outEdge1 = createNewAggSplitEdge(outPort1, target1, bundle1);
-
-        ElkEdge outEdge2 = createNewAggSplitEdge(outPort2, target2, bundle2);
+        ElkEdge outEdge1 = createNewAggSplitEdge(outPort1, sink1, bundle1);
+        ElkEdge outEdge2 = createNewAggSplitEdge(outPort2, sink2, bundle2);
 
         // Create labels for split of edges
         ElkLabel outLabel1 = createNewAggSplitLabel(outPort1, bundle1, netname, settings, msbFirst);
-
         ElkLabel outLabel2 = createNewAggSplitLabel(outPort2, bundle2, netname, settings, msbFirst);
 
         return newAggNode;
