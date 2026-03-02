@@ -31,8 +31,9 @@ public class EdgeBundler {
 		// Go through every child cell
 		for (ElkNode childNode : entityInstance.getChildren()) {
 			if (childNode.getProperty(FEntwumSOptions.CELL_TYPE).equals("HDL_ENTITY")
-					|| childNode.getProperty(FEntwumSOptions.CELL_TYPE).equals("Constant driver")) {
-				// Skip entity instances and constant drivers/sinks
+					|| childNode.getProperty(FEntwumSOptions.CELL_TYPE).equals("Constant driver")
+					|| childNode.getProperty(FEntwumSOptions.CELL_TYPE).equals("SPLIT_NODE")) {
+				// Skip entity instances, constant drivers/sinks, and dummy nodes used for edge layouting
 
 				continue;
 			}

@@ -4,6 +4,8 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.BundleRange;
 import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
+import org.eclipse.elk.alg.layered.options.FixedAlignment;
+import org.eclipse.elk.alg.layered.options.LayeredOptions;
 import org.eclipse.elk.core.math.KVector;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.graph.*;
@@ -43,6 +45,7 @@ public class ElkElementCreator {
 		newNode.setProperty(CoreOptions.SPACING_EDGE_EDGE, 10.0d);
 		newNode.setProperty(CoreOptions.RANDOM_SEED, 1);
 		newNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
+		newNode.setProperty(LayeredOptions.NODE_PLACEMENT_BK_FIXED_ALIGNMENT, FixedAlignment.BALANCED);
 
 		return newNode;
 	}
