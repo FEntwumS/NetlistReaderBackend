@@ -102,13 +102,55 @@ public class EdgeBundler {
 					HashMap<String, List<ElkPort>> currentMap = sourceSinkGroupMap.get(keyNode);
 
 					for (String groupKey : currentMap.keySet()) {
+						List<ElkPort> portList = currentMap.get(groupKey);
+						List<SignalElement> signalElements = new ArrayList<>();
 
+						for (ElkPort port : portList) {
+							int indexInSignal = !port.getIncomingEdges().isEmpty() ?
+									port.getIncomingEdges().getFirst().getProperty(FEntwumSOptions.INDEX_IN_SIGNAL) :
+									port.getOutgoingEdges().getFirst().getProperty(FEntwumSOptions.INDEX_IN_SIGNAL);
+
+							SignalElement toAdd = new SignalElement(indexInSignal, port,
+									port.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP));
+
+							signalElements.add(toAdd);
+						}
+
+						bundleList.addAll(RangeCalculator.calculateRanges(signalElements));
 					}
 				}
 
+				// sort bundles for edge crossing minimization
+				bundleList.sort(BundleRange::compareTo);
+
+				// Now we can create the ports
+				// First, create the bundle port at the
+
+				// Now create the splits/aggregations
+				// The unbalanced binary tree will always expand to the south (whether eastwards or westwards depends on
+				// whether a sink or a source is currently being reworked)
+				// Therefore, descending orders should prevent edge crossings better than ascending or random orders
+				for (BundleRange range : bundleList.reversed()) {
+
+				}
+
+				List<SignalElement> edgelessIndexes = new ArrayList<>();
+
 				// Collect range data for leftover bundled port
+				for (ElkPort port : edgelessPorts) {
+					SignalElement toAdd = new SignalElement(port.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP), port, null);
 
+					edgelessIndexes.add(toAdd);
+				}
 
+				// Calculate edgeless ranges
+				List<BundleRange> edgelessRanges = RangeCalculator.calculateRanges(edgelessIndexes);
+
+				edgelessRanges.sort(BundleRange::compareTo);
+
+				for (BundleRange range : edgelessRanges.reversed()) {
+
+				}
 			}
 
 
@@ -291,7 +333,8 @@ public class EdgeBundler {
 						builder.append("]");
 
 						currentCellPortGroupMap.get(portGroupName).getLabels().clear();
-						ElkElementCreator.createNewPortLabel(builder.toString(), currentCellPortGroupMap.get(portGroupName), settings);
+						ElkElementCreator.createNewPortLabel(builder.toString(),
+								currentCellPortGroupMap.get(portGroupName), settings);
 
 						logger.atWarn().setMessage("Found more than one range for group {}. Skipping...").addArgument(
 								portGroupName).log();
