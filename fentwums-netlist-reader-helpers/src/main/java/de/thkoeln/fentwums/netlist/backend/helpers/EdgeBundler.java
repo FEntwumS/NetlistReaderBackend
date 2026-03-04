@@ -10,10 +10,7 @@ import de.thkoeln.fentwums.netlist.backend.elkoptions.PortType;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.PortSide;
-import org.eclipse.elk.graph.ElkConnectableShape;
-import org.eclipse.elk.graph.ElkEdge;
-import org.eclipse.elk.graph.ElkNode;
-import org.eclipse.elk.graph.ElkPort;
+import org.eclipse.elk.graph.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +28,9 @@ public class EdgeBundler {
 	public static void bundleEdges(ElkNode entityInstance, NetlistCreationSettings settings) {
 		// Go through every child cell
 		for (ElkNode childNode : List.of(entityInstance.getChildren().toArray(new ElkNode[0]))) {
+			List<ElkPort> portsToRemoveList = new ArrayList<>();
+			List<ElkPort> portsToKeepList = new ArrayList<>();
+
 			if (childNode.getProperty(FEntwumSOptions.CELL_TYPE).equals("HDL_ENTITY")
 					|| childNode.getProperty(FEntwumSOptions.CELL_TYPE).equals("Constant driver")
 					|| childNode.getProperty(FEntwumSOptions.CELL_TYPE).equals("SPLIT_NODE")) {
@@ -48,6 +48,8 @@ public class EdgeBundler {
 				String currentPortGroupName = currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME);
 
 				if (completedPortGroups.contains(currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME))) {
+					portsToRemoveList.add(currentPort);
+
 					continue;
 				}
 
@@ -57,7 +59,7 @@ public class EdgeBundler {
 				// Edgeless ports are handled separately
 				for (ElkPort port : childNode.getPorts()) {
 					if (port.getProperty(FEntwumSOptions.PORT_GROUP_NAME).equals(currentPortGroupName)) {
-						if (!port.getOutgoingEdges().isEmpty() || !port.getIncomingEdges().isEmpty()) {
+						if (port.getOutgoingEdges().isEmpty() && port.getIncomingEdges().isEmpty()) {
 							edgelessPorts.add(port);
 						} else {
 							portsInCurrentPortGroup.add(port);
@@ -126,11 +128,19 @@ public class EdgeBundler {
 				// Now we can create the ports
 				// First, create the bundle port at the
 
+				int handledBundles = 0;
+
 				// Now create the splits/aggregations
-				// The unbalanced binary tree will always expand to the south (whether eastwards or westwards depends on
-				// whether a sink or a source is currently being reworked)
+				// The unbalanced binary tree will always expand to the south (whether eastwards or westwards
+				// depends on whether a sink or a source is currently being reworked)
 				// Therefore, descending orders should prevent edge crossings better than ascending or random orders
 				for (BundleRange range : bundleList.reversed()) {
+					if (currentPort.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
+						// Source port, create splits
+
+					} else {
+						// Sink port, create aggs
+					}
 
 				}
 
@@ -138,7 +148,8 @@ public class EdgeBundler {
 
 				// Collect range data for leftover bundled port
 				for (ElkPort port : edgelessPorts) {
-					SignalElement toAdd = new SignalElement(port.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP), port, null);
+					SignalElement toAdd = new SignalElement(port.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP),
+							port, null);
 
 					edgelessIndexes.add(toAdd);
 				}
@@ -149,7 +160,36 @@ public class EdgeBundler {
 				edgelessRanges.sort(BundleRange::compareTo);
 
 				for (BundleRange range : edgelessRanges.reversed()) {
+					ElkPort reworkPort = (ElkPort) range.actualDrivers().getFirst();
 
+					// Remove existing label
+					reworkPort.getLabels().clear();
+
+					// Create new label
+					ElkLabel newConstLabel = ElkElementCreator
+							.createNewPortLabel(currentPortGroupName
+									+ " ["
+									+ range.containedRange().upper()
+									+ (range.containedRange().singleElement() ? "" : ":" + range.containedRange().lower())
+									+ "]", reworkPort, settings);
+
+					portsToKeepList.add(reworkPort);
+				}
+			}
+
+			// Keep ports that were found to be necessary by removing them from the removal list
+			portsToRemoveList.removeAll(portsToKeepList);
+
+			// Remove the now unnecessary ports
+			for (ElkPort toRemove : portsToRemoveList) {
+				if (!toRemove.getIncomingEdges().isEmpty() || !toRemove.getOutgoingEdges().isEmpty()) {
+					logger.atError()
+							.setMessage("Port {} on cell {} is marked for removal, while being connected to an edge")
+							.addArgument(toRemove.getLabels().getFirst())
+							.addArgument(toRemove.getParent().getLabels().getFirst())
+							.log();
+				} else {
+					toRemove.getParent().getPorts().remove(toRemove);
 				}
 			}
 
