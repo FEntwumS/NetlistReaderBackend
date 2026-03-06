@@ -579,4 +579,16 @@ public class ElkElementCreator {
 
 		return newAggNode;
 	}
+
+	public static ElkNode insertSplitNode(ElkNode parent, ElkPort sourcePort) {
+		ElkNode newSplitNode = createNewSplitNode(parent);
+
+		// Create ports
+		ElkPort inPort = createNewAggSplitPort(newSplitNode, PortSide.WEST);
+
+		ElkPort outPort1 = createNewAggSplitPort(newSplitNode, PortSide.NORTH);
+		ElkPort outPort2 = createNewAggSplitPort(newSplitNode, PortSide.SOUTH);
+
+		return newSplitNode;
+	}
 }
