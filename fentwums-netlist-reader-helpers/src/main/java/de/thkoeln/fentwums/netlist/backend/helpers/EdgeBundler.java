@@ -1,10 +1,7 @@
 package de.thkoeln.fentwums.netlist.backend.helpers;
 
 
-import de.thkoeln.fentwums.netlist.backend.datatypes.BundleRange;
-import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
-import de.thkoeln.fentwums.netlist.backend.datatypes.Range;
-import de.thkoeln.fentwums.netlist.backend.datatypes.SignalElement;
+import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.PortType;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
@@ -113,7 +110,7 @@ public class EdgeBundler {
 									port.getOutgoingEdges().getFirst().getProperty(FEntwumSOptions.INDEX_IN_SIGNAL);
 
 							SignalElement toAdd = new SignalElement(indexInSignal, port,
-									port.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP));
+									port.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP), edge);
 
 							signalElements.add(toAdd);
 						}
@@ -149,7 +146,7 @@ public class EdgeBundler {
 				// Collect range data for leftover bundled port
 				for (ElkPort port : edgelessPorts) {
 					SignalElement toAdd = new SignalElement(port.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP),
-							port, null);
+							port, null, null);
 
 					edgelessIndexes.add(toAdd);
 				}
@@ -260,7 +257,7 @@ public class EdgeBundler {
 						currentCellPortGroupMap.put(portGroupName, port);
 						List<SignalElement> signalElements = new ArrayList<>();
 						signalElements.add(
-								new SignalElement(port.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP), null, null));
+								new SignalElement(port.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP), null, null, null));
 						currentCellPortIndecesMap.put(portGroupName, signalElements);
 
 					} else {
@@ -270,7 +267,7 @@ public class EdgeBundler {
 							moveEdgeList = port.getIncomingEdges().stream().toList();
 						}
 						currentCellPortIndecesMap.get(portGroupName).add(
-								new SignalElement(port.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP), null, null));
+								new SignalElement(port.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP), null, null, null));
 
 						removePortList.add(port);
 					}
@@ -283,7 +280,7 @@ public class EdgeBundler {
 
 					List<SignalElement> signalElements = new ArrayList<>();
 					signalElements.add(
-							new SignalElement(port.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP), null, null));
+							new SignalElement(port.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP), null, null, null));
 
 					currentCellPortGroupMap.put(portGroupName, port);
 					currentCellPortIndecesMap.put(portGroupName, signalElements);
