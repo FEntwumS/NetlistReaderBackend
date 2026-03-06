@@ -64,7 +64,7 @@ public class EdgeBundler {
 					}
 				}
 
-				HashMap<ElkNode, HashMap<String, List<ElkPort>>> sourceSinkGroupMap = new HashMap<>();
+				HashMap<ElkNode, HashMap<String, List<PortEdgeAssociation>>> sourceSinkGroupMap = new HashMap<>();
 
 				// Group edge-having ports by destination/source
 				for (ElkPort port : portsInCurrentPortGroup) {
@@ -75,22 +75,22 @@ public class EdgeBundler {
 						edgeList = port.getOutgoingEdges();
 					}
 
-					for (ElkEdge outEdge : edgeList) {
-						ElkConnectableShape target = outEdge.getTargets().getFirst();
-						String sinkGroupName = target.getProperty(FEntwumSOptions.PORT_GROUP_NAME);
+					for (ElkEdge edge : edgeList) {
+						ElkConnectableShape target = edge.getTargets().getFirst();
+						String groupName = target.getProperty(FEntwumSOptions.PORT_GROUP_NAME);
 						ElkNode targetNode = ((ElkPort) target).getParent();
 
 						if (!sourceSinkGroupMap.containsKey(targetNode)) {
 							sourceSinkGroupMap.put(targetNode, new HashMap<>());
 						}
 
-						HashMap<String, List<ElkPort>> currentNodeMap = sourceSinkGroupMap.get(targetNode);
+						HashMap<String, List<PortEdgeAssociation>> currentNodeMap = sourceSinkGroupMap.get(targetNode);
 
-						if (!currentNodeMap.containsKey(sinkGroupName)) {
-							currentNodeMap.put(sinkGroupName, new ArrayList<>());
+						if (!currentNodeMap.containsKey(groupName)) {
+							currentNodeMap.put(groupName, new ArrayList<>());
 						}
 
-						currentNodeMap.get(sinkGroupName).add(port);
+						currentNodeMap.get(groupName).add(new PortEdgeAssociation(port, edge));
 					}
 				}
 
@@ -98,13 +98,16 @@ public class EdgeBundler {
 
 				// Now create the bundles for the different groupings
 				for (ElkNode keyNode : sourceSinkGroupMap.keySet()) {
-					HashMap<String, List<ElkPort>> currentMap = sourceSinkGroupMap.get(keyNode);
+					HashMap<String, List<PortEdgeAssociation>> currentMap = sourceSinkGroupMap.get(keyNode);
 
 					for (String groupKey : currentMap.keySet()) {
-						List<ElkPort> portList = currentMap.get(groupKey);
+						List<PortEdgeAssociation> portList = currentMap.get(groupKey);
 						List<SignalElement> signalElements = new ArrayList<>();
 
-						for (ElkPort port : portList) {
+						for (PortEdgeAssociation association : portList) {
+							ElkPort port = association.port();
+							ElkEdge edge = association.edge();
+
 							int indexInSignal = !port.getIncomingEdges().isEmpty() ?
 									port.getIncomingEdges().getFirst().getProperty(FEntwumSOptions.INDEX_IN_SIGNAL) :
 									port.getOutgoingEdges().getFirst().getProperty(FEntwumSOptions.INDEX_IN_SIGNAL);
