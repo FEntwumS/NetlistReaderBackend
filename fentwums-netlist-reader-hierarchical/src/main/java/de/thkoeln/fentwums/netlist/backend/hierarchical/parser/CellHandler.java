@@ -218,7 +218,7 @@ public class CellHandler {
                             // Defer Port construction until all constant values have been gathered
                             // constantValues.put(currentBitIndex, (String) driver);
 
-                            constantSignalIndexList.add(new SignalElement(currentBitIndex, driver, null));
+                            constantSignalIndexList.add(new SignalElement(currentBitIndex, driver, null, null));
                         }
 
                         currentBitIndex++;

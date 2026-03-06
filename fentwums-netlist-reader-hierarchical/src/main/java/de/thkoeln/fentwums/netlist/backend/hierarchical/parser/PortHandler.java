@@ -113,10 +113,10 @@ public class PortHandler {
             for (int i = 0; i < portDrivers.size(); i++) {
                 if (instanceConnection.get(i) instanceof Integer) {
                     signalIndexList.add(new SignalElement(currentIndexInPort, instanceConnection.get(i),
-                                                          portDrivers.get(i)));
+                                                          portDrivers.get(i), null));
                 } else {
                     constantSignalIndexList.add(new SignalElement(currentIndexInPort, instanceConnection.get(i),
-                                                                  portDrivers.get(i)));
+                                                                  portDrivers.get(i), null));
                 }
 
                 if (reversedPort) {
