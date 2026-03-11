@@ -2,15 +2,17 @@ package de.thkoeln.fentwums.netlist.backend.helpers;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.BundleRange;
 import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
+import de.thkoeln.fentwums.netlist.backend.datatypes.SignalSplit;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
-import org.eclipse.elk.alg.layered.options.FixedAlignment;
-import org.eclipse.elk.alg.layered.options.LayeredOptions;
+import org.eclipse.elk.alg.layered.options.*;
+import org.eclipse.elk.core.data.LayoutAlgorithmData;
+import org.eclipse.elk.core.data.LayoutMetaDataService;
 import org.eclipse.elk.core.math.KVector;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.graph.*;
 
-import java.util.EnumSet;
+import java.util.*;
 
 import static org.eclipse.elk.graph.util.ElkGraphUtil.*;
 
@@ -46,6 +48,8 @@ public class ElkElementCreator {
 		newNode.setProperty(CoreOptions.RANDOM_SEED, 1);
 		newNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
 		newNode.setProperty(LayeredOptions.NODE_PLACEMENT_BK_FIXED_ALIGNMENT, FixedAlignment.BALANCED);
+		newNode.setProperty(CoreOptions.PARTITIONING_ACTIVATE, true);
+		newNode.setProperty(CoreOptions.SEPARATE_CONNECTED_COMPONENTS, false);
 
 		return newNode;
 	}
@@ -358,6 +362,7 @@ public class ElkElementCreator {
 		newSplitNode.setProperty(CoreOptions.SPACING_EDGE_EDGE, 10.0d);
 		newSplitNode.setProperty(CoreOptions.RANDOM_SEED, 1);
 		newSplitNode.setProperty(FEntwumSOptions.CELL_TYPE, "SPLIT_NODE");
+		newSplitNode.setProperty(CoreOptions.PARTITIONING_ACTIVATE, true);
 
 		return newSplitNode;
 	}
@@ -590,5 +595,81 @@ public class ElkElementCreator {
 		ElkPort outPort2 = createNewAggSplitPort(newSplitNode, PortSide.SOUTH);
 
 		return newSplitNode;
+	}
+
+	public static SignalSplit createSignalSplit(ElkNode parent, ElkPort sourcePort, int neededOutputs) {
+		ElkPort priorSouthPort = null, southPort = null, northPort = null;
+
+		int indexOfInPort = Math.floorDiv(neededOutputs - 1, 2);
+
+		List<ElkPort> outPorts = new ArrayList<>();
+		ElkPort inPort = null;
+
+		ElkNode containerNode = createNewNode(parent, "container");
+		containerNode.setProperty(CoreOptions.ASPECT_RATIO, 0.01d);
+
+		containerNode.setProperty(LayeredOptions.LAYERING_STRATEGY, LayeringStrategy.INTERACTIVE);
+		containerNode.setProperty(LayeredOptions.CYCLE_BREAKING_STRATEGY, CycleBreakingStrategy.INTERACTIVE);
+		containerNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.SEPARATE_CHILDREN);
+		containerNode.setProperty(CoreOptions.ALGORITHM, "layered");
+		LayoutAlgorithmData algorithmData = LayoutMetaDataService.getInstance().getAlgorithmDataBySuffix("layered");
+		containerNode.setProperty(CoreOptions.RESOLVED_ALGORITHM, algorithmData);
+
+		for (int i = 0; i < neededOutputs; i++) {
+			ElkNode newNode = createNewSplitNode(containerNode);
+
+			newNode.setLocation(10, 10 + 10 * i);
+			newNode.setX(10);
+			newNode.setY(10 + 10 * i);
+			newNode.setProperty(CoreOptions.POSITION, new KVector(10, 10 + 10 * i));
+			newNode.setProperty(LayeredOptions.LAYERING_LAYER_CHOICE_CONSTRAINT, 1);
+
+			ElkPort outPort = createNewAggSplitPort(newNode, PortSide.EAST);
+			ElkPort exOutPort = createNewAggSplitPort(containerNode, PortSide.EAST);
+
+			ElkEdge exOutEdge = createNewEdge(exOutPort, outPort);
+
+			outPort = exOutPort;
+
+			outPorts.add(outPort);
+
+			if (i == 0) {
+				// Top splitter, only add south conn port
+				southPort = createNewAggSplitPort(newNode, PortSide.SOUTH);
+			} else if (i == neededOutputs - 1) {
+				// Bottom splitter, only create north port
+				northPort = createNewAggSplitPort(newNode, PortSide.NORTH);
+			} else {
+				// Between splitter, create both south and north ports
+				northPort = createNewAggSplitPort(newNode, PortSide.NORTH);
+				southPort = createNewAggSplitPort(newNode, PortSide.SOUTH);
+			}
+
+			if (i == indexOfInPort) {
+				// Create input to splitter
+				inPort = createNewAggSplitPort(newNode, PortSide.WEST);
+				ElkPort exInPort = createNewAggSplitPort(containerNode, PortSide.WEST);
+
+				ElkEdge exInEdge = createNewEdge(inPort, exInPort);
+
+				inPort = exInPort;
+//				newNode.setProperty(LayeredOptions.PARTITIONING_PARTITION, 2);
+			}
+
+			// Create distributing connections
+			if (i > 0) {
+				if (i <= indexOfInPort) {
+					// north to prior south
+					ElkEdge distEdge = createNewEdge(priorSouthPort, northPort);
+				} else {
+					// prior south to north
+					ElkEdge distEdge = createNewEdge(northPort, priorSouthPort);
+				}
+			}
+
+			priorSouthPort = southPort;
+		}
+
+		return new SignalSplit(inPort, outPorts);
 	}
 }
