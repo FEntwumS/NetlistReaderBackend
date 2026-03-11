@@ -47,6 +47,7 @@ public class HierarchicalOrchestrator implements IGraphCreator {
         root.setProperty(CoreOptions.ALGORITHM, "layered");
         root.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
         root.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.allOf(SizeConstraint.class));
+        root.setProperty(CoreOptions.PARTITIONING_ACTIVATE, true);
         root.setIdentifier("root");
 
         HashMap<String, Object> modules = (HashMap<String, Object>) netlist.get("modules");
