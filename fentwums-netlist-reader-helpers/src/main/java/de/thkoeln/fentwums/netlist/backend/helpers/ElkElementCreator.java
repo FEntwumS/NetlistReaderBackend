@@ -11,6 +11,8 @@ import org.eclipse.elk.core.data.LayoutMetaDataService;
 import org.eclipse.elk.core.math.KVector;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.graph.*;
+import org.eclipse.elk.graph.impl.ElkEdgeSectionImpl;
+import org.eclipse.elk.graph.impl.ElkGraphFactoryImpl;
 
 import java.util.*;
 
@@ -598,6 +600,8 @@ public class ElkElementCreator {
 	}
 
 	public static SignalSplit createSignalSplit(ElkNode parent, ElkPort sourcePort, int neededOutputs) {
+		ElkGraphFactory graphFactory = ElkGraphFactoryImpl.init();
+
 		ElkPort priorSouthPort = null, southPort = null, northPort = null;
 
 		int indexOfInPort = Math.floorDiv(neededOutputs - 1, 2);
@@ -605,29 +609,44 @@ public class ElkElementCreator {
 		List<ElkPort> outPorts = new ArrayList<>();
 		ElkPort inPort = null;
 
-		ElkNode containerNode = createNewNode(parent, "container");
-		containerNode.setProperty(CoreOptions.ASPECT_RATIO, 0.01d);
-
-		containerNode.setProperty(LayeredOptions.LAYERING_STRATEGY, LayeringStrategy.INTERACTIVE);
-		containerNode.setProperty(LayeredOptions.CYCLE_BREAKING_STRATEGY, CycleBreakingStrategy.INTERACTIVE);
+		ElkNode containerNode = createNode(parent);
+		containerNode.setIdentifier("container");
+		containerNode.setProperty(FEntwumSOptions.CELL_TYPE, "SPLIT_CONTAINER");
 		containerNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.SEPARATE_CHILDREN);
-		containerNode.setProperty(CoreOptions.ALGORITHM, "layered");
-		LayoutAlgorithmData algorithmData = LayoutMetaDataService.getInstance().getAlgorithmDataBySuffix("layered");
+		containerNode.setProperty(CoreOptions.ALGORITHM, "fixed");
+		containerNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_POS);
+		LayoutAlgorithmData algorithmData = LayoutMetaDataService.getInstance().getAlgorithmDataBySuffix("fixed");
 		containerNode.setProperty(CoreOptions.RESOLVED_ALGORITHM, algorithmData);
+		containerNode.setDimensions(100.0, 10 + 30 * neededOutputs + 10);
+		containerNode.setProperty(CoreOptions.NODE_SIZE_MINIMUM, new KVector(100.0, 10 + 30 * neededOutputs + 10));
+		containerNode.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.allOf(SizeConstraint.class));
 
 		for (int i = 0; i < neededOutputs; i++) {
 			ElkNode newNode = createNewSplitNode(containerNode);
 
-			newNode.setLocation(10, 10 + 10 * i);
-			newNode.setX(10);
-			newNode.setY(10 + 10 * i);
-			newNode.setProperty(CoreOptions.POSITION, new KVector(10, 10 + 10 * i));
-			newNode.setProperty(LayeredOptions.LAYERING_LAYER_CHOICE_CONSTRAINT, 1);
+			double y = 10 + 30 * i;
+			double y_p = 10 + 30 * (i - 1);
+			double y_n = 10 + 30 * (i + 1);
+			double x_i = 10;
+			double x_r = containerNode.getWidth();
+			double x_l = 0.0d;
+
+
+			newNode.setLocation(x_i, y);
 
 			ElkPort outPort = createNewAggSplitPort(newNode, PortSide.EAST);
+			ElkLabel oLab = createNewPortLabel("Q [7:0]", outPort, null);
+			outPort.setLocation(0, 0);
+
 			ElkPort exOutPort = createNewAggSplitPort(containerNode, PortSide.EAST);
+			exOutPort.setLocation(x_r, y);
 
 			ElkEdge exOutEdge = createNewEdge(exOutPort, outPort);
+			exOutEdge.setProperty(LayeredOptions.PRIORITY_STRAIGHTNESS, 1000000);
+			ElkEdgeSection exOutEdgeSec = graphFactory.createElkEdgeSection();
+			exOutEdgeSec.setStartLocation(x_i, y);
+			exOutEdgeSec.setEndLocation(x_r, y);
+			exOutEdge.getSections().add(exOutEdgeSec);
 
 			outPort = exOutPort;
 
@@ -636,24 +655,35 @@ public class ElkElementCreator {
 			if (i == 0) {
 				// Top splitter, only add south conn port
 				southPort = createNewAggSplitPort(newNode, PortSide.SOUTH);
+				southPort.setLocation(0, 0);
 			} else if (i == neededOutputs - 1) {
 				// Bottom splitter, only create north port
 				northPort = createNewAggSplitPort(newNode, PortSide.NORTH);
+				northPort.setLocation(0, 0);
 			} else {
 				// Between splitter, create both south and north ports
 				northPort = createNewAggSplitPort(newNode, PortSide.NORTH);
+				northPort.setLocation(0, 0);
 				southPort = createNewAggSplitPort(newNode, PortSide.SOUTH);
+				southPort.setLocation(0, 0);
 			}
 
 			if (i == indexOfInPort) {
 				// Create input to splitter
 				inPort = createNewAggSplitPort(newNode, PortSide.WEST);
+				inPort.setLocation(0, 0);
 				ElkPort exInPort = createNewAggSplitPort(containerNode, PortSide.WEST);
+				exInPort.setLocation(x_l, y);
 
 				ElkEdge exInEdge = createNewEdge(inPort, exInPort);
+				exInEdge.setProperty(LayeredOptions.PRIORITY_STRAIGHTNESS, 1000000);
+				ElkEdgeSection exInSec = graphFactory.createElkEdgeSection();
+				exInSec.setStartLocation(x_l, y);
+				exInSec.setEndLocation(x_i, y);
+				exInEdge.getSections().add(exInSec);
 
 				inPort = exInPort;
-//				newNode.setProperty(LayeredOptions.PARTITIONING_PARTITION, 2);
+				newNode.setProperty(LayeredOptions.PARTITIONING_PARTITION, 2);
 			}
 
 			// Create distributing connections
@@ -661,9 +691,19 @@ public class ElkElementCreator {
 				if (i <= indexOfInPort) {
 					// north to prior south
 					ElkEdge distEdge = createNewEdge(priorSouthPort, northPort);
+					distEdge.setProperty(CoreOptions.NO_LAYOUT, true);
+					ElkEdgeSection distEdgeSec = graphFactory.createElkEdgeSection();
+					distEdgeSec.setStartLocation(x_i, y);
+					distEdgeSec.setEndLocation(x_i, y_p);
+					distEdge.getSections().add(distEdgeSec);
 				} else {
 					// prior south to north
 					ElkEdge distEdge = createNewEdge(northPort, priorSouthPort);
+					distEdge.setProperty(CoreOptions.NO_LAYOUT, true);
+					ElkEdgeSection distEdgeSec = graphFactory.createElkEdgeSection();
+					distEdgeSec.setStartLocation(x_i, y_p);
+					distEdgeSec.setEndLocation(x_i, y);
+					distEdge.getSections().add(distEdgeSec);
 				}
 			}
 
