@@ -42,11 +42,11 @@ public class RangeCalculator {
 
                 cRangeStart = currentElem;
                 cRangeEnd = currentElem;
-                actualDrivers.clear();
+                actualDrivers = new ArrayList<>();
                 actualDrivers.add(values.get(i).actualDriver());
-                internalSignalIndices.clear();
+                internalSignalIndices = new ArrayList<>();
                 internalSignalIndices.add(values.get(i).internalSignalIndex());
-				associatedEdges.clear();
+				associatedEdges = new ArrayList<>();
 				associatedEdges.add(values.get(i).associatedEdge());
             } else {
                 cRangeEnd = currentElem;
