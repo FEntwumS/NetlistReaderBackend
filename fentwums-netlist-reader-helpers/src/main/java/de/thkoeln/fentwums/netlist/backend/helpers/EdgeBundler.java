@@ -187,6 +187,18 @@ public class EdgeBundler {
 							ElkEdge dummy = ElkElementCreator.createNewEdge(bundleList.get(i).associatedEdges().reversed().getFirst().getTargets().getFirst(), split.outPorts().get(i));
 						}
 					}
+				} else {
+					if (bundleList.size() > 1) {
+						SignalAgg agg = ElkElementCreator.createSignalAgg(entityInstance, currentPort, bundleList.size());
+
+						// Draw edge
+						ElkEdge fromAggEdge = ElkElementCreator.createNewEdge(currentPort, agg.outPort());
+
+						for (int i = 0; i < bundleList.size(); i++) {
+							// Draw placeholder edge from correct source
+							ElkEdge dummy = ElkElementCreator.createNewEdge(agg.inPorts().get(i), bundleList.get(i).associatedEdges().reversed().getFirst().getSources().getFirst());
+						}
+					}
 				}
 
 				List<SignalElement> edgelessIndexes = new ArrayList<>();

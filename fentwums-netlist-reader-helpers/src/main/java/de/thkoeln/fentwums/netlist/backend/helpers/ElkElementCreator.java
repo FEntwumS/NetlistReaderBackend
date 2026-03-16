@@ -2,6 +2,7 @@ package de.thkoeln.fentwums.netlist.backend.helpers;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.BundleRange;
 import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
+import de.thkoeln.fentwums.netlist.backend.datatypes.SignalAgg;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalSplit;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
@@ -377,228 +378,6 @@ public class ElkElementCreator {
 		return newAggSplitPort;
 	}
 
-	public static ElkEdge createNewAggSplitEdge(ElkPort source, ElkPort sink, BundleRange indexes) {
-		ElkEdge newAggSplitEdge = createNewEdge(sink, source);
-
-		newAggSplitEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
-
-		return newAggSplitEdge;
-	}
-
-	public static ElkLabel createNewAggSplitLabel(ElkGraphElement parent, BundleRange indexes, String netname,
-												  NetlistCreationSettings settings, boolean msbFirst) {
-		double fontsize;
-
-		if (settings == null) {
-			fontsize = 10.0d;
-		} else {
-			fontsize = settings.getPortLabelFontSize();
-		}
-
-		StringBuilder builder = new StringBuilder();
-
-		if (netname != null && !netname.isEmpty()) {
-			builder.append(netname);
-			builder.append(" ");
-		}
-
-		builder.append("[");
-
-		if (msbFirst) {
-			builder.append(indexes.containedRange().lower());
-			builder.append(":");
-			builder.append(indexes.containedRange().upper());
-		} else {
-			builder.append(indexes.containedRange().upper());
-			builder.append(":");
-			builder.append(indexes.containedRange().lower());
-		}
-
-		builder.append("]");
-
-		String content = builder.toString();
-
-		ElkLabel newAggSplitLabel = createLabel(content, parent);
-		newAggSplitLabel.setDimensions(content.length() * 0.7d * fontsize + 3, fontsize + 5);
-		newAggSplitLabel.setProperty(FEntwumSOptions.FONT_SIZE, fontsize);
-
-		return newAggSplitLabel;
-	}
-
-	public static ElkLabel createNewSingleLabel(ElkGraphElement parent, BundleRange singleIndexes, String netname,
-												NetlistCreationSettings settings, boolean msbFirst) {
-		double fontsize;
-
-		if (settings == null) {
-			fontsize = 10.0d;
-		} else {
-			fontsize = settings.getPortLabelFontSize();
-		}
-
-		StringBuilder builder = new StringBuilder();
-
-		if (netname != null && !netname.isEmpty()) {
-			builder.append(netname);
-			builder.append(" ");
-		}
-
-		builder.append("[");
-		builder.append(singleIndexes.containedRange().upper());
-		builder.append("]");
-
-		String content = builder.toString();
-
-		ElkLabel newSingleLabel = createLabel(content, parent);
-		newSingleLabel.setDimensions(content.length() * 0.7d * fontsize + 3, fontsize + 5);
-		newSingleLabel.setProperty(FEntwumSOptions.FONT_SIZE, fontsize);
-
-		return newSingleLabel;
-	}
-
-	public static ElkNode insertVectorSplitNode(ElkNode parent, ElkPort sink1, ElkPort sink2, BundleRange bundle1,
-												BundleRange bundle2, String netname, boolean msbFirst,
-												NetlistCreationSettings settings) {
-		ElkNode newSplitNode = createNewSplitNode(parent);
-
-		// Create ports
-		ElkPort inPort = createNewAggSplitPort(newSplitNode, PortSide.WEST);
-
-		ElkPort outPort1 = createNewAggSplitPort(newSplitNode, PortSide.NORTH);
-		ElkPort outPort2 = createNewAggSplitPort(newSplitNode, PortSide.SOUTH);
-
-		// Create edges
-		ElkEdge outEdge1 = createNewAggSplitEdge(outPort1, sink1, bundle1);
-		ElkEdge outEdge2 = createNewAggSplitEdge(outPort2, sink2, bundle2);
-
-		// Create labels for split of edges
-		ElkLabel outLabel1 = createNewAggSplitLabel(outPort1, bundle1, netname, settings, msbFirst);
-		ElkLabel outLabel2 = createNewAggSplitLabel(outPort2, bundle2, netname, settings, msbFirst);
-
-		return newSplitNode;
-	}
-
-	public static ElkNode insertVectorAggNode(ElkNode parent, ElkPort source1, ElkPort source2, BundleRange bundle1,
-											  BundleRange bundle2, String netname, boolean msbFirst,
-											  NetlistCreationSettings settings) {
-		ElkNode newAggNode = createNewAggNode(parent);
-
-		// Create ports
-		ElkPort outPort = createNewAggSplitPort(newAggNode, PortSide.EAST);
-
-		ElkPort inPort1 = createNewAggSplitPort(newAggNode, PortSide.NORTH);
-		ElkPort inPort2 = createNewAggSplitPort(newAggNode, PortSide.SOUTH);
-
-		// Create edges
-		ElkEdge inEdge1 = createNewAggSplitEdge(source1, inPort1, bundle1);
-		ElkEdge inEdge2 = createNewAggSplitEdge(source2, inPort2, bundle2);
-
-		// Create labels for pre-aggregated edges
-		ElkLabel inLabel1 = createNewAggSplitLabel(inPort1, bundle1, netname, settings, msbFirst);
-		ElkLabel inLabel2 = createNewAggSplitLabel(inPort2, bundle2, netname, settings, msbFirst);
-
-		return newAggNode;
-	}
-
-	public static ElkNode insertSingleSplitNode(ElkNode parent, ElkPort vectorSink, ElkPort singleSink,
-												BundleRange vectorBundle, BundleRange singleBundle, String netname,
-												boolean msbFirst, NetlistCreationSettings settings) {
-		ElkNode newSplitNode = createNewSplitNode(parent);
-
-		// Create ports
-		ElkPort inPort = createNewAggSplitPort(newSplitNode, PortSide.WEST);
-
-		ElkPort vectorOutPort = createNewAggSplitPort(newSplitNode, PortSide.EAST);
-		ElkPort singleOutPort = createNewAggSplitPort(newSplitNode, PortSide.SOUTH);
-
-		// Create edges
-		ElkEdge vectorEdge = createNewAggSplitEdge(vectorOutPort, vectorSink, vectorBundle);
-		ElkEdge singleEdge = createNewEdge(singleSink, singleOutPort);
-
-		// Create labels
-		ElkLabel vectorLabel = createNewAggSplitLabel(vectorOutPort, vectorBundle, netname, settings, msbFirst);
-		ElkLabel singleLabel = createNewSingleLabel(singleOutPort, singleBundle, netname, settings, msbFirst);
-
-		return newSplitNode;
-	}
-
-	public static ElkNode insertSingleAggNode(ElkNode parent, ElkPort vectorSource, ElkPort singleSource,
-											  BundleRange vectorBundle, BundleRange singleBundle, String netname,
-											  boolean msbFirst, NetlistCreationSettings settings) {
-		ElkNode newAggNode = createNewAggNode(parent);
-
-		// Create ports
-		ElkPort vectorInPort = createNewAggSplitPort(newAggNode, PortSide.WEST);
-		ElkPort singleInPort = createNewAggSplitPort(newAggNode, PortSide.SOUTH);
-
-		// Create edges
-		ElkEdge vectorEdge = createNewAggSplitEdge(vectorSource, vectorInPort, vectorBundle);
-		ElkEdge singleEdge = createNewEdge(singleInPort, singleSource);
-
-		// Create labels
-		ElkLabel vectorLabel = createNewAggSplitLabel(vectorInPort, vectorBundle, netname, settings, msbFirst);
-		ElkLabel singleLabel = createNewSingleLabel(singleInPort, singleBundle, netname, settings, msbFirst);
-
-		return newAggNode;
-	}
-
-	public static ElkNode insertDoubleSingleSplitNode(ElkNode parent, ElkPort sink1, ElkPort sink2,
-													  BundleRange singleBundle1, BundleRange singleBundle2,
-													  String netname, boolean msbFirst,
-													  NetlistCreationSettings settings) {
-		ElkNode newSplitNode = createNewSplitNode(parent);
-
-		// Create ports
-		ElkPort inPort = createNewAggSplitPort(newSplitNode, PortSide.WEST);
-
-		ElkPort outPort1 = createNewAggSplitPort(newSplitNode, PortSide.NORTH);
-		ElkPort outPort2 = createNewAggSplitPort(newSplitNode, PortSide.SOUTH);
-
-		// Create edges
-		ElkEdge outEdge1 = createNewEdge(sink1, outPort1);
-		ElkEdge outEdge2 = createNewEdge(sink2, outPort2);
-
-		// Create labels
-		ElkLabel label1 = createNewSingleLabel(outPort1, singleBundle1, netname, settings, msbFirst);
-		ElkLabel label2 = createNewSingleLabel(outPort2, singleBundle2, netname, settings, msbFirst);
-
-		return newSplitNode;
-	}
-
-	public static ElkNode insertDoubleSingleAggNode(ElkNode parent, ElkPort source1, ElkPort source2,
-													BundleRange singleBundle1, BundleRange singleBundle2,
-													String netname, boolean msbFirst,
-													NetlistCreationSettings settings) {
-		ElkNode newAggNode = createNewAggNode(parent);
-
-		// Create ports
-		ElkPort outPort = createNewAggSplitPort(newAggNode, PortSide.EAST);
-
-		ElkPort inPort1 = createNewAggSplitPort(newAggNode, PortSide.NORTH);
-		ElkPort inPort2 = createNewAggSplitPort(newAggNode, PortSide.SOUTH);
-
-		// Create edges
-		ElkEdge inEdge1 = createNewEdge(inPort1, source1);
-		ElkEdge inEdge2 = createNewEdge(inPort2, source2);
-
-		// Create labels
-		ElkLabel label1 = createNewSingleLabel(inPort1, singleBundle1, netname, settings, msbFirst);
-		ElkLabel label2 = createNewSingleLabel(inPort2, singleBundle2, netname, settings, msbFirst);
-
-		return newAggNode;
-	}
-
-	public static ElkNode insertSplitNode(ElkNode parent, ElkPort sourcePort) {
-		ElkNode newSplitNode = createNewSplitNode(parent);
-
-		// Create ports
-		ElkPort inPort = createNewAggSplitPort(newSplitNode, PortSide.WEST);
-
-		ElkPort outPort1 = createNewAggSplitPort(newSplitNode, PortSide.NORTH);
-		ElkPort outPort2 = createNewAggSplitPort(newSplitNode, PortSide.SOUTH);
-
-		return newSplitNode;
-	}
-
 	public static SignalSplit createSignalSplit(ElkNode parent, ElkPort sourcePort, int neededOutputs) {
 		ElkGraphFactory graphFactory = ElkGraphFactoryImpl.init();
 
@@ -635,7 +414,6 @@ public class ElkElementCreator {
 			newNode.setLocation(x_i, y);
 
 			ElkPort outPort = createNewAggSplitPort(newNode, PortSide.EAST);
-			ElkLabel oLab = createNewPortLabel("Q [7:0]", outPort, null);
 			outPort.setLocation(0, 0);
 
 			ElkPort exOutPort = createNewAggSplitPort(containerNode, PortSide.EAST);
@@ -711,5 +489,117 @@ public class ElkElementCreator {
 		}
 
 		return new SignalSplit(inPort, outPorts);
+	}
+
+	public static SignalAgg createSignalAgg(ElkNode parent, ElkPort sourcePort, int neededOutputs) {
+		ElkGraphFactory graphFactory = ElkGraphFactoryImpl.init();
+
+		ElkPort priorSouthPort = null, southPort = null, northPort = null;
+
+		int indexOfInPort = Math.floorDiv(neededOutputs - 1, 2);
+
+		List<ElkPort> inPorts = new ArrayList<>();
+		ElkPort outPort = null;
+
+		ElkNode containerNode = createNode(parent);
+		containerNode.setIdentifier("container");
+		containerNode.setProperty(FEntwumSOptions.CELL_TYPE, "AGG_CONTAINER");
+		containerNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.SEPARATE_CHILDREN);
+		containerNode.setProperty(CoreOptions.ALGORITHM, "fixed");
+		containerNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_POS);
+		LayoutAlgorithmData algorithmData = LayoutMetaDataService.getInstance().getAlgorithmDataBySuffix("fixed");
+		containerNode.setProperty(CoreOptions.RESOLVED_ALGORITHM, algorithmData);
+		containerNode.setDimensions(100.0, 10 + 30 * neededOutputs + 10);
+		containerNode.setProperty(CoreOptions.NODE_SIZE_MINIMUM, new KVector(100.0, 10 + 30 * neededOutputs + 10));
+		containerNode.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.allOf(SizeConstraint.class));
+
+		for (int i = 0; i < neededOutputs; i++) {
+			ElkNode newNode = createNewSplitNode(containerNode);
+
+			double y = 10 + 30 * i;
+			double y_p = 10 + 30 * (i - 1);
+			double y_n = 10 + 30 * (i + 1);
+			double x_r = containerNode.getWidth();
+			double x_i = 10;
+			double x_l = 0.0d;
+
+
+			newNode.setLocation(x_i, y);
+
+			ElkPort inPort = createNewAggSplitPort(newNode, PortSide.WEST);
+			inPort.setLocation(0, 0);
+
+			ElkPort exInPort = createNewAggSplitPort(containerNode, PortSide.WEST);
+			exInPort.setLocation(x_l, y);
+
+			ElkEdge exInEdge = createNewEdge(inPort, exInPort);
+			exInEdge.setProperty(LayeredOptions.PRIORITY_STRAIGHTNESS, 1000000);
+			ElkEdgeSection exInEdgeSec = graphFactory.createElkEdgeSection();
+			exInEdgeSec.setStartLocation(x_l, y);
+			exInEdgeSec.setEndLocation(x_i, y);
+			exInEdge.getSections().add(exInEdgeSec);
+
+			inPorts.add(exInPort);
+
+			if (i == 0) {
+				// Top splitter, only add south conn port
+				southPort = createNewAggSplitPort(newNode, PortSide.SOUTH);
+				southPort.setLocation(0, 0);
+			} else if (i == neededOutputs - 1) {
+				// Bottom splitter, only create north port
+				northPort = createNewAggSplitPort(newNode, PortSide.NORTH);
+				northPort.setLocation(0, 0);
+			} else {
+				// Between splitter, create both south and north ports
+				northPort = createNewAggSplitPort(newNode, PortSide.NORTH);
+				northPort.setLocation(0, 0);
+				southPort = createNewAggSplitPort(newNode, PortSide.SOUTH);
+				southPort.setLocation(0, 0);
+			}
+
+			if (i == indexOfInPort) {
+				// Create input to splitter
+				outPort = createNewAggSplitPort(newNode, PortSide.EAST);
+				outPort.setLocation(0, 0);
+				ElkPort exOutPort = createNewAggSplitPort(containerNode, PortSide.EAST);
+				exOutPort.setLocation(x_r, y);
+
+				ElkEdge exOutEdge = createNewEdge(exOutPort, outPort);
+				exOutEdge.setProperty(LayeredOptions.PRIORITY_STRAIGHTNESS, 1000000);
+				ElkEdgeSection exOutEdgeSec = graphFactory.createElkEdgeSection();
+				exOutEdgeSec.setStartLocation(x_i, y);
+				exOutEdgeSec.setEndLocation(x_r, y);
+				exOutEdge.getSections().add(exOutEdgeSec);
+
+				outPort = exOutPort;
+
+				newNode.setProperty(LayeredOptions.PARTITIONING_PARTITION, 2);
+			}
+
+			// Create distributing connections
+			if (i > 0) {
+				if (i <= indexOfInPort) {
+					// prior south to north
+					ElkEdge distEdge = createNewEdge(northPort, priorSouthPort);
+					distEdge.setProperty(CoreOptions.NO_LAYOUT, true);
+					ElkEdgeSection distEdgeSec = graphFactory.createElkEdgeSection();
+					distEdgeSec.setStartLocation(x_i, y_p);
+					distEdgeSec.setEndLocation(x_i, y);
+					distEdge.getSections().add(distEdgeSec);
+				} else {
+					// north to prior south
+					ElkEdge distEdge = createNewEdge(priorSouthPort, northPort);
+					distEdge.setProperty(CoreOptions.NO_LAYOUT, true);
+					ElkEdgeSection distEdgeSec = graphFactory.createElkEdgeSection();
+					distEdgeSec.setStartLocation(x_i, y);
+					distEdgeSec.setEndLocation(x_i, y_p);
+					distEdge.getSections().add(distEdgeSec);
+				}
+			}
+
+			priorSouthPort = southPort;
+		}
+
+		return new SignalAgg(outPort, inPorts);
 	}
 }
