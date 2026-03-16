@@ -1,5 +1,6 @@
 package de.thkoeln.fentwums.netlist.backend.helpers;
 
+import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
 import org.eclipse.elk.alg.layered.options.LayeredOptions;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.PortSide;
@@ -22,6 +23,10 @@ public class OutputReverser {
 	 * @param node The node whose outputs are to be reversed
 	 */
 	public void reversePorts(ElkNode node) {
+		if (node.getProperty(FEntwumSOptions.CELL_TYPE).equals("SPLIT_CONTAINER")) {
+			return;
+		}
+
 		int index = node.getPorts().size() - 1;
 
 		for (ElkPort port : node.getPorts()) {
