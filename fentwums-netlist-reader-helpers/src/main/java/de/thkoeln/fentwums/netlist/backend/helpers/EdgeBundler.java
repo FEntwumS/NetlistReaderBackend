@@ -64,6 +64,15 @@ public class EdgeBundler {
 					}
 				}
 
+				// Calculate the whole range that is to be represented by the current port
+				List<SignalElement> coveredSignals = new ArrayList<>();
+				for (ElkPort port : portsInCurrentPortGroup) {
+					coveredSignals.add(new SignalElement(port.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP), null,
+														 null, null));
+				}
+
+				BundleRange coveredRange = RangeCalculator.calculateRanges(coveredSignals).getFirst();
+
 				HashMap<ElkNode, HashMap<String, List<PortEdgeAssociation>>> sourceSinkGroupMap = new HashMap<>();
 
 				// Group edge-having ports by destination/source
@@ -196,10 +205,12 @@ public class EdgeBundler {
 							}
 
 							// Move the now bundled edges
-							moveEdges(currentBundleRange.associatedEdges(), split.outPorts().get(i));
+							moveEdgesToSource(currentBundleRange.associatedEdges(), split.outPorts().get(i));
 						}
 					} else {
-
+						// Create direct connection
+						moveEdgesToSource(bundleList.getFirst().associatedEdges().stream().filter(edge -> !edge.getSources().getFirst().equals(currentPort)).toList(),
+										  currentPort);
 					}
 				} else {
 					if (bundleList.size() > 1) {
@@ -221,9 +232,13 @@ public class EdgeBundler {
 								exInEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.SINGLE);
 							}
 
-							// Move the now bundled edges
-							moveEdges(currentBundleRange.associatedEdges(), agg.outPort());
+							// Remove the now bundled edges
+							removeEdgesFromGraph(currentBundleRange.associatedEdges());
 						}
+					} else {
+						// Create direct connection
+						moveEdgesToTarget(bundleList.getFirst().associatedEdges().stream().filter(edge -> !edge.getTargets().getFirst().equals(currentPort)).toList(),
+										  currentPort);
 					}
 				}
 
@@ -242,6 +257,7 @@ public class EdgeBundler {
 
 				edgelessRanges.sort(BundleRange::compareTo);
 
+				// Update labels for combined rangeless ports
 				for (BundleRange range : edgelessRanges.reversed()) {
 					ElkPort reworkPort = (ElkPort) range.actualDrivers().getFirst();
 
@@ -257,6 +273,22 @@ public class EdgeBundler {
 									+ "]", reworkPort, settings);
 
 					portsToKeepList.add(reworkPort);
+				}
+
+				// Update label for current port
+				{
+					// Remove existing label
+					currentPort.getLabels().clear();
+
+					// Create new label
+					ElkLabel newConstLabel = ElkElementCreator
+							.createNewPortLabel(currentPortGroupName
+														+ " ["
+														+ coveredRange.containedRange().upper()
+														+ (coveredRange.containedRange().singleElement() ? "" : ":" + coveredRange.containedRange().lower())
+														+ "]", currentPort, settings);
+
+					portsToKeepList.add(currentPort);
 				}
 			}
 
@@ -493,33 +525,60 @@ public class EdgeBundler {
 
 	private static void removeEdgesFromGraph(List<ElkEdge> edges) {
 		for (ElkEdge edge : edges) {
-			// Remove from source
-			edge.getSources().getFirst().getOutgoingEdges().remove(edge);
-
-			// Remove from sink
-			edge.getTargets().getFirst().getIncomingEdges().remove(edge);
-
-			// Remove source from edge
-			edge.getSources().clear();
-
-			// Remove sink from edge
-			edge.getTargets().clear();
-
-			// Remove edge from containing node
-			edge.getContainingNode().getContainedEdges().remove(edge);
-
-			// Remove container from edge
-			edge.setContainingNode(null);
+			removeEdgeFromGraph(edge);
 		}
 	}
 
-	private static void moveEdges(List<ElkEdge> edges, ElkPort port) {
-		for (ElkEdge edge : edges) {
-			edge.getSources().getFirst().getOutgoingEdges().remove(edge);
-			edge.getSources().clear();
-			edge.getSources().add(port);
+	private static void removeEdgeFromGraph(ElkEdge edge) {
+		// Remove from source
+		edge.getSources().getFirst().getOutgoingEdges().remove(edge);
 
-			port.getOutgoingEdges().add(edge);
+		// Remove from sink
+		edge.getTargets().getFirst().getIncomingEdges().remove(edge);
+
+		// Remove source from edge
+		edge.getSources().clear();
+
+		// Remove sink from edge
+		edge.getTargets().clear();
+
+		// Remove edge from containing node
+		edge.getContainingNode().getContainedEdges().remove(edge);
+
+		// Remove container from edge
+		edge.setContainingNode(null);
+	}
+
+	private static void moveEdgesToSource(List<ElkEdge> edges, ElkPort sourcePort) {
+		for (ElkEdge edge : edges) {
+			if (edgeExists(sourcePort, (ElkPort) edge.getTargets().getFirst())) {
+				removeEdgeFromGraph(edge);
+			} else {
+				edge.getSources().getFirst().getOutgoingEdges().remove(edge);
+				edge.getSources().clear();
+				edge.getSources().add(sourcePort);
+
+				sourcePort.getOutgoingEdges().add(edge);
+			}
 		}
+	}
+
+
+	private static void moveEdgesToTarget(List<ElkEdge> edges, ElkPort targetPort) {
+		for (ElkEdge edge : edges) {
+			if (edgeExists((ElkPort) edge.getSources().getFirst(), targetPort)) {
+				removeEdgeFromGraph(edge);
+			} else {
+				edge.getTargets().getFirst().getIncomingEdges().remove(edge);
+				edge.getTargets().clear();
+				edge.getTargets().add(targetPort);
+
+				targetPort.getIncomingEdges().add(edge);
+			}
+		}
+	}
+
+	private  static boolean edgeExists(ElkPort source, ElkPort sink) {
+		return source.getOutgoingEdges().stream().anyMatch(edge -> edge.getTargets().getFirst().equals(sink));
 	}
 }
