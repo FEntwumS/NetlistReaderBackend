@@ -421,6 +421,7 @@ public class ElkElementCreator {
 
 			ElkEdge exOutEdge = createNewEdge(exOutPort, outPort);
 			exOutEdge.setProperty(LayeredOptions.PRIORITY_STRAIGHTNESS, 1000000);
+			exOutEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 			ElkEdgeSection exOutEdgeSec = graphFactory.createElkEdgeSection();
 			exOutEdgeSec.setStartLocation(x_i, y);
 			exOutEdgeSec.setEndLocation(x_r, y);
@@ -455,6 +456,7 @@ public class ElkElementCreator {
 
 				ElkEdge exInEdge = createNewEdge(inPort, exInPort);
 				exInEdge.setProperty(LayeredOptions.PRIORITY_STRAIGHTNESS, 1000000);
+				exInEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 				ElkEdgeSection exInSec = graphFactory.createElkEdgeSection();
 				exInSec.setStartLocation(x_l, y);
 				exInSec.setEndLocation(x_i, y);
@@ -470,6 +472,7 @@ public class ElkElementCreator {
 					// north to prior south
 					ElkEdge distEdge = createNewEdge(priorSouthPort, northPort);
 					distEdge.setProperty(CoreOptions.NO_LAYOUT, true);
+					distEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 					ElkEdgeSection distEdgeSec = graphFactory.createElkEdgeSection();
 					distEdgeSec.setStartLocation(x_i, y);
 					distEdgeSec.setEndLocation(x_i, y_p);
@@ -478,6 +481,7 @@ public class ElkElementCreator {
 					// prior south to north
 					ElkEdge distEdge = createNewEdge(northPort, priorSouthPort);
 					distEdge.setProperty(CoreOptions.NO_LAYOUT, true);
+					distEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 					ElkEdgeSection distEdgeSec = graphFactory.createElkEdgeSection();
 					distEdgeSec.setStartLocation(x_i, y_p);
 					distEdgeSec.setEndLocation(x_i, y);
@@ -534,6 +538,7 @@ public class ElkElementCreator {
 
 			ElkEdge exInEdge = createNewEdge(inPort, exInPort);
 			exInEdge.setProperty(LayeredOptions.PRIORITY_STRAIGHTNESS, 1000000);
+			exInEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 			ElkEdgeSection exInEdgeSec = graphFactory.createElkEdgeSection();
 			exInEdgeSec.setStartLocation(x_l, y);
 			exInEdgeSec.setEndLocation(x_i, y);
@@ -566,6 +571,7 @@ public class ElkElementCreator {
 
 				ElkEdge exOutEdge = createNewEdge(exOutPort, outPort);
 				exOutEdge.setProperty(LayeredOptions.PRIORITY_STRAIGHTNESS, 1000000);
+				exOutEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 				ElkEdgeSection exOutEdgeSec = graphFactory.createElkEdgeSection();
 				exOutEdgeSec.setStartLocation(x_i, y);
 				exOutEdgeSec.setEndLocation(x_r, y);
@@ -582,6 +588,7 @@ public class ElkElementCreator {
 					// prior south to north
 					ElkEdge distEdge = createNewEdge(northPort, priorSouthPort);
 					distEdge.setProperty(CoreOptions.NO_LAYOUT, true);
+					distEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 					ElkEdgeSection distEdgeSec = graphFactory.createElkEdgeSection();
 					distEdgeSec.setStartLocation(x_i, y_p);
 					distEdgeSec.setEndLocation(x_i, y);
@@ -590,6 +597,7 @@ public class ElkElementCreator {
 					// north to prior south
 					ElkEdge distEdge = createNewEdge(priorSouthPort, northPort);
 					distEdge.setProperty(CoreOptions.NO_LAYOUT, true);
+					distEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 					ElkEdgeSection distEdgeSec = graphFactory.createElkEdgeSection();
 					distEdgeSec.setStartLocation(x_i, y);
 					distEdgeSec.setEndLocation(x_i, y_p);
