@@ -3,7 +3,6 @@ package de.thkoeln.fentwums.netlist.backend.helpers;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
-import de.thkoeln.fentwums.netlist.backend.elkoptions.PortType;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.PortSide;
@@ -30,7 +29,8 @@ public class EdgeBundler {
 
 			if (childNode.getProperty(FEntwumSOptions.CELL_TYPE).equals("HDL_ENTITY")
 					|| childNode.getProperty(FEntwumSOptions.CELL_TYPE).equals("Constant driver")
-					|| childNode.getProperty(FEntwumSOptions.CELL_TYPE).equals("SPLIT_NODE")) {
+					|| childNode.getProperty(FEntwumSOptions.CELL_TYPE).equals("SPLIT_CONTAINER")
+					|| childNode.getProperty(FEntwumSOptions.CELL_TYPE).equals("AGG_CONTAINER")) {
 				// Skip entity instances, constant drivers/sinks, and dummy nodes used for edge layouting
 
 				continue;
@@ -181,11 +181,25 @@ public class EdgeBundler {
 
 						// Draw edge
 						ElkEdge toSplitEdge = ElkElementCreator.createNewEdge(split.inPort(), currentPort);
+						toSplitEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 
 						for (int i = 0; i < bundleList.size(); i++) {
+							BundleRange currentBundleRange = bundleList.get(i);
+
 							// Draw placeholder edge to correct destination
-							ElkEdge dummy = ElkElementCreator.createNewEdge(bundleList.get(i).associatedEdges().reversed().getFirst().getTargets().getFirst(), split.outPorts().get(i));
+							ElkEdge dummy = ElkElementCreator.createNewEdge(currentBundleRange.associatedEdges().reversed().getFirst().getTargets().getFirst(), split.outPorts().get(i));
+
+							// Set correct edge type for internal outgoing edge and dummy edge
+							if (currentBundleRange.containedRange().singleElement()) {
+								ElkEdge exOutEdge = split.outPorts().get(i).getIncomingEdges().getFirst();
+								exOutEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.SINGLE);
+							}
+
+							// Move the now bundled edges
+							moveEdges(currentBundleRange.associatedEdges(), split.outPorts().get(i));
 						}
+					} else {
+
 					}
 				} else {
 					if (bundleList.size() > 1) {
@@ -193,10 +207,22 @@ public class EdgeBundler {
 
 						// Draw edge
 						ElkEdge fromAggEdge = ElkElementCreator.createNewEdge(currentPort, agg.outPort());
+						fromAggEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 
 						for (int i = 0; i < bundleList.size(); i++) {
+							BundleRange currentBundleRange = bundleList.get(i);
+
 							// Draw placeholder edge from correct source
-							ElkEdge dummy = ElkElementCreator.createNewEdge(agg.inPorts().get(i), bundleList.get(i).associatedEdges().reversed().getFirst().getSources().getFirst());
+							ElkEdge dummy = ElkElementCreator.createNewEdge(agg.inPorts().get(i), currentBundleRange.associatedEdges().reversed().getFirst().getSources().getFirst());
+
+							// Set correct edge type for internal incoming edge and dummy edge
+							if (currentBundleRange.containedRange().singleElement()) {
+								ElkEdge exInEdge = agg.inPorts().get(i).getOutgoingEdges().getFirst();
+								exInEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.SINGLE);
+							}
+
+							// Move the now bundled edges
+							moveEdges(currentBundleRange.associatedEdges(), agg.outPort());
 						}
 					}
 				}
@@ -251,7 +277,7 @@ public class EdgeBundler {
 			}
 
 
-			HashMap<ElkNode, HashMap<String, ElkPort>> oppositeCellPortGroupMap = new HashMap<>();
+			/*HashMap<ElkNode, HashMap<String, ElkPort>> oppositeCellPortGroupMap = new HashMap<>();
 			HashMap<ElkNode, HashMap<String, List<SignalElement>>> oppositeCellPortIndecesMap = new HashMap<>();
 			HashMap<String, ElkPort> currentCellPortGroupMap;
 			HashMap<String, List<SignalElement>> currentCellPortIndecesMap;
@@ -461,7 +487,39 @@ public class EdgeBundler {
 				if (port.getIncomingEdges().isEmpty() && port.getOutgoingEdges().isEmpty()) {
 					port.getParent().getPorts().remove(port);
 				}
-			}
+			}*/
+		}
+	}
+
+	private static void removeEdgesFromGraph(List<ElkEdge> edges) {
+		for (ElkEdge edge : edges) {
+			// Remove from source
+			edge.getSources().getFirst().getOutgoingEdges().remove(edge);
+
+			// Remove from sink
+			edge.getTargets().getFirst().getIncomingEdges().remove(edge);
+
+			// Remove source from edge
+			edge.getSources().clear();
+
+			// Remove sink from edge
+			edge.getTargets().clear();
+
+			// Remove edge from containing node
+			edge.getContainingNode().getContainedEdges().remove(edge);
+
+			// Remove container from edge
+			edge.setContainingNode(null);
+		}
+	}
+
+	private static void moveEdges(List<ElkEdge> edges, ElkPort port) {
+		for (ElkEdge edge : edges) {
+			edge.getSources().getFirst().getOutgoingEdges().remove(edge);
+			edge.getSources().clear();
+			edge.getSources().add(port);
+
+			port.getOutgoingEdges().add(edge);
 		}
 	}
 }
