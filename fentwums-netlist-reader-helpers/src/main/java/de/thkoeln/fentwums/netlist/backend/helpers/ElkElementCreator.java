@@ -524,7 +524,7 @@ public class ElkElementCreator {
 			double y_p = 10 + 30 * (i - 1);
 			double y_n = 10 + 30 * (i + 1);
 			double x_r = containerNode.getWidth();
-			double x_i = 10;
+			double x_i = x_r - 10;
 			double x_l = 0.0d;
 
 
