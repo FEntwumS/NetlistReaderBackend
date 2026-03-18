@@ -396,9 +396,9 @@ public class ElkElementCreator {
 		containerNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_POS);
 		LayoutAlgorithmData algorithmData = LayoutMetaDataService.getInstance().getAlgorithmDataBySuffix("fixed");
 		containerNode.setProperty(CoreOptions.RESOLVED_ALGORITHM, algorithmData);
-		containerNode.setDimensions(100.0, 10 + 30 * neededOutputs + 10);
-		containerNode.setProperty(CoreOptions.NODE_SIZE_MINIMUM, new KVector(100.0, 10 + 30 * neededOutputs + 10));
-		containerNode.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.allOf(SizeConstraint.class));
+		containerNode.setDimensions(40.0, 10 + 30 * neededOutputs + 10);
+		containerNode.setWidth(40.0d);
+		containerNode.setProperty(CoreOptions.NODE_SIZE_FIXED_GRAPH_SIZE, true);
 
 		for (int i = 0; i < neededOutputs; i++) {
 			ElkNode newNode = createNewSplitNode(containerNode);
@@ -513,9 +513,9 @@ public class ElkElementCreator {
 		containerNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_POS);
 		LayoutAlgorithmData algorithmData = LayoutMetaDataService.getInstance().getAlgorithmDataBySuffix("fixed");
 		containerNode.setProperty(CoreOptions.RESOLVED_ALGORITHM, algorithmData);
-		containerNode.setDimensions(100.0, 10 + 30 * neededOutputs + 10);
-		containerNode.setProperty(CoreOptions.NODE_SIZE_MINIMUM, new KVector(100.0, 10 + 30 * neededOutputs + 10));
-		containerNode.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.allOf(SizeConstraint.class));
+		containerNode.setDimensions(40.0, 10 + 30 * neededOutputs + 10);
+		containerNode.setWidth(40.0d);
+		containerNode.setProperty(CoreOptions.NODE_SIZE_FIXED_GRAPH_SIZE, true);
 
 		for (int i = 0; i < neededOutputs; i++) {
 			ElkNode newNode = createNewSplitNode(containerNode);
