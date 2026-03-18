@@ -117,9 +117,7 @@ public class EdgeBundler {
 							ElkPort port = association.port();
 							ElkEdge edge = association.edge();
 
-							int indexInSignal = !port.getIncomingEdges().isEmpty() ?
-									port.getIncomingEdges().getFirst().getProperty(FEntwumSOptions.INDEX_IN_SIGNAL) :
-									port.getOutgoingEdges().getFirst().getProperty(FEntwumSOptions.INDEX_IN_SIGNAL);
+							int indexInSignal = edge.getProperty(FEntwumSOptions.INDEX_IN_SIGNAL);
 
 							SignalElement toAdd = new SignalElement(indexInSignal, port,
 									port.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP), edge);
