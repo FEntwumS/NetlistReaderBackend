@@ -181,8 +181,8 @@ public class EdgeBundler {
 								exInEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.SINGLE);
 							}
 
-							// Remove the now bundled edges
-							removeEdgesFromGraph(currentBundleRange.associatedEdges());
+							// Move the now bundled edges
+							moveEdgesToTarget(currentBundleRange.associatedEdges(), agg.inPorts().get(i));
 						}
 					} else {
 						// Create direct connection
