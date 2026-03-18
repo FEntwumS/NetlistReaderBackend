@@ -132,55 +132,12 @@ public class EdgeBundler {
 				// sort bundles for edge crossing minimization
 				bundleList.sort(BundleRange::compareTo);
 
-				// Now we can create the ports
-				// First, create the bundle port at the
-
+				// If there is only one port in the current group and all bundles are of size 1, the existing layouting
+				// infrastructure of the ELK can be used
 				if (bundleList.stream().allMatch(b -> b.containedRange().singleElement()) && portsInCurrentPortGroup.size() == 1) {
 					continue;
 				}
 
-				int handledBundles = 0;
-
-				// Now create the splits/aggregations
-				// The unbalanced binary tree will always expand to the south (whether eastwards or westwards
-				// depends on whether a sink or a source is currently being reworked)
-				// Therefore, descending orders should prevent edge crossings better than ascending or random orders
-//				if (currentPort.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
-//					// Source port, create splits
-//
-//					List<ElkPort> availablePorts = new ArrayList<>();
-//					availablePorts.add(currentPort);
-//
-//					while (availablePorts.size() < bundleList.size()) {
-//						ElkPort newNodeSourcePort = availablePorts.getFirst();
-//
-//						// Add new node to add one additional free port
-//						ElkNode newSplitNode = ElkElementCreator.insertSplitNode(entityInstance, newNodeSourcePort);
-//
-//						// Remove now used port from available port list
-//						availablePorts.remove(newNodeSourcePort);
-//
-//						// Add new free ports to end of list
-//						ElkPort northPort = newSplitNode.getPorts().stream()
-//								.filter(p -> p.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.NORTH))
-//								.toList().getFirst();
-//						ElkPort southPort = newSplitNode.getPorts().stream()
-//								.filter(p -> p.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.SOUTH))
-//								.toList().getFirst();
-//
-//						availablePorts.add(northPort);
-//						availablePorts.add(southPort);
-//
-//						// Draw edge to connect new split to tree
-//						ElkPort westPort = newSplitNode.getPorts().stream()
-//								.filter(p -> p.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST))
-//								.toList().getFirst();
-//
-//						ElkEdge newEdge = ElkElementCreator.createNewEdge(westPort, newNodeSourcePort);
-//						newEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
-//					}
-//
-//				}
 
 				if (currentPort.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
 					if (bundleList.size() > 1) {
@@ -192,9 +149,6 @@ public class EdgeBundler {
 
 						for (int i = 0; i < bundleList.size(); i++) {
 							BundleRange currentBundleRange = bundleList.get(i);
-
-							// Draw placeholder edge to correct destination
-							ElkEdge dummy = ElkElementCreator.createNewEdge(currentBundleRange.associatedEdges().reversed().getFirst().getTargets().getFirst(), split.outPorts().get(i));
 
 							// Set correct edge type for internal outgoing edge and dummy edge
 							if (currentBundleRange.containedRange().singleElement()) {
@@ -220,9 +174,6 @@ public class EdgeBundler {
 
 						for (int i = 0; i < bundleList.size(); i++) {
 							BundleRange currentBundleRange = bundleList.get(i);
-
-							// Draw placeholder edge from correct source
-							ElkEdge dummy = ElkElementCreator.createNewEdge(agg.inPorts().get(i), currentBundleRange.associatedEdges().reversed().getFirst().getSources().getFirst());
 
 							// Set correct edge type for internal incoming edge and dummy edge
 							if (currentBundleRange.containedRange().singleElement()) {
