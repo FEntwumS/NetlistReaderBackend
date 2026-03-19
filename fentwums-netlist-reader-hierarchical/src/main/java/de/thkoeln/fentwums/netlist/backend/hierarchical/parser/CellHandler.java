@@ -79,7 +79,9 @@ public class CellHandler {
             currentCellPortDirections = (HashMap<String, Object>) currentCell.get("port_directions");
             currentCellConnections = (HashMap<String, Object>) currentCell.get("connections");
 
-            if (currentCellAttributes.containsKey("module_not_derived") || cellType.contains("paramod")) {
+            if (currentCellAttributes.containsKey("module_not_derived")
+                    || currentCellAttributes.containsKey("blackbox")
+                    || cellType.contains("paramod")) {
                 isDerived = false;
 
                 if (currentCellPortDirections != null) {
