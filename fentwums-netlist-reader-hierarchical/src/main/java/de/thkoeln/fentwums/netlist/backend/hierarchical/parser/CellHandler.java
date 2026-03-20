@@ -80,7 +80,7 @@ public class CellHandler {
             currentCellConnections = (HashMap<String, Object>) currentCell.get("connections");
 
             if (currentCellAttributes.containsKey("module_not_derived")
-                    || currentCellAttributes.containsKey("blackbox")
+//                    || currentCellAttributes.containsKey("blackbox")
                     || cellType.contains("paramod")) {
                 isDerived = false;
 
@@ -108,9 +108,26 @@ public class CellHandler {
 
             newCellNode.setProperty(FEntwumSOptions.SRC_LOCATION, srcLocation);
             if (!isHidden && !isDerived) {
-                newCellNode.setProperty(FEntwumSOptions.LOCATION_PATH, instancePath + " " + cellName);
-                newCellNode.setProperty(FEntwumSOptions.CELL_TYPE, "HDL_ENTITY");
-                newCellNode.setProperty(CoreOptions.INSIDE_SELF_LOOPS_ACTIVATE, true);
+                if (netlist.containsKey(cellType)) {
+                    HashMap<String, Object> cellModuleDescription = (HashMap<String, Object>) netlist.get(cellType);
+
+                    if (cellModuleDescription.containsKey("attributes")) {
+                        HashMap<String, Object> internalCellAttributes = (HashMap<String, Object>) cellModuleDescription.get("attributes");
+
+                        if (internalCellAttributes.containsKey("blackbox")) {
+                            newCellNode.setProperty(FEntwumSOptions.CELL_TYPE, cellType);
+                            logger.atInfo().setMessage("Cell {} is a primitive").addArgument(cellName).log();
+                        } else {
+                            newCellNode.setProperty(FEntwumSOptions.LOCATION_PATH, instancePath + " " + cellName);
+                            newCellNode.setProperty(FEntwumSOptions.CELL_TYPE, "HDL_ENTITY");
+                            newCellNode.setProperty(CoreOptions.INSIDE_SELF_LOOPS_ACTIVATE, true);
+                        }
+                    } else {
+                        logger.atError().setMessage("Cell {} has no attributes").addArgument(cellName).log();
+                    }
+                } else {
+                    logger.atError().setMessage("Cell {} has no definition").addArgument(cellName).log();
+                }
             } else {
                 newCellNode.setProperty(FEntwumSOptions.CELL_TYPE, cellType);
             }
