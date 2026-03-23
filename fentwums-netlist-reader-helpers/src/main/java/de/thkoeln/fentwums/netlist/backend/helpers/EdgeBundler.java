@@ -71,7 +71,7 @@ public class EdgeBundler {
 														 null, null));
 				}
 
-				BundleRange coveredRange = RangeCalculator.calculateRanges(coveredSignals).getFirst();
+				BundleRange coveredRange = RangeCalculator.calculateRanges(coveredSignals, 10000).getFirst();
 
 				HashMap<ElkNode, HashMap<String, List<PortEdgeAssociation>>> sourceSinkGroupMap = new HashMap<>();
 
@@ -125,7 +125,7 @@ public class EdgeBundler {
 							signalElements.add(toAdd);
 						}
 
-						bundleList.addAll(RangeCalculator.calculateRanges(signalElements));
+						bundleList.addAll(RangeCalculator.calculateRanges(signalElements, 10000));
 					}
 				}
 
@@ -202,7 +202,7 @@ public class EdgeBundler {
 				}
 
 				// Calculate edgeless ranges
-				List<BundleRange> edgelessRanges = RangeCalculator.calculateRanges(edgelessIndexes);
+				List<BundleRange> edgelessRanges = RangeCalculator.calculateRanges(edgelessIndexes, 10000);
 
 				edgelessRanges.sort(BundleRange::compareTo);
 

@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RangeCalculator {
-    public static List<BundleRange> calculateRanges(List<SignalElement> values) {
+    public static List<BundleRange> calculateRanges(List<SignalElement> values, int maxWidth) {
         int cRangeStart, cRangeEnd, currentElem;
 
         List<BundleRange> ret = new ArrayList<>();
@@ -37,7 +37,7 @@ public class RangeCalculator {
         for (int i = 1; i < values.size(); i++) {
             currentElem = values.get(i).canonicalIndex();
 
-            if (cRangeEnd + 1 != currentElem) {
+            if (cRangeEnd + 1 != currentElem || currentElem % maxWidth == maxWidth - 1) {
                 ret.add(new BundleRange(new Range(cRangeStart, cRangeEnd), actualDrivers, internalSignalIndices, associatedEdges));
 
                 cRangeStart = currentElem;

@@ -31,11 +31,11 @@ public class CellHandler {
                             NetlistCreationSettings settings, HashMap<String, Object> blackboxes,
                             ModuleNode currentModuleNode, String moduleName, String instancePath) {
         HashMap<String, Object> module, cells, currentCell, currentCellAttributes, currentCellPortDirections,
-                currentCellConnections;
-        int currentCellIndex = 0, maxSignals, currentPortIndex, currentBitIndex;
+                currentCellConnections, currentCellParameters;
+        int currentCellIndex = 0, maxSignals, currentPortIndex, currentBitIndex, width, currentIndexInGroup;
         String cellType, srcLocation = "", newSubModulePath;
         PortSide newPortSide, oppositeSide = PortSide.WEST;
-        boolean isHidden, isDerived;
+        boolean isHidden, isDerived, hasWidth;
         // HashMap<Integer, String> constantValues;
         ArrayList<Object> currentCellPortDrivers;
         HashMap<Integer, SignalOccurences> signalMap = signalMaps.get(instancePath);
@@ -66,6 +66,7 @@ public class CellHandler {
 
             currentCell = (HashMap<String, Object>) cells.get(cellName);
             currentCellAttributes = (HashMap<String, Object>) currentCell.get("attributes");
+            currentCellParameters = (HashMap<String, Object>) currentCell.get("parameters");
 
             cellType = (String) currentCell.get("type");
 
@@ -74,6 +75,14 @@ public class CellHandler {
 
             if (currentCellAttributes.containsKey("src")) {
                 srcLocation = currentCellAttributes.get("src").toString();
+            }
+
+			hasWidth = cellType.contains("mux") && currentCellParameters.containsKey("WIDTH");
+
+            if (hasWidth) {
+                width = (int) currentCellParameters.get("WIDTH");
+            } else {
+                width = 10000;
             }
 
             currentCellPortDirections = (HashMap<String, Object>) currentCell.get("port_directions");
@@ -162,6 +171,7 @@ public class CellHandler {
             if (isDerived) {
                 for (String portName : currentCellPortDirections.keySet()) {
                     currentBitIndex = 0;
+                    currentIndexInGroup = 0;
                     // constantValues = new HashMap<>();
 
                     if (currentCellConnections.size() != currentCellPortDirections.size() ||
@@ -188,7 +198,7 @@ public class CellHandler {
                             ElkPort newCellPort = ElkElementCreator.createNewPort(newCellNode, newPortSide);
                             newCellPort.setProperty(CoreOptions.PORT_INDEX,
                                                     currentPortIndex * maxSignals + currentBitIndex);
-                            newCellPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portName);
+                            newCellPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portName + " " + currentIndexInGroup);
                             newCellPort.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, currentBitIndex);
 
                             if (currentCellPortDrivers.size() == 1) {
@@ -221,11 +231,15 @@ public class CellHandler {
                             constantSignalIndexList.add(new SignalElement(currentBitIndex, driver, null, null));
                         }
 
+                        if (currentBitIndex % width == width - 1) {
+                            currentIndexInGroup++;
+                        }
+
                         currentBitIndex++;
                     }
 
                     // Create pre-bundled constant ports
-                    List<BundleRange> constRanges = RangeCalculator.calculateRanges(constantSignalIndexList);
+                    List<BundleRange> constRanges = RangeCalculator.calculateRanges(constantSignalIndexList, width);
 
                     for (BundleRange constRange : constRanges) {
                         ElkPort constPort;

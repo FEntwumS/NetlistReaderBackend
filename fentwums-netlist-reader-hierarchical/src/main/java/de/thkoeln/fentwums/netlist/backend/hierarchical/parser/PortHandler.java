@@ -128,8 +128,8 @@ public class PortHandler {
                 }
             }
 
-            List<BundleRange> signalRanges = RangeCalculator.calculateRanges(signalIndexList);
-            List<BundleRange> constRanges = RangeCalculator.calculateRanges(constantSignalIndexList);
+            List<BundleRange> signalRanges = RangeCalculator.calculateRanges(signalIndexList, 10000);
+            List<BundleRange> constRanges = RangeCalculator.calculateRanges(constantSignalIndexList, 10000);
 
             // First create ports for "normal" signals
             for (BundleRange signalRange : signalRanges) {
