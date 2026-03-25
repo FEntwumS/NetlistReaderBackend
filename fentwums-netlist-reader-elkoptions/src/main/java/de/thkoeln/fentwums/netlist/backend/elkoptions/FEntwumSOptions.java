@@ -160,6 +160,11 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 			false
 	);
 
+	public static final IProperty<Integer> PORT_GROUP_SPLIT_INDEX = new Property<Integer>(
+			"de.thkoeln.fentwums.netlist.backend.port-group-split-index",
+			0
+	);
+
 	@Override
 	public void apply(Registry registry) {
 		registry.register(new LayoutOptionData.Builder()
@@ -388,6 +393,15 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 	  			.type(LayoutOptionData.Type.BOOLEAN)
 			  	.optionClass(Boolean.class)
 			  	.targets(EnumSet.of(LayoutOptionData.Target.NODES, LayoutOptionData.Target.PORTS))
+				.visibility(LayoutOptionData.Visibility.HIDDEN)
+				.create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+				.id("de.thkoeln.fentwums.netlist.backend.port-group-split-index")
+				.defaultValue(0)
+				.type(LayoutOptionData.Type.INT)
+				.targets(EnumSet.of(LayoutOptionData.Target.PORTS))
 				.visibility(LayoutOptionData.Visibility.HIDDEN)
 				.create()
 		);
