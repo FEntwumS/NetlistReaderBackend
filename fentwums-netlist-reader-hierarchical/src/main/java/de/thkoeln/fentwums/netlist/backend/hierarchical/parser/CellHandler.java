@@ -198,7 +198,8 @@ public class CellHandler {
                             ElkPort newCellPort = ElkElementCreator.createNewPort(newCellNode, newPortSide);
                             newCellPort.setProperty(CoreOptions.PORT_INDEX,
                                                     currentPortIndex * maxSignals + currentBitIndex);
-                            newCellPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portName + " " + currentIndexInGroup);
+                            newCellPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portName);
+                            newCellPort.setProperty(FEntwumSOptions.PORT_GROUP_SPLIT_INDEX, currentIndexInGroup);
                             newCellPort.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, currentBitIndex);
 
                             if (currentCellPortDrivers.size() == 1) {
