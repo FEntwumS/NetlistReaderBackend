@@ -38,24 +38,32 @@ public class EdgeBundler {
 
 			List<String> completedPortGroups = new ArrayList<>();
 
+			if (childNode.getIdentifier().contains("$procmux$9281")) {
+				int i = 0;
+			}
+
 			// Go through the ports by group; Groups are reworked in bulk
 			for (ElkPort currentPort : childNode.getPorts()) {
 				List<ElkPort> portsInCurrentPortGroup = new ArrayList<>();
 				List<ElkPort> edgelessPorts = new ArrayList<>();
+				// TODO dont just use the groups, incorporate splits as well
 				String currentPortGroupName = currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME);
+				int currentGroupSubdivision = currentPort.getProperty(FEntwumSOptions.PORT_GROUP_SPLIT_INDEX);
+				String currentPortGroupSplitIdentifier = currentPortGroupName + currentGroupSubdivision;
 
-				if (completedPortGroups.contains(currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME))) {
+				if (completedPortGroups.contains(currentPortGroupSplitIdentifier)) {
 					portsToRemoveList.add(currentPort);
 
 					continue;
 				}
 
-				completedPortGroups.add(currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
+				completedPortGroups.add(currentPortGroupSplitIdentifier);
 
 				// Get all ports belonging to the current group
 				// Edgeless ports are handled separately
 				for (ElkPort port : childNode.getPorts()) {
-					if (port.getProperty(FEntwumSOptions.PORT_GROUP_NAME).equals(currentPortGroupName)) {
+					if (port.getProperty(FEntwumSOptions.PORT_GROUP_NAME).equals(currentPortGroupName)
+						&& port.getProperty(FEntwumSOptions.PORT_GROUP_SPLIT_INDEX).equals(currentGroupSubdivision)) {
 						if (port.getOutgoingEdges().isEmpty() && port.getIncomingEdges().isEmpty()) {
 							edgelessPorts.add(port);
 						} else {
@@ -71,9 +79,19 @@ public class EdgeBundler {
 														 null, null));
 				}
 
+				if (portsInCurrentPortGroup.isEmpty()) {
+					logger.atWarn()
+							.setMessage("Cell {} portgroup {} has no connections. Skipping...")
+							.addArgument(childNode.getIdentifier())
+							.addArgument(currentPortGroupName)
+							.log();
+
+					continue;
+				}
+
 				BundleRange coveredRange = RangeCalculator.calculateRanges(coveredSignals, 10000).getFirst();
 
-				HashMap<ElkNode, HashMap<String, List<PortEdgeAssociation>>> sourceSinkGroupMap = new HashMap<>();
+				HashMap<ElkNode, HashMap<String, HashMap<Integer, List<PortEdgeAssociation>>>> sourceSinkGroupMap = new HashMap<>();
 
 				// Group edge-having ports by destination/source
 				for (ElkPort port : portsInCurrentPortGroup) {
@@ -85,21 +103,29 @@ public class EdgeBundler {
 					}
 
 					for (ElkEdge edge : edgeList) {
+						// TODO adjust based on port side; current approach is wrong
 						ElkConnectableShape target = edge.getTargets().getFirst();
 						String groupName = target.getProperty(FEntwumSOptions.PORT_GROUP_NAME);
+						int groupSubdivision = target.getProperty(FEntwumSOptions.PORT_GROUP_SPLIT_INDEX);
 						ElkNode targetNode = ((ElkPort) target).getParent();
 
 						if (!sourceSinkGroupMap.containsKey(targetNode)) {
 							sourceSinkGroupMap.put(targetNode, new HashMap<>());
 						}
 
-						HashMap<String, List<PortEdgeAssociation>> currentNodeMap = sourceSinkGroupMap.get(targetNode);
+						HashMap<String, HashMap<Integer, List<PortEdgeAssociation>>> currentNodeMap = sourceSinkGroupMap.get(targetNode);
 
 						if (!currentNodeMap.containsKey(groupName)) {
-							currentNodeMap.put(groupName, new ArrayList<>());
+							currentNodeMap.put(groupName, new HashMap<Integer, List<PortEdgeAssociation>>());
 						}
 
-						currentNodeMap.get(groupName).add(new PortEdgeAssociation(port, edge));
+						HashMap<Integer, List<PortEdgeAssociation>> portGroupSubdivisionMap = currentNodeMap.get(groupName);
+
+						if (!portGroupSubdivisionMap.containsKey(groupSubdivision)) {
+							portGroupSubdivisionMap.put(groupSubdivision, new ArrayList<>());
+						}
+
+						portGroupSubdivisionMap.get(groupSubdivision).add(new PortEdgeAssociation(port, edge));
 					}
 				}
 
@@ -107,25 +133,29 @@ public class EdgeBundler {
 
 				// Now create the bundles for the different groupings
 				for (ElkNode keyNode : sourceSinkGroupMap.keySet()) {
-					HashMap<String, List<PortEdgeAssociation>> currentMap = sourceSinkGroupMap.get(keyNode);
+					HashMap<String, HashMap<Integer, List<PortEdgeAssociation>>> currentMap = sourceSinkGroupMap.get(keyNode);
 
 					for (String groupKey : currentMap.keySet()) {
-						List<PortEdgeAssociation> portList = currentMap.get(groupKey);
-						List<SignalElement> signalElements = new ArrayList<>();
+						HashMap<Integer, List<PortEdgeAssociation>> splitMap = currentMap.get(groupKey);
 
-						for (PortEdgeAssociation association : portList) {
-							ElkPort port = association.port();
-							ElkEdge edge = association.edge();
+						for(int splitKey: splitMap.keySet()) {
+							List<PortEdgeAssociation> portList = splitMap.get(splitKey);
+							List<SignalElement> signalElements = new ArrayList<>();
 
-							int indexInSignal = edge.getProperty(FEntwumSOptions.INDEX_IN_SIGNAL);
+							for (PortEdgeAssociation association : portList) {
+								ElkPort port = association.port();
+								ElkEdge edge = association.edge();
 
-							SignalElement toAdd = new SignalElement(indexInSignal, port,
-									port.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP), edge);
+								int indexInSignal = edge.getProperty(FEntwumSOptions.INDEX_IN_SIGNAL);
 
-							signalElements.add(toAdd);
+								SignalElement toAdd = new SignalElement(indexInSignal, port,
+										port.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP), edge);
+
+								signalElements.add(toAdd);
+							}
+
+							bundleList.addAll(RangeCalculator.calculateRanges(signalElements, 10000));
 						}
-
-						bundleList.addAll(RangeCalculator.calculateRanges(signalElements, 10000));
 					}
 				}
 
