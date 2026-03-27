@@ -37,7 +37,7 @@ public class RangeCalculator {
         for (int i = 1; i < values.size(); i++) {
             currentElem = values.get(i).canonicalIndex();
 
-            if (cRangeEnd + 1 != currentElem || currentElem % maxWidth == maxWidth - 1) {
+            if (cRangeEnd + 1 != currentElem || currentElem % maxWidth == 0) {
                 ret.add(new BundleRange(new Range(cRangeStart, cRangeEnd), actualDrivers, internalSignalIndices, associatedEdges));
 
                 cRangeStart = currentElem;
