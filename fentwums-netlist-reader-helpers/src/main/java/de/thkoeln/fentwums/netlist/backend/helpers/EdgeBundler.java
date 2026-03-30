@@ -38,29 +38,29 @@ public class EdgeBundler {
 
 			List<String> completedPortGroups = new ArrayList<>();
 
-			if (childNode.getIdentifier().contains("$procmux$9281")) {
-				int i = 0;
-			}
 
 			// Go through the ports by group; Groups are reworked in bulk
 			for (ElkPort currentPort : childNode.getPorts()) {
 				List<ElkPort> portsInCurrentPortGroup = new ArrayList<>();
 				List<ElkPort> edgelessPorts = new ArrayList<>();
-				// TODO dont just use the groups, incorporate splits as well
 				String currentPortGroupName = currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME);
+				int currentPortGroupSubdivision = currentPort.getProperty(FEntwumSOptions.PORT_GROUP_SPLIT_INDEX);
+				String currentPortGroupSubdivisionIdentifier = currentPortGroupName + currentPortGroupSubdivision;
 
-				if (completedPortGroups.contains(currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME))) {
+				if (completedPortGroups.contains(currentPortGroupSubdivisionIdentifier)) {
 					portsToRemoveList.add(currentPort);
 
 					continue;
 				}
 
-				completedPortGroups.add(currentPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
+				completedPortGroups.add(currentPortGroupSubdivisionIdentifier);
 
 				// Get all ports belonging to the current group
 				// Edgeless ports are handled separately
 				for (ElkPort port : childNode.getPorts()) {
-					if (port.getProperty(FEntwumSOptions.PORT_GROUP_NAME).equals(currentPortGroupName)) {
+					String portGroupSubdivisionIdentifier = port.getProperty(FEntwumSOptions.PORT_GROUP_NAME) + port.getProperty(FEntwumSOptions.PORT_GROUP_SPLIT_INDEX);
+
+					if (portGroupSubdivisionIdentifier.equals(currentPortGroupSubdivisionIdentifier)) {
 						if (port.getOutgoingEdges().isEmpty() && port.getIncomingEdges().isEmpty()) {
 							edgelessPorts.add(port);
 						} else {
@@ -83,15 +83,21 @@ public class EdgeBundler {
 				// Group edge-having ports by destination/source
 				for (ElkPort port : portsInCurrentPortGroup) {
 					List<ElkEdge> edgeList;
+					boolean isSourcePort = false;
 					if (!port.getIncomingEdges().isEmpty()) {
 						edgeList = port.getIncomingEdges();
 					} else {
 						edgeList = port.getOutgoingEdges();
+						isSourcePort = true;
 					}
 
 					for (ElkEdge edge : edgeList) {
-						// TODO adjust based on port side; current approach is wrong
-						ElkConnectableShape target = edge.getTargets().getFirst();
+						ElkConnectableShape target;
+						if (isSourcePort) {
+							 target = edge.getTargets().getFirst();
+						} else {
+							target = edge.getSources().getFirst();
+						}
 						String groupName = target.getProperty(FEntwumSOptions.PORT_GROUP_NAME);
 						ElkNode targetNode = ((ElkPort) target).getParent();
 
