@@ -257,6 +257,9 @@ public class CellHandler {
                                     portName + (currentCellPortDrivers.size() == 1 ? "" : " [" + (constRange.containedRange().lower()) + "]"), newPort,
                                     settings);
                         } else {
+                            newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_LOWER_INDEX_IN_PORT_GROUP, constRange.containedRange().lower());
+                            newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP, constRange.containedRange().upper());
+
                             ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(
                                     portName + " [" + (constRange.containedRange().upper()) + ":" + (constRange.containedRange().lower()) + "]", newPort,
                                     settings);
