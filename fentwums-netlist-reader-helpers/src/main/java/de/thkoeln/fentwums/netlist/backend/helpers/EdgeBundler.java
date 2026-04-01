@@ -3,6 +3,7 @@ package de.thkoeln.fentwums.netlist.backend.helpers;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
+import de.thkoeln.fentwums.netlist.backend.elkoptions.PortType;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.PortSide;
@@ -38,7 +39,6 @@ public class EdgeBundler {
 
 			List<String> completedPortGroups = new ArrayList<>();
 
-
 			// Go through the ports by group; Groups are reworked in bulk
 			for (ElkPort currentPort : childNode.getPorts()) {
 				List<ElkPort> portsInCurrentPortGroup = new ArrayList<>();
@@ -58,7 +58,8 @@ public class EdgeBundler {
 				// Get all ports belonging to the current group
 				// Edgeless ports are handled separately
 				for (ElkPort port : childNode.getPorts()) {
-					String portGroupSubdivisionIdentifier = port.getProperty(FEntwumSOptions.PORT_GROUP_NAME) + port.getProperty(FEntwumSOptions.PORT_GROUP_SPLIT_INDEX);
+					String portGroupSubdivisionIdentifier =
+							port.getProperty(FEntwumSOptions.PORT_GROUP_NAME) + port.getProperty(FEntwumSOptions.PORT_GROUP_SPLIT_INDEX);
 
 					if (portGroupSubdivisionIdentifier.equals(currentPortGroupSubdivisionIdentifier)) {
 						if (port.getOutgoingEdges().isEmpty() && port.getIncomingEdges().isEmpty()) {
@@ -71,9 +72,19 @@ public class EdgeBundler {
 
 				// Calculate the whole range that is to be represented by the current port
 				List<SignalElement> coveredSignals = new ArrayList<>();
+
 				for (ElkPort port : portsInCurrentPortGroup) {
-					coveredSignals.add(new SignalElement(port.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP), null,
-														 null, null));
+					if (port.getProperty(FEntwumSOptions.PORT_TYPE) == PortType.SIGNAL_SINGLE
+						|| port.getProperty(FEntwumSOptions.PORT_TYPE) == PortType.CONSTANT_SINGLE) {
+						coveredSignals.add(new SignalElement(port.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP), null,
+								null, null));
+					} else {
+						for (int i = port.getProperty(FEntwumSOptions.CANONICAL_BUNDLE_LOWER_INDEX_IN_PORT_GROUP);
+							i <= port.getProperty(FEntwumSOptions.CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP);
+							i++) {
+							coveredSignals.add(new SignalElement(i, null, null, null));
+						}
+					}
 				}
 
 				BundleRange coveredRange = RangeCalculator.calculateRanges(coveredSignals, 10000).getFirst();
@@ -94,7 +105,7 @@ public class EdgeBundler {
 					for (ElkEdge edge : edgeList) {
 						ElkConnectableShape target;
 						if (isSourcePort) {
-							 target = edge.getTargets().getFirst();
+							target = edge.getTargets().getFirst();
 						} else {
 							target = edge.getSources().getFirst();
 						}
@@ -131,10 +142,22 @@ public class EdgeBundler {
 
 							int indexInSignal = port.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP);
 
-							SignalElement toAdd = new SignalElement(indexInSignal, port,
-									edge.getProperty(FEntwumSOptions.INDEX_IN_SIGNAL), edge);
+							if (port.getProperty(FEntwumSOptions.PORT_TYPE) == PortType.SIGNAL_SINGLE
+								|| port.getProperty(FEntwumSOptions.PORT_TYPE) == PortType.CONSTANT_SINGLE) {
+								SignalElement toAdd = new SignalElement(indexInSignal, port,
+										edge.getProperty(FEntwumSOptions.INDEX_IN_SIGNAL), edge);
 
-							signalElements.add(toAdd);
+								signalElements.add(toAdd);
+							} else {
+								for (int i = port.getProperty(FEntwumSOptions.CANONICAL_BUNDLE_LOWER_INDEX_IN_PORT_GROUP);
+									 i <= port.getProperty(FEntwumSOptions.CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP);
+									 i++) {
+									SignalElement toAdd = new SignalElement(i, port,
+											edge.getProperty(FEntwumSOptions.INDEX_IN_SIGNAL), edge);
+
+									signalElements.add(toAdd);
+								}
+							}
 						}
 
 						bundleList.addAll(RangeCalculator.calculateRanges(signalElements, 10000));
@@ -153,7 +176,8 @@ public class EdgeBundler {
 
 				if (currentPort.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
 					if (bundleList.size() > 1) {
-						SignalSplit split = ElkElementCreator.createSignalSplit(entityInstance, currentPort, bundleList.size());
+						SignalSplit split = ElkElementCreator.createSignalSplit(entityInstance, currentPort,
+								bundleList.size());
 
 						// Draw edge
 						ElkEdge toSplitEdge = ElkElementCreator.createNewEdge(split.inPort(), currentPort);
@@ -174,11 +198,12 @@ public class EdgeBundler {
 					} else {
 						// Create direct connection
 						moveEdgesToSource(bundleList.getFirst().associatedEdges().stream().filter(edge -> !edge.getSources().getFirst().equals(currentPort)).toList(),
-										  currentPort);
+								currentPort);
 					}
 				} else {
 					if (bundleList.size() > 1) {
-						SignalAgg agg = ElkElementCreator.createSignalAgg(entityInstance, currentPort, bundleList.size());
+						SignalAgg agg = ElkElementCreator.createSignalAgg(entityInstance, currentPort,
+								bundleList.size());
 
 						// Draw edge
 						ElkEdge fromAggEdge = ElkElementCreator.createNewEdge(currentPort, agg.outPort());
@@ -199,7 +224,7 @@ public class EdgeBundler {
 					} else {
 						// Create direct connection
 						moveEdgesToTarget(bundleList.getFirst().associatedEdges().stream().filter(edge -> !edge.getTargets().getFirst().equals(currentPort)).toList(),
-										  currentPort);
+								currentPort);
 					}
 				}
 
@@ -230,7 +255,8 @@ public class EdgeBundler {
 							.createNewPortLabel(currentPortGroupName
 									+ " ["
 									+ range.containedRange().upper()
-									+ (range.containedRange().singleElement() ? "" : ":" + range.containedRange().lower())
+									+ (range.containedRange().singleElement() ? "" :
+									":" + range.containedRange().lower())
 									+ "]", reworkPort, settings);
 
 					portsToKeepList.add(reworkPort);
@@ -244,10 +270,11 @@ public class EdgeBundler {
 					// Create new label
 					ElkLabel newConstLabel = ElkElementCreator
 							.createNewPortLabel(currentPortGroupName
-														+ " ["
-														+ coveredRange.containedRange().upper()
-														+ (coveredRange.containedRange().singleElement() ? "" : ":" + coveredRange.containedRange().lower())
-														+ "]", currentPort, settings);
+									+ " ["
+									+ coveredRange.containedRange().upper()
+									+ (coveredRange.containedRange().singleElement() ? "" :
+									":" + coveredRange.containedRange().lower())
+									+ "]", currentPort, settings);
 
 					portsToKeepList.add(currentPort);
 				}
