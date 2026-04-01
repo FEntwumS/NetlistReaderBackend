@@ -311,10 +311,10 @@ public class CellHandler {
 
                         if (constRange.containedRange().singleElement()) {
                             newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
-                            constNode.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
+                            constPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
                         } else {
-                            newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
-                            constNode.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
+                            newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_MULTIPLE);
+                            constPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_MULTIPLE);
                         }
 
                         // Add connection
