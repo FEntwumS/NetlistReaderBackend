@@ -202,11 +202,7 @@ public class CellHandler {
                             newCellPort.setProperty(FEntwumSOptions.PORT_GROUP_SPLIT_INDEX, currentIndexInGroup);
                             newCellPort.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, currentBitIndex);
 
-                            if (currentCellPortDrivers.size() == 1) {
-                                newCellPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.SIGNAL_SINGLE);
-                            } else {
-                                newCellPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.SIGNAL_MULTIPLE);
-                            }
+                            newCellPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.SIGNAL_SINGLE);
 
                             ElkLabel newCellPortLabel = ElkElementCreator.createNewPortLabel(
                                     portName + (currentCellPortDrivers.size() == 1 ? "" : " [" + currentBitIndex + "]"),
