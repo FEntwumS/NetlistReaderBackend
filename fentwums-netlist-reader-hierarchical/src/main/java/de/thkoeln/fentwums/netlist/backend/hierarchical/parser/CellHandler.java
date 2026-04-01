@@ -303,7 +303,13 @@ public class CellHandler {
                             sink = newPort;
                         }
 
-                        if (currentCellPortDrivers.size() == 1) {
+                        int portGroupSubdivisionIndex = (constRange.containedRange().lower() + 1) / width;
+
+                        if (hasWidth) {
+                            newPort.setProperty(FEntwumSOptions.PORT_GROUP_SPLIT_INDEX, portGroupSubdivisionIndex);
+                        }
+
+                        if (constRange.containedRange().singleElement()) {
                             newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
                             constNode.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
                         } else {
