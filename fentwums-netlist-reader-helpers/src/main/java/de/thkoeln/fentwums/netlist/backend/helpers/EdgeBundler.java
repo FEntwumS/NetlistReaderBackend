@@ -295,219 +295,6 @@ public class EdgeBundler {
 					toRemove.getParent().getPorts().remove(toRemove);
 				}
 			}
-
-
-			/*HashMap<ElkNode, HashMap<String, ElkPort>> oppositeCellPortGroupMap = new HashMap<>();
-			HashMap<ElkNode, HashMap<String, List<SignalElement>>> oppositeCellPortIndecesMap = new HashMap<>();
-			HashMap<String, ElkPort> currentCellPortGroupMap;
-			HashMap<String, List<SignalElement>> currentCellPortIndecesMap;
-			List<ElkPort> removePortList = new ArrayList<>();
-			ElkNode oppositeNode;
-
-			// Go through every port, bundle as necessary
-			for (ElkPort port : childNode.getPorts()) {
-				if (port.getProperty(FEntwumSOptions.PORT_TYPE).equals(PortType.SIGNAL_SINGLE)
-						|| port.getProperty(FEntwumSOptions.PORT_TYPE).equals(PortType.CONSTANT_MULTIPLE)
-						|| port.getProperty(FEntwumSOptions.PORT_TYPE).equals(PortType.CONSTANT_SINGLE)) {
-					// skip constant and single ports
-
-					continue;
-				}
-
-				String portGroupName = port.getProperty(FEntwumSOptions.PORT_GROUP_NAME);
-				List<ElkEdge> moveEdgeList = new ArrayList<>();
-
-				if (port.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
-					if (port.getOutgoingEdges().isEmpty()) {
-						continue;
-					}
-
-					if (port.getOutgoingEdges().size() > 1) {
-						// Check whether more than two sinks exist
-						ElkNode firstTarget = null;
-
-						for (ElkEdge edge : port.getOutgoingEdges()) {
-							if (firstTarget == null) {
-								firstTarget = ((ElkPort) edge.getTargets().getFirst()).getParent();
-							} else {
-								ElkNode currentTarget = ((ElkPort) edge.getTargets().getFirst()).getParent();
-
-								if (!currentTarget.equals(firstTarget)) {
-									firstTarget = childNode;
-									break;
-								} else {
-									// do nothing
-								}
-							}
-						}
-
-						oppositeNode = firstTarget;
-
-					} else {
-						oppositeNode =
-								((ElkPort) port.getOutgoingEdges().getFirst().getTargets().getFirst()).getParent();
-					}
-				} else {
-					if (port.getIncomingEdges().isEmpty()) {
-						continue;
-					}
-
-					oppositeNode = ((ElkPort) port.getIncomingEdges().getFirst().getSources().getFirst()).getParent();
-				}
-
-				if (oppositeCellPortGroupMap.containsKey(oppositeNode)) {
-					currentCellPortGroupMap = oppositeCellPortGroupMap.get(oppositeNode);
-					currentCellPortIndecesMap = oppositeCellPortIndecesMap.get(oppositeNode);
-
-					if (!currentCellPortGroupMap.containsKey(portGroupName)) {
-						currentCellPortGroupMap.put(portGroupName, port);
-						List<SignalElement> signalElements = new ArrayList<>();
-						signalElements.add(
-								new SignalElement(port.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP), null, null, null));
-						currentCellPortIndecesMap.put(portGroupName, signalElements);
-
-					} else {
-						if (port.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
-							moveEdgeList = port.getOutgoingEdges().stream().toList();
-						} else {
-							moveEdgeList = port.getIncomingEdges().stream().toList();
-						}
-						currentCellPortIndecesMap.get(portGroupName).add(
-								new SignalElement(port.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP), null, null, null));
-
-						removePortList.add(port);
-					}
-				} else {
-					currentCellPortGroupMap = new HashMap<>();
-					currentCellPortIndecesMap = new HashMap<>();
-
-					oppositeCellPortGroupMap.put(oppositeNode, currentCellPortGroupMap);
-					oppositeCellPortIndecesMap.put(oppositeNode, currentCellPortIndecesMap);
-
-					List<SignalElement> signalElements = new ArrayList<>();
-					signalElements.add(
-							new SignalElement(port.getProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP), null, null, null));
-
-					currentCellPortGroupMap.put(portGroupName, port);
-					currentCellPortIndecesMap.put(portGroupName, signalElements);
-				}
-
-				// Move edges, if necessary
-				for (ElkEdge movingEdge : moveEdgeList) {
-					ElkEdge matchingEdge = null;
-
-					if (port.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
-						for (ElkEdge candidate : currentCellPortGroupMap.get(portGroupName).getOutgoingEdges()) {
-							if (candidate.getTargets().getFirst().equals(movingEdge.getTargets().getFirst())) {
-								matchingEdge = candidate;
-								break;
-							}
-						}
-					} else {
-						for (ElkEdge candidate : currentCellPortGroupMap.get(portGroupName).getIncomingEdges()) {
-							if (candidate.getSources().getFirst().equals(movingEdge.getSources().getFirst())) {
-								matchingEdge = candidate;
-								break;
-							}
-						}
-					}
-
-					if (matchingEdge != null) {
-						matchingEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
-						movingEdge.getSources().getFirst().getOutgoingEdges().remove(movingEdge);
-						movingEdge.getSources().clear();
-						movingEdge.getTargets().getFirst().getIncomingEdges().remove(movingEdge);
-						movingEdge.getTargets().clear();
-						movingEdge.getContainingNode().getContainedEdges().remove(movingEdge);
-					} else {
-						// Delete duplicate edges
-
-						if (port.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
-							movingEdge.getSources().getFirst().getOutgoingEdges().remove(movingEdge);
-							movingEdge.getSources().clear();
-							movingEdge.getSources().add(currentCellPortGroupMap.get(portGroupName));
-						} else {
-							movingEdge.getTargets().getFirst().getIncomingEdges().remove(movingEdge);
-							movingEdge.getTargets().clear();
-							movingEdge.getTargets().add(currentCellPortGroupMap.get(portGroupName));
-						}
-					}
-				}
-			}
-
-			// Now adapt labels
-			for (ElkNode node : oppositeCellPortGroupMap.keySet()) {
-				currentCellPortGroupMap = oppositeCellPortGroupMap.get(node);
-				currentCellPortIndecesMap = oppositeCellPortIndecesMap.get(node);
-
-				for (String portGroupName : currentCellPortGroupMap.keySet()) {
-					List<BundleRange> rangeList = RangeCalculator.calculateRanges(
-							currentCellPortIndecesMap.get(portGroupName));
-
-					Boolean isReversed =
-							currentCellPortGroupMap.get(portGroupName).getProperty(FEntwumSOptions.MSB_FIRST);
-
-					if (rangeList.size() > 1) {
-
-						StringBuilder builder = new StringBuilder(portGroupName);
-
-						builder.append(" [");
-
-						boolean first = true;
-
-						for (BundleRange range : isReversed ? rangeList : rangeList.reversed()) {
-							if (!first) {
-								builder.append("; ");
-							}
-
-							if (isReversed) {
-								builder.append(range.containedRange().lower());
-								builder.append(":");
-								builder.append(range.containedRange().upper());
-							} else {
-								builder.append(range.containedRange().upper());
-								builder.append(":");
-								builder.append(range.containedRange().lower());
-							}
-
-							first = false;
-						}
-
-						builder.append("]");
-
-						currentCellPortGroupMap.get(portGroupName).getLabels().clear();
-						ElkElementCreator.createNewPortLabel(builder.toString(),
-								currentCellPortGroupMap.get(portGroupName), settings);
-
-						logger.atWarn().setMessage("Found more than one range for group {}. Skipping...").addArgument(
-								portGroupName).log();
-						continue;
-					}
-
-					if (rangeList.isEmpty()) {
-						logger.atError().setMessage("No ranges for group {}. Skipping...").addArgument(portGroupName)
-								.log();
-						continue;
-					}
-
-					Range containedRange = rangeList.getFirst().containedRange();
-					currentCellPortGroupMap.get(portGroupName).getLabels().clear();
-
-					ElkElementCreator.createNewPortLabel(portGroupName + (containedRange.singleElement() ?
-									" [" + containedRange.lower() + "]" :
-									(isReversed ?
-											" [" + containedRange.lower() + ":" + containedRange.upper() + "]" :
-											" [" + containedRange.upper() + ":" + containedRange.lower() + "]")),
-							currentCellPortGroupMap.get(portGroupName), settings);
-				}
-			}
-
-			// Now remove unused ports
-			for (ElkPort port : removePortList) {
-				if (port.getIncomingEdges().isEmpty() && port.getOutgoingEdges().isEmpty()) {
-					port.getParent().getPorts().remove(port);
-				}
-			}*/
 		}
 	}
 
@@ -539,14 +326,16 @@ public class EdgeBundler {
 
 	private static void moveEdgesToSource(List<ElkEdge> edges, ElkPort sourcePort) {
 		for (ElkEdge edge : edges) {
-			if (edgeExists(sourcePort, (ElkPort) edge.getTargets().getFirst())) {
-				removeEdgeFromGraph(edge);
-			} else {
+			ElkEdge existingEdge = edgeExists(sourcePort, (ElkPort) edge.getTargets().getFirst());
+
+			if (existingEdge == null) {
 				edge.getSources().getFirst().getOutgoingEdges().remove(edge);
 				edge.getSources().clear();
 				edge.getSources().add(sourcePort);
 
 				sourcePort.getOutgoingEdges().add(edge);
+			} else if (!edge.equals(existingEdge)) {
+				removeEdgeFromGraph(edge);
 			}
 		}
 	}
@@ -554,19 +343,27 @@ public class EdgeBundler {
 
 	private static void moveEdgesToTarget(List<ElkEdge> edges, ElkPort targetPort) {
 		for (ElkEdge edge : edges) {
-			if (edgeExists((ElkPort) edge.getSources().getFirst(), targetPort)) {
-				removeEdgeFromGraph(edge);
-			} else {
+			ElkEdge existingEdge = edgeExists((ElkPort) edge.getSources().getFirst(), targetPort);
+
+			if (existingEdge == null) {
 				edge.getTargets().getFirst().getIncomingEdges().remove(edge);
 				edge.getTargets().clear();
 				edge.getTargets().add(targetPort);
 
 				targetPort.getIncomingEdges().add(edge);
+			} else if (!edge.equals(existingEdge)) {
+				removeEdgeFromGraph(edge);
 			}
 		}
 	}
 
-	private  static boolean edgeExists(ElkPort source, ElkPort sink) {
-		return source.getOutgoingEdges().stream().anyMatch(edge -> edge.getTargets().getFirst().equals(sink));
+	private static ElkEdge edgeExists(ElkPort source, ElkPort sink) {
+		List<ElkEdge> matchingEdgeList = source.getOutgoingEdges().stream().filter(edge -> edge.getTargets().getFirst().equals(sink)).toList();
+
+		if (matchingEdgeList.isEmpty()) {
+			return null;
+		} else {
+			return matchingEdgeList.getFirst();
+		}
 	}
 }
