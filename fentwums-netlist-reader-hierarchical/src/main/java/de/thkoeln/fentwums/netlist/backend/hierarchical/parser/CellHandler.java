@@ -309,18 +309,21 @@ public class CellHandler {
                             newPort.setProperty(FEntwumSOptions.PORT_GROUP_SPLIT_INDEX, portGroupSubdivisionIndex);
                         }
 
+                        ElkEdge constEdge = ElkElementCreator.createNewEdge(sink, source);
+
                         if (constRange.containedRange().singleElement()) {
                             newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
                             constPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
+
+                            // Add connection
+                            constEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.CONSTANT);
                         } else {
                             newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_MULTIPLE);
                             constPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_MULTIPLE);
+
+                            // Add connection
+                            constEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED_CONSTANT);
                         }
-
-                        // Add connection
-                        ElkEdge constEdge = ElkElementCreator.createNewEdge(sink, source);
-                        constEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.CONSTANT);
-
 
                         ElkLabel constEdgeLabel = ElkElementCreator.createNewEdgeLabel(constantValues.toString(), constEdge,
                                                                                        settings);

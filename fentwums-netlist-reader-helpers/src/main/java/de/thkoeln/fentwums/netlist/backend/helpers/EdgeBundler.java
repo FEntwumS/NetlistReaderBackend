@@ -336,6 +336,8 @@ public class EdgeBundler {
 				sourcePort.getOutgoingEdges().add(edge);
 			} else if (!edge.equals(existingEdge)) {
 				removeEdgeFromGraph(edge);
+
+				existingEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 			}
 		}
 	}
@@ -353,6 +355,8 @@ public class EdgeBundler {
 				targetPort.getIncomingEdges().add(edge);
 			} else if (!edge.equals(existingEdge)) {
 				removeEdgeFromGraph(edge);
+
+				existingEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 			}
 		}
 	}
