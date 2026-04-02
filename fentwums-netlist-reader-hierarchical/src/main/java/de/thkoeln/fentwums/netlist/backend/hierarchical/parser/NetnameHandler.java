@@ -4,6 +4,8 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.ModuleNode;
 import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalOccurences;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
+import de.thkoeln.fentwums.netlist.backend.elkoptions.PortType;
+import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.PortSide;
@@ -96,6 +98,15 @@ public class NetnameHandler {
                                 newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, currentIndexInNet);
                                 newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, currentNetName);
                                 newEdge.setProperty(FEntwumSOptions.MSB_FIRST, isReversed);
+
+                                if (sink.getParent().getProperty(FEntwumSOptions.CELL_TYPE).equals("HDL_ENTITY")
+                                        && sink.getProperty(FEntwumSOptions.PORT_TYPE).equals(PortType.SIGNAL_MULTIPLE)
+                                    && sourcePort.getParent().getProperty(FEntwumSOptions.CELL_TYPE).equals("HDL_ENTITY")
+                                    && sourcePort.getProperty(FEntwumSOptions.PORT_TYPE).equals(PortType.SIGNAL_MULTIPLE)) {
+                                    newEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
+                                } else {
+                                    newEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.SINGLE);
+                                }
 
                                 if (!hideName) {
                                     ElkLabel newEdgeLabel = ElkElementCreator.createNewEdgeLabel(currentNetName +
