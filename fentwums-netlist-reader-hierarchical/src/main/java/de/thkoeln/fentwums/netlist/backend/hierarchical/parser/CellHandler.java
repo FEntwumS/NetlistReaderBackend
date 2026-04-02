@@ -303,7 +303,7 @@ public class CellHandler {
                             sink = newPort;
                         }
 
-                        int portGroupSubdivisionIndex = (constRange.containedRange().lower() + 1) / width;
+                        int portGroupSubdivisionIndex = (constRange.containedRange().lower()) / width;
 
                         if (hasWidth) {
                             newPort.setProperty(FEntwumSOptions.PORT_GROUP_SPLIT_INDEX, portGroupSubdivisionIndex);
