@@ -176,8 +176,27 @@ public class EdgeBundler {
 
 				if (currentPort.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
 					if (bundleList.size() > 1) {
+						List<String> strl = bundleList.stream().map(b -> {
+							String ret = "";
+
+							ret += b.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGNAL_NAME);
+							ret += " [";
+
+							if (b.containedRange().singleElement()) {
+								ret += b.containedRange().lower();
+							} else {
+								ret += b.containedRange().upper();
+								ret += ':';
+								ret += b.containedRange().lower();
+							}
+
+							ret += ']';
+
+							return ret;
+						}).toList();
+
 						SignalSplit split = ElkElementCreator.createSignalSplit(entityInstance, currentPort,
-								bundleList.size());
+								strl, settings);
 
 						// Draw edge
 						ElkEdge toSplitEdge = ElkElementCreator.createNewEdge(split.inPort(), currentPort);
