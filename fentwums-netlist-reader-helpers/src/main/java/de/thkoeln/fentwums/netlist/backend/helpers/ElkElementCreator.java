@@ -502,12 +502,15 @@ public class ElkElementCreator {
 		return new SignalSplit(inPort, outPorts);
 	}
 
-	public static SignalAgg createSignalAgg(ElkNode parent, ElkPort sourcePort, int neededOutputs) {
+	public static SignalAgg createSignalAgg(ElkNode parent, ElkPort sourcePort, List<String> labelList, NetlistCreationSettings settings) {
 		ElkGraphFactory graphFactory = ElkGraphFactoryImpl.init();
 
 		ElkPort priorSouthPort = null, southPort = null, northPort = null;
 
+		int neededOutputs = labelList.size();
 		int indexOfInPort = Math.floorDiv(neededOutputs - 1, 2);
+
+		double maxLabelWidth = labelList.stream().map(String::length).max(Integer::compareTo).get() * settings.getPortLabelFontSize() * 0.7 + 10;
 
 		List<ElkPort> inPorts = new ArrayList<>();
 		ElkPort outPort = null;
@@ -520,12 +523,13 @@ public class ElkElementCreator {
 		containerNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_POS);
 		LayoutAlgorithmData algorithmData = LayoutMetaDataService.getInstance().getAlgorithmDataBySuffix("fixed");
 		containerNode.setProperty(CoreOptions.RESOLVED_ALGORITHM, algorithmData);
-		containerNode.setDimensions(40.0, 10 + 30 * neededOutputs + 10);
-		containerNode.setWidth(40.0d);
+		containerNode.setDimensions(10.0 + maxLabelWidth, 10 + 30 * neededOutputs + 10);
+		containerNode.setWidth(10.0 + maxLabelWidth);
 		containerNode.setProperty(CoreOptions.NODE_SIZE_FIXED_GRAPH_SIZE, true);
 
 		for (int i = 0; i < neededOutputs; i++) {
 			ElkNode newNode = createNewAggNode(containerNode);
+			String currentLabelContent = labelList.get(i);
 
 			double y = 10 + 30 * i;
 			double y_p = 10 + 30 * (i - 1);
@@ -539,6 +543,9 @@ public class ElkElementCreator {
 
 			ElkPort inPort = createNewAggSplitPort(newNode, PortSide.WEST);
 			inPort.setLocation(0, 0);
+
+			ElkLabel splitLabel = createNewLabel(currentLabelContent, inPort, settings.getPortLabelFontSize());
+			splitLabel.setLocation(-splitLabel.getWidth() - 3.0, -splitLabel.getHeight());
 
 			ElkPort exInPort = createNewAggSplitPort(containerNode, PortSide.WEST);
 			exInPort.setLocation(x_l, y);
