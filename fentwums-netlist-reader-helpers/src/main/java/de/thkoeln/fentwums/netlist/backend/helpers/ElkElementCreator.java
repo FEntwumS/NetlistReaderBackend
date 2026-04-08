@@ -387,6 +387,7 @@ public class ElkElementCreator {
 		int indexOfInPort = Math.floorDiv(neededOutputs - 1, 2);
 
 		double maxLabelWidth = labelList.stream().map(String::length).max(Integer::compareTo).get() * settings.getPortLabelFontSize() * 0.7 + 10;
+		double verticalLabelSpace = settings.getEdgeLabelFontSize() + 3.0;
 
 		List<ElkPort> outPorts = new ArrayList<>();
 		ElkPort inPort = null;
@@ -399,7 +400,7 @@ public class ElkElementCreator {
 		containerNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_POS);
 		LayoutAlgorithmData algorithmData = LayoutMetaDataService.getInstance().getAlgorithmDataBySuffix("fixed");
 		containerNode.setProperty(CoreOptions.RESOLVED_ALGORITHM, algorithmData);
-		containerNode.setDimensions(10.0 + maxLabelWidth, 10 + 30 * neededOutputs + 10);
+		containerNode.setDimensions(10.0 + maxLabelWidth, verticalLabelSpace + 30 * (neededOutputs - 1) + 15);
 		containerNode.setWidth(10.0 + maxLabelWidth);
 		containerNode.setProperty(CoreOptions.NODE_SIZE_FIXED_GRAPH_SIZE, true);
 
@@ -407,15 +408,15 @@ public class ElkElementCreator {
 			ElkNode newNode = createNewSplitNode(containerNode);
 			String currentLabelContent = labelList.get(i);
 
-			double y = 10 + 30 * i;
-			double y_p = 10 + 30 * (i - 1);
-			double y_n = 10 + 30 * (i + 1);
+			double y = verticalLabelSpace + 30 * i;
+			double y_p = verticalLabelSpace + 30 * (i - 1);
+			double y_n = verticalLabelSpace + 30 * (i + 1);
 			double x_i = 10;
 			double x_r = containerNode.getWidth();
 			double x_l = 0.0d;
 
-
 			newNode.setLocation(x_i, y);
+			newNode.setDimensions(10.0, 10.0);
 
 			ElkPort outPort = createNewAggSplitPort(newNode, PortSide.EAST);
 			outPort.setLocation(0, 0);
@@ -511,6 +512,7 @@ public class ElkElementCreator {
 		int indexOfInPort = Math.floorDiv(neededOutputs - 1, 2);
 
 		double maxLabelWidth = labelList.stream().map(String::length).max(Integer::compareTo).get() * settings.getPortLabelFontSize() * 0.7 + 10;
+		double verticalLabelSpace = settings.getEdgeLabelFontSize() + 3.0;
 
 		List<ElkPort> inPorts = new ArrayList<>();
 		ElkPort outPort = null;
@@ -523,7 +525,7 @@ public class ElkElementCreator {
 		containerNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_POS);
 		LayoutAlgorithmData algorithmData = LayoutMetaDataService.getInstance().getAlgorithmDataBySuffix("fixed");
 		containerNode.setProperty(CoreOptions.RESOLVED_ALGORITHM, algorithmData);
-		containerNode.setDimensions(10.0 + maxLabelWidth, 10 + 30 * neededOutputs + 10);
+		containerNode.setDimensions(10.0 + maxLabelWidth, verticalLabelSpace + 30 * (neededOutputs - 1) + 15);
 		containerNode.setWidth(10.0 + maxLabelWidth);
 		containerNode.setProperty(CoreOptions.NODE_SIZE_FIXED_GRAPH_SIZE, true);
 
@@ -531,15 +533,16 @@ public class ElkElementCreator {
 			ElkNode newNode = createNewAggNode(containerNode);
 			String currentLabelContent = labelList.get(i);
 
-			double y = 10 + 30 * i;
-			double y_p = 10 + 30 * (i - 1);
-			double y_n = 10 + 30 * (i + 1);
+			double y = verticalLabelSpace + 30 * i;
+			double y_p = verticalLabelSpace + 30 * (i - 1);
+			double y_n = verticalLabelSpace + 30 * (i + 1);
 			double x_r = containerNode.getWidth();
 			double x_i = x_r - 10;
 			double x_l = 0.0d;
 
 
 			newNode.setLocation(x_i, y);
+			newNode.setDimensions(10.0, 10.0);
 
 			ElkPort inPort = createNewAggSplitPort(newNode, PortSide.WEST);
 			inPort.setLocation(0, 0);
