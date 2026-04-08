@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -171,6 +172,30 @@ public class EdgeBundler {
 				// infrastructure of the ELK can be used
 				if (bundleList.stream().allMatch(b -> b.containedRange().singleElement()) && portsInCurrentPortGroup.size() == 1) {
 					continue;
+				}
+
+				// Deduplicate bundles
+				boolean done = false;
+				int index = 1;
+				while (!done && bundleList.size() > 1) {
+					BundleRange existingRange = null;
+
+					for (int j = 0; j < index; j++) {
+						if (new HashSet<>(bundleList.get(j).actualDrivers()).containsAll(bundleList.get(index).actualDrivers())) {
+							existingRange = bundleList.get(j);
+
+							break;
+						}
+					}
+
+					if (existingRange != null) {
+						existingRange.associatedEdges().addAll(bundleList.get(index).associatedEdges());
+						bundleList.remove(index);
+					} else {
+						index++;
+					}
+
+					done = index >= bundleList.size();
 				}
 
 
