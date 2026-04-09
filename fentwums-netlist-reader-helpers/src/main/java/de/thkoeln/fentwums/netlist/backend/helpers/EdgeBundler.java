@@ -179,17 +179,31 @@ public class EdgeBundler {
 				int index = 1;
 				while (!done && bundleList.size() > 1) {
 					BundleRange existingRange = null;
+					BundleRange testedRange = bundleList.get(index);
 
 					for (int j = 0; j < index; j++) {
-						if (new HashSet<>(bundleList.get(j).actualDrivers()).containsAll(bundleList.get(index).actualDrivers())) {
-							existingRange = bundleList.get(j);
+						BundleRange candidate = bundleList.get(j);
 
+						if (testedRange.actualDrivers().size() != candidate.actualDrivers().size()) {
+							continue;
+						}
+
+						if (testedRange.actualDrivers().isEmpty()) {
 							break;
+						}
+
+						existingRange = candidate;
+
+						for (int k = 0; k < testedRange.actualDrivers().size(); k++) {
+							if (!testedRange.actualDrivers().get(k).equals(candidate.actualDrivers().get(k))) {
+								existingRange = null;
+								break;
+							}
 						}
 					}
 
 					if (existingRange != null) {
-						existingRange.associatedEdges().addAll(bundleList.get(index).associatedEdges());
+						existingRange.associatedEdges().addAll(testedRange.associatedEdges());
 						bundleList.remove(index);
 					} else {
 						index++;
