@@ -24,6 +24,8 @@ public class EdgeBundler {
 	public static final Logger logger = LoggerFactory.getLogger(EdgeBundler.class);
 
 	public static void bundleEdges(ElkNode entityInstance, NetlistCreationSettings settings) {
+		List<AggSet> aggSetList = new ArrayList<>();
+
 		// Go through every child cell
 		for (ElkNode childNode : List.of(entityInstance.getChildren().toArray(new ElkNode[0]))) {
 			List<ElkPort> portsToRemoveList = new ArrayList<>();
@@ -285,6 +287,7 @@ public class EdgeBundler {
 						// Draw edge
 						ElkEdge fromAggEdge = ElkElementCreator.createNewEdge(currentPort, agg.outPort());
 						fromAggEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
+						List<Integer> sigbitList = new ArrayList<>();
 
 						for (int i = 0; i < bundleList.size(); i++) {
 							BundleRange currentBundleRange = bundleList.get(i);
@@ -293,12 +296,20 @@ public class EdgeBundler {
 							if (currentBundleRange.containedRange().singleElement()) {
 								ElkEdge exInEdge = agg.inPorts().get(i).getOutgoingEdges().getFirst();
 								exInEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.SINGLE);
+								sigbitList.add(currentBundleRange.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGBIT));
+							} else {
+								for (ElkEdge e : currentBundleRange.associatedEdges()) {
+									sigbitList.add(e.getProperty(FEntwumSOptions.SIGBIT));
+								}
 							}
 
 							// Move the now bundled edges
 							moveEdgesToTarget(currentBundleRange.associatedEdges(), agg.inPorts().get(i));
 						}
-					} else {
+
+						AggSet aggSet = new AggSet(sigbitList, agg.outPort());
+						aggSetList.add(aggSet);
+					} else if (bundleList.size() == 1){
 						// Create direct connection
 						moveEdgesToTarget(bundleList.getFirst().associatedEdges().stream().filter(edge -> !edge.getTargets().getFirst().equals(currentPort)).toList(),
 								currentPort);
