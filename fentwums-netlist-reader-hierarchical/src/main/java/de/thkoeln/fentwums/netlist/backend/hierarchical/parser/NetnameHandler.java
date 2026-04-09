@@ -98,6 +98,7 @@ public class NetnameHandler {
                                 newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, currentIndexInNet);
                                 newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, currentNetName);
                                 newEdge.setProperty(FEntwumSOptions.MSB_FIRST, isReversed);
+                                newEdge.setProperty(FEntwumSOptions.SIGBIT, (int) bit);
 
                                 if (sink.getParent().getProperty(FEntwumSOptions.CELL_TYPE).equals("HDL_ENTITY")
                                         && sink.getProperty(FEntwumSOptions.PORT_TYPE).equals(PortType.SIGNAL_MULTIPLE)
