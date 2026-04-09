@@ -214,6 +214,50 @@ public class EdgeBundler {
 					done = index >= bundleList.size();
 				}
 
+				// Check if the requested signal aggregation has already been created
+				if (currentPort.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)) {
+					if (bundleList.size() > 1) {
+						List<Integer> requestedSigbits = new ArrayList<>();
+
+						for (int i = 0; i < bundleList.size(); i++) {
+							BundleRange currentBundle = bundleList.get(i);
+
+							for (ElkEdge e : currentBundle.associatedEdges()) {
+								requestedSigbits.add(e.getProperty(FEntwumSOptions.SIGBIT));
+							}
+						}
+
+						AggSet existingAgg = null;
+						for (AggSet candidate : aggSetList) {
+							if (candidate.sigbits().size() != requestedSigbits.size()) {
+								continue;
+							}
+
+							if (requestedSigbits.isEmpty()) {
+								break;
+							}
+
+							existingAgg = candidate;
+
+							for (int i = 0; i < requestedSigbits.size(); i++) {
+								if (!candidate.sigbits().get(i).equals(requestedSigbits.get(i))) {
+									existingAgg = null;
+									break;
+								}
+							}
+						}
+
+						if (existingAgg != null) {
+							for (BundleRange b : bundleList) {
+								moveEdgesToSource(b.associatedEdges(), existingAgg.port());
+								moveEdgesToTarget(b.associatedEdges().stream().filter(edge -> !edge.getTargets().getFirst().equals(currentPort)).toList(), currentPort);
+							}
+
+							bundleList.clear();
+						}
+					}
+				}
+
 
 				if (currentPort.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
 					if (bundleList.size() > 1) {
