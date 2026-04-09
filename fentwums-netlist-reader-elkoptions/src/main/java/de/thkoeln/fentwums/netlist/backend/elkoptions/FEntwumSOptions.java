@@ -165,6 +165,14 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 			0
 	);
 
+	/**
+	 * The sigbit associated with this signal in the netlist
+	 */
+	public static final IProperty<Integer> SIGBIT = new Property<Integer>(
+			"de.thkoeln.fentwums.netlist.backend.sigbit",
+			0
+	);
+
 	@Override
 	public void apply(Registry registry) {
 		registry.register(new LayoutOptionData.Builder()
@@ -402,6 +410,16 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 				.defaultValue(0)
 				.type(LayoutOptionData.Type.INT)
 				.targets(EnumSet.of(LayoutOptionData.Target.PORTS))
+				.visibility(LayoutOptionData.Visibility.HIDDEN)
+				.create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+				.id("de.thkoeln.fentwums.netlist.backend.sigbit")
+				.defaultValue(0)
+				.type(LayoutOptionData.Type.INT)
+				.optionClass(Integer.class)
+				.targets(EnumSet.of(LayoutOptionData.Target.EDGES))
 				.visibility(LayoutOptionData.Visibility.HIDDEN)
 				.create()
 		);
