@@ -217,13 +217,25 @@ public class EdgeBundler {
 				// Check if the requested signal aggregation has already been created
 				if (currentPort.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)) {
 					if (bundleList.size() > 1) {
-						List<Integer> requestedSigbits = new ArrayList<>();
+						List<Object> requestedSigbits = new ArrayList<>();
 
 						for (int i = 0; i < bundleList.size(); i++) {
 							BundleRange currentBundle = bundleList.get(i);
 
-							for (ElkEdge e : currentBundle.associatedEdges()) {
-								requestedSigbits.add(e.getProperty(FEntwumSOptions.SIGBIT));
+							int upper = currentBundle.associatedEdges().size();
+
+							for (int j = 0; j < upper; j++) {
+								ElkEdge e = currentBundle.associatedEdges().get(j);
+
+								if (e.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.CONSTANT)
+										|| e.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT)) {
+									ElkLabel l = e.getLabels().getFirst();
+									String c = l.getText();
+
+									requestedSigbits.add(c.charAt(upper - 1 - j));
+								} else {
+									requestedSigbits.add(e.getProperty(FEntwumSOptions.SIGBIT));
+								}
 							}
 						}
 
@@ -332,7 +344,7 @@ public class EdgeBundler {
 						// Draw edge
 						ElkEdge fromAggEdge = ElkElementCreator.createNewEdge(currentPort, agg.outPort());
 						fromAggEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
-						List<Integer> sigbitList = new ArrayList<>();
+						List<Object> sigbitList = new ArrayList<>();
 
 						for (int i = 0; i < bundleList.size(); i++) {
 							BundleRange currentBundleRange = bundleList.get(i);
@@ -341,10 +353,37 @@ public class EdgeBundler {
 							if (currentBundleRange.containedRange().singleElement()) {
 								ElkEdge exInEdge = agg.inPorts().get(i).getOutgoingEdges().getFirst();
 								exInEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.SINGLE);
-								sigbitList.add(currentBundleRange.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGBIT));
-							} else {
-								for (ElkEdge e : currentBundleRange.associatedEdges()) {
+
+								ElkEdge e = currentBundleRange.associatedEdges().getFirst();
+
+								if (e.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.CONSTANT)
+									|| e.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT)) {
+									int upper = currentBundleRange.associatedEdges().size();
+
+									for (int j = 0; j < upper; j++) {
+										ElkLabel l = e.getLabels().getFirst();
+										String c = l.getText();
+
+										sigbitList.add(c.charAt(upper - 1 - j));
+									}
+								} else {
 									sigbitList.add(e.getProperty(FEntwumSOptions.SIGBIT));
+								}
+							} else {
+								int upper = currentBundleRange.associatedEdges().size();
+
+								for (int j = 0; j < upper; j++) {
+									ElkEdge e = currentBundleRange.associatedEdges().get(j);
+
+									if (e.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.CONSTANT)
+											|| e.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT)) {
+										ElkLabel l = e.getLabels().getFirst();
+										String c = l.getText();
+
+										sigbitList.add(c.charAt(upper - 1 - j));
+									} else {
+										sigbitList.add(e.getProperty(FEntwumSOptions.SIGBIT));
+									}
 								}
 							}
 
@@ -459,6 +498,11 @@ public class EdgeBundler {
 
 	private static void moveEdgesToSource(List<ElkEdge> edges, ElkPort sourcePort) {
 		for (ElkEdge edge : edges) {
+			if (edge.getTargets().isEmpty() || edge.getSources().isEmpty()) {
+				// Skip removed edges
+				continue;
+			}
+
 			ElkEdge existingEdge = edgeExists(sourcePort, (ElkPort) edge.getTargets().getFirst());
 
 			if (existingEdge == null) {
@@ -478,6 +522,11 @@ public class EdgeBundler {
 
 	private static void moveEdgesToTarget(List<ElkEdge> edges, ElkPort targetPort) {
 		for (ElkEdge edge : edges) {
+			if (edge.getTargets().isEmpty() || edge.getSources().isEmpty()) {
+				// Skip removed edges
+				continue;
+			}
+
 			ElkEdge existingEdge = edgeExists((ElkPort) edge.getSources().getFirst(), targetPort);
 
 			if (existingEdge == null) {
