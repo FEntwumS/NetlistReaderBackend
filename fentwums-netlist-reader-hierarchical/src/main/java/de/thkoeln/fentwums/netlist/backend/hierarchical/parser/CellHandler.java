@@ -305,7 +305,7 @@ public class CellHandler {
 
                         int portGroupSubdivisionIndex = (constRange.containedRange().lower()) / width;
 
-                        if (hasWidth) {
+                        if (hasWidth && portName.equals("B")) {
                             newPort.setProperty(FEntwumSOptions.PORT_GROUP_SPLIT_INDEX, portGroupSubdivisionIndex);
                         }
 
