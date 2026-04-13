@@ -225,24 +225,8 @@ public class EdgeBundler {
 					if (bundleList.size() > 1) {
 						List<Object> requestedSigbits = new ArrayList<>();
 
-						for (int i = 0; i < bundleList.size(); i++) {
-							BundleRange currentBundle = bundleList.get(i);
-
-							int upper = currentBundle.associatedEdges().size();
-
-							for (int j = 0; j < upper; j++) {
-								ElkEdge e = currentBundle.associatedEdges().get(j);
-
-								if (e.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.CONSTANT)
-										|| e.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT)) {
-									ElkLabel l = e.getLabels().getFirst();
-									String c = l.getText();
-
-									requestedSigbits.add(c.charAt(upper - 1 - j));
-								} else {
-									requestedSigbits.add(e.getProperty(FEntwumSOptions.SIGBIT));
-								}
-							}
+						for (BundleRange currentBundle : bundleList) {
+							requestedSigbits.addAll(getSigBitListFromEdges(currentBundle.associatedEdges()));
 						}
 
 						AggSet existingAgg = null;
@@ -280,24 +264,7 @@ public class EdgeBundler {
 
 				if (currentPort.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
 					if (bundleList.size() > 1) {
-						List<String> strl = bundleList.stream().map(b -> {
-							String ret = "";
-
-							ret += b.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGNAL_NAME);
-							ret += " [";
-
-							if (b.containedRange().singleElement()) {
-								ret += b.containedRange().lower();
-							} else {
-								ret += b.containedRange().upper();
-								ret += ':';
-								ret += b.containedRange().lower();
-							}
-
-							ret += ']';
-
-							return ret;
-						}).toList();
+						List<String> strl = createLabelsFromBundles(bundleList);
 
 						SignalSplit split = ElkElementCreator.createSignalSplit(entityInstance, currentPort,
 								strl, settings);
@@ -325,24 +292,7 @@ public class EdgeBundler {
 					}
 				} else {
 					if (bundleList.size() > 1) {
-						List<String> strl = bundleList.stream().map(b -> {
-							String ret = "";
-
-							ret += b.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGNAL_NAME);
-							ret += " [";
-
-							if (b.containedRange().singleElement()) {
-								ret += b.containedRange().lower();
-							} else {
-								ret += b.containedRange().upper();
-								ret += ':';
-								ret += b.containedRange().lower();
-							}
-
-							ret += ']';
-
-							return ret;
-						}).toList();
+						List<String> strl = createLabelsFromBundles(bundleList);
 
 						SignalAgg agg = ElkElementCreator.createSignalAgg(entityInstance, currentPort,
 								strl, settings);
@@ -376,21 +326,7 @@ public class EdgeBundler {
 									sigbitList.add(e.getProperty(FEntwumSOptions.SIGBIT));
 								}
 							} else {
-								int upper = currentBundleRange.associatedEdges().size();
-
-								for (int j = 0; j < upper; j++) {
-									ElkEdge e = currentBundleRange.associatedEdges().get(j);
-
-									if (e.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.CONSTANT)
-											|| e.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT)) {
-										ElkLabel l = e.getLabels().getFirst();
-										String c = l.getText();
-
-										sigbitList.add(c.charAt(upper - 1 - j));
-									} else {
-										sigbitList.add(e.getProperty(FEntwumSOptions.SIGBIT));
-									}
-								}
+								sigbitList.addAll(getSigBitListFromEdges(currentBundleRange.associatedEdges()));
 							}
 
 							// Move the now bundled edges
@@ -557,5 +493,50 @@ public class EdgeBundler {
 		} else {
 			return matchingEdgeList.getFirst();
 		}
+	}
+
+	private static List<Object> getSigBitListFromEdges(List<ElkEdge> edgeList) {
+		List<Object> sigBitList = new ArrayList<>();
+
+		int upper = edgeList.size();
+
+		for (int j = 0; j < upper; j++) {
+			ElkEdge e = edgeList.get(j);
+
+			if (e.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.CONSTANT)
+					|| e.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT)) {
+				ElkLabel l = e.getLabels().getFirst();
+				String c = l.getText();
+
+				sigBitList.add(c.charAt(upper - 1 - j));
+			} else {
+				sigBitList.add(e.getProperty(FEntwumSOptions.SIGBIT));
+			}
+		}
+
+		return sigBitList;
+	}
+
+	private static List<String> createLabelsFromBundles(List<BundleRange> bundleList) {
+		List<String> strl = bundleList.stream().map(b -> {
+			String ret = "";
+
+			ret += b.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGNAL_NAME);
+			ret += " [";
+
+			if (b.containedRange().singleElement()) {
+				ret += b.containedRange().lower();
+			} else {
+				ret += b.containedRange().upper();
+				ret += ':';
+				ret += b.containedRange().lower();
+			}
+
+			ret += ']';
+
+			return ret;
+		}).toList();
+
+		return strl;
 	}
 }
