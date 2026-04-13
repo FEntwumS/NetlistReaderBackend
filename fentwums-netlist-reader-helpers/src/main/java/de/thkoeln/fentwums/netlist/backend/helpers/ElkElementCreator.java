@@ -372,7 +372,7 @@ public class ElkElementCreator {
 	public static ElkPort createNewAggSplitPort(ElkNode parent, PortSide side) {
 		ElkPort newAggSplitPort = createPort(parent);
 		newAggSplitPort.setProperty(CoreOptions.PORT_SIDE, side);
-		newAggSplitPort.setDimensions(0, 0);
+		newAggSplitPort.setDimensions(10, 10);
 
 		return newAggSplitPort;
 	}
@@ -424,7 +424,8 @@ public class ElkElementCreator {
 			splitLabel.setLocation(3.0, -splitLabel.getHeight());
 
 			ElkPort exOutPort = createNewAggSplitPort(containerNode, PortSide.EAST);
-			exOutPort.setLocation(x_r, y);
+			exOutPort.setLocation(x_r, y - 5.0);
+			exOutPort.setProperty(CoreOptions.PORT_ANCHOR, new KVector(0, 5));
 
 			ElkEdge exOutEdge = createNewEdge(exOutPort, outPort);
 			exOutEdge.setProperty(LayeredOptions.PRIORITY_STRAIGHTNESS, 1000000);
@@ -459,7 +460,8 @@ public class ElkElementCreator {
 				inPort = createNewAggSplitPort(newNode, PortSide.WEST);
 				inPort.setLocation(0, 0);
 				ElkPort exInPort = createNewAggSplitPort(containerNode, PortSide.WEST);
-				exInPort.setLocation(x_l, y);
+				exInPort.setLocation(x_l, y - 5.0);
+				exInPort.setProperty(CoreOptions.PORT_ANCHOR, new KVector(10, 5));
 
 				ElkEdge exInEdge = createNewEdge(inPort, exInPort);
 				exInEdge.setProperty(LayeredOptions.PRIORITY_STRAIGHTNESS, 1000000);
@@ -550,7 +552,8 @@ public class ElkElementCreator {
 			splitLabel.setLocation(-splitLabel.getWidth() - 3.0, -splitLabel.getHeight());
 
 			ElkPort exInPort = createNewAggSplitPort(containerNode, PortSide.WEST);
-			exInPort.setLocation(x_l, y);
+			exInPort.setLocation(x_l, y - 5.0);
+			exInPort.setProperty(CoreOptions.PORT_ANCHOR, new KVector(10, 5));
 
 			ElkEdge exInEdge = createNewEdge(inPort, exInPort);
 			exInEdge.setProperty(LayeredOptions.PRIORITY_STRAIGHTNESS, 1000000);
@@ -583,7 +586,8 @@ public class ElkElementCreator {
 				outPort = createNewAggSplitPort(newNode, PortSide.EAST);
 				outPort.setLocation(0, 0);
 				ElkPort exOutPort = createNewAggSplitPort(containerNode, PortSide.EAST);
-				exOutPort.setLocation(x_r, y);
+				exOutPort.setLocation(x_r, y - 5.0);
+				exOutPort.setProperty(CoreOptions.PORT_ANCHOR, new KVector(0, 5));
 
 				ElkEdge exOutEdge = createNewEdge(exOutPort, outPort);
 				exOutEdge.setProperty(LayeredOptions.PRIORITY_STRAIGHTNESS, 1000000);
