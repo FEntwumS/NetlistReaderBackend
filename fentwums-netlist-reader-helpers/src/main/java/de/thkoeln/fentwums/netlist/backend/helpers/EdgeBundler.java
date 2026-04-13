@@ -112,7 +112,7 @@ public class EdgeBundler {
 						} else {
 							target = edge.getSources().getFirst();
 						}
-						String groupName = target.getProperty(FEntwumSOptions.PORT_GROUP_NAME);
+						String groupName = target.getProperty(FEntwumSOptions.PORT_GROUP_NAME) + target.getProperty(FEntwumSOptions.PORT_GROUP_SPLIT_INDEX);
 						ElkNode targetNode = ((ElkPort) target).getParent();
 
 						if (!sourceSinkGroupMap.containsKey(targetNode)) {
