@@ -12,7 +12,6 @@ import org.eclipse.elk.core.data.LayoutMetaDataService;
 import org.eclipse.elk.core.math.KVector;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.graph.*;
-import org.eclipse.elk.graph.impl.ElkEdgeSectionImpl;
 import org.eclipse.elk.graph.impl.ElkGraphFactoryImpl;
 
 import java.util.*;
