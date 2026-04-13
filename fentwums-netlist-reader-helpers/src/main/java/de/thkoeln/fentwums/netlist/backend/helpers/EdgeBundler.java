@@ -107,11 +107,16 @@ public class EdgeBundler {
 
 					for (ElkEdge edge : edgeList) {
 						ElkConnectableShape target;
+
 						if (isSourcePort) {
 							target = edge.getTargets().getFirst();
 						} else {
 							target = edge.getSources().getFirst();
 						}
+
+						// Use the group name and group subdivision index to group the different ports.
+						// This is necessary for correct bundle creation when a node uses the same signal across
+						// different port group subdivisions
 						String groupName = target.getProperty(FEntwumSOptions.PORT_GROUP_NAME) + target.getProperty(FEntwumSOptions.PORT_GROUP_SPLIT_INDEX);
 						ElkNode targetNode = ((ElkPort) target).getParent();
 
@@ -215,6 +220,7 @@ public class EdgeBundler {
 				}
 
 				// Check if the requested signal aggregation has already been created
+				// If so, re-use it. This greatly reduces clutter when a vector is compared to a lot of different values
 				if (currentPort.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)) {
 					if (bundleList.size() > 1) {
 						List<Object> requestedSigbits = new ArrayList<>();
