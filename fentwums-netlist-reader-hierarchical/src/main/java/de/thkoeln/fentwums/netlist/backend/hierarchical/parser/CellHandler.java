@@ -126,6 +126,8 @@ public class CellHandler {
                         if (internalCellAttributes.containsKey("blackbox")) {
                             newCellNode.setProperty(FEntwumSOptions.CELL_TYPE, cellType);
                             logger.atInfo().setMessage("Cell {} is a primitive").addArgument(cellName).log();
+                            newCellNode.setProperty(FEntwumSOptions.LOCATION_PATH, instancePath + " " + cellName);
+                            newCellNode.setProperty(FEntwumSOptions.CELL_TYPE, "HDL_ENTITY");
                         } else {
                             newCellNode.setProperty(FEntwumSOptions.LOCATION_PATH, instancePath + " " + cellName);
                             newCellNode.setProperty(FEntwumSOptions.CELL_TYPE, "HDL_ENTITY");
