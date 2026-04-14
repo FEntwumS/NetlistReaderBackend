@@ -251,7 +251,7 @@ public class EdgeBundler {
 							if (existingAgg != null) {
 								for (BundleRange b : bundleList) {
 									moveEdgesToSource(b.associatedEdges(), existingAgg.port());
-									moveEdgesToTarget(b.associatedEdges().stream().filter(edge -> !edge.getTargets().getFirst().equals(currentPort)).toList(), currentPort);
+									moveEdgesToTarget(b.associatedEdges().stream().filter(edge -> !edge.getSources().isEmpty() && !edge.getTargets().getFirst().equals(currentPort)).toList(), currentPort);
 								}
 
 								bundleList.clear();
