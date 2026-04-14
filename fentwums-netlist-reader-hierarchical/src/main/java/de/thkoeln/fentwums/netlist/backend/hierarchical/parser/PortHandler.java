@@ -106,17 +106,26 @@ public class PortHandler {
             }
 
             if (instanceConnection.isEmpty()) {
-                logger.atWarn().setMessage("Module type {} port {} has no connections. Skipping...").addArgument(moduleType).addArgument(portname).log();
-                continue;
+                logger.atInfo().setMessage("Module type {} port {} has no connections. Skipping...").addArgument(moduleType).addArgument(portname).log();
             }
 
             for (int i = 0; i < portDrivers.size(); i++) {
-                if (instanceConnection.get(i) instanceof Integer) {
-                    signalIndexList.add(new SignalElement(currentIndexInPort, instanceConnection.get(i),
-                                                          portDrivers.get(i), null));
+                if (i < instanceConnection.size()) {
+                    if (instanceConnection.get(i) instanceof Integer) {
+                        signalIndexList.add(new SignalElement(currentIndexInPort, instanceConnection.get(i),
+                                portDrivers.get(i), null));
+                    } else {
+                        constantSignalIndexList.add(new SignalElement(currentIndexInPort, instanceConnection.get(i),
+                                portDrivers.get(i), null));
+                    }
                 } else {
-                    constantSignalIndexList.add(new SignalElement(currentIndexInPort, instanceConnection.get(i),
-                                                                  portDrivers.get(i), null));
+                    if (portDrivers.get(i) instanceof Integer) {
+                        signalIndexList.add(new SignalElement(currentIndexInPort, null,
+                                portDrivers.get(i), null));
+                    } else {
+                        constantSignalIndexList.add(new SignalElement(currentIndexInPort, null,
+                                portDrivers.get(i), null));
+                    }
                 }
 
                 if (reversedPort) {
@@ -156,20 +165,22 @@ public class PortHandler {
                             settings);
                 }
 
-                for (Object driver : signalRange.internalDrivers()) {
-                    if (driver instanceof Integer) {
-                        signalIndex = (Integer) driver;
+                if (!instanceConnection.isEmpty()) {
+                    for (Object driver : signalRange.internalDrivers()) {
+                        if (driver instanceof Integer) {
+                            signalIndex = (Integer) driver;
 
-                        if (signalMap.containsKey(signalIndex)) {
-                            insertPortIntoMap(signalMap, newPort, signalIndex);
+                            if (signalMap.containsKey(signalIndex)) {
+                                insertPortIntoMap(signalMap, newPort, signalIndex);
+                            } else {
+                                signalMap.put(signalIndex, new SignalOccurences());
+
+                                insertPortIntoMap(signalMap, newPort, signalIndex);
+                            }
                         } else {
-                            signalMap.put(signalIndex, new SignalOccurences());
-
-                            insertPortIntoMap(signalMap, newPort, signalIndex);
+                            logger.atError().setMessage("Cell {} Signal {} is constant but part of \"normal\" range")
+                                    .addArgument(moduleType).addArgument(portname).log();
                         }
-                    } else {
-                        logger.atError().setMessage("Cell {} Signal {} is constant but part of \"normal\" range")
-                                .addArgument(moduleType).addArgument(portname).log();
                     }
                 }
             }
