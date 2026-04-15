@@ -90,6 +90,12 @@ public class EdgeBundler {
 					}
 				}
 
+				if (portsInCurrentPortGroup.isEmpty()) {
+					logger.atWarn().setMessage("Cell {} port group {} subdivision {} has only unconnected ports. Skipping...")
+							.addArgument(childNode.getIdentifier()).addArgument(currentPortGroupName).addArgument(currentPortGroupSubdivision).log();
+					continue;
+				}
+
 				BundleRange coveredRange = RangeCalculator.calculateRanges(coveredSignals, 10000).getFirst();
 
 				HashMap<ElkNode, HashMap<String, List<PortEdgeAssociation>>> sourceSinkGroupMap = new HashMap<>();
