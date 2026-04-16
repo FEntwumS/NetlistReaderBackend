@@ -165,6 +165,11 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 			0
 	);
 
+	public static final IProperty<SignalNameValidityLevel> SIGNAL_NAME_VALIDITY_LEVEL = new Property<SignalNameValidityLevel>(
+			"de.thkoeln.fentwums.netlist.backend.signal-name-validity-level",
+			SignalNameValidityLevel.YOSYS_GENERATED
+	);
+
 	/**
 	 * The sigbit associated with this signal in the netlist
 	 */
@@ -419,6 +424,16 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 				.defaultValue(0)
 				.type(LayoutOptionData.Type.INT)
 				.optionClass(Integer.class)
+				.targets(EnumSet.of(LayoutOptionData.Target.EDGES))
+				.visibility(LayoutOptionData.Visibility.HIDDEN)
+				.create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+				.id("de.thkoeln.fentwums.netlist.backend.signal-name-validity-level")
+				.defaultValue(SignalNameValidityLevel.YOSYS_GENERATED)
+				.type(LayoutOptionData.Type.ENUM)
+				.optionClass(SignalNameValidityLevel.class)
 				.targets(EnumSet.of(LayoutOptionData.Target.EDGES))
 				.visibility(LayoutOptionData.Visibility.HIDDEN)
 				.create()

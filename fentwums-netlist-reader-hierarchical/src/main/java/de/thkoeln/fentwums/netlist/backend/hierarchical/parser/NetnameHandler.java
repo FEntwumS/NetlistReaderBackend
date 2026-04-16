@@ -5,6 +5,7 @@ import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
 import de.thkoeln.fentwums.netlist.backend.datatypes.SignalOccurences;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.PortType;
+import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalNameValidityLevel;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
 import org.eclipse.elk.core.options.CoreOptions;
@@ -14,9 +15,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 public class NetnameHandler {
     private static Logger logger = LoggerFactory.getLogger(NetnameHandler.class);
@@ -33,6 +36,9 @@ public class NetnameHandler {
         int currentIndexInNet;
         ElkPort sourcePort;
         SignalOccurences currentSignalOccurences;
+        List<Integer> currentNetUnusedBits = new ArrayList<>();
+        Pattern ghdlGeneratedSignalPattern = Pattern.compile("\\\\?n[0-9]+(\\.[a-z]+)?$");
+        SignalNameValidityLevel currentNetValidityLevel;
 
         if (signalMap == null) {
             logger.atError().setMessage("signalMap is null for module {} at path {}. Aborting...").addArgument(
@@ -54,8 +60,7 @@ public class NetnameHandler {
             currentNet = (HashMap<String, Object>) netnames.get(currentNetName);
 
             // TODO filter better
-            // hideName = currentNet.containsKey("hide_name") && !currentNet.get("hide_name").equals(0);
-            hideName = true;
+            hideName = currentNet.containsKey("hide_name") && !currentNet.get("hide_name").equals(0);
 
             currentNetBits = (ArrayList<Object>) currentNet.get("bits");
 
@@ -71,6 +76,19 @@ public class NetnameHandler {
                 currentIndexInNet = (int) currentNet.get("offset");
             } else {
                 currentIndexInNet = 0;
+            }
+
+            if (currentNetAttributes.containsKey("unused_bits")) {
+                currentNetUnusedBits = Arrays.stream(((String) currentNetAttributes.get("unused_bits")).split(" ")).map(Integer::parseInt).toList();
+            }
+
+
+            if (hideName) {
+                currentNetValidityLevel = SignalNameValidityLevel.YOSYS_GENERATED;
+            } else if (ghdlGeneratedSignalPattern.matcher(currentNetName).matches()) {
+                currentNetValidityLevel = SignalNameValidityLevel.GHDL_GENERATED;
+            } else {
+                currentNetValidityLevel = SignalNameValidityLevel.USER_CREATED;
             }
 
             isReversed = currentNet.containsKey("upto");
@@ -96,9 +114,12 @@ public class NetnameHandler {
 
                                 newEdge.setProperty(FEntwumSOptions.SRC_LOCATION, currentNetSrc);
                                 newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, currentIndexInNet);
-                                newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, currentNetName);
+                                if (!currentNetUnusedBits.contains(bit)) {
+                                    newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, currentNetName);
+                                }
                                 newEdge.setProperty(FEntwumSOptions.MSB_FIRST, isReversed);
                                 newEdge.setProperty(FEntwumSOptions.SIGBIT, (int) bit);
+                                newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME_VALIDITY_LEVEL, currentNetValidityLevel);
 
                                 if (sink.getParent().getProperty(FEntwumSOptions.CELL_TYPE).equals("HDL_ENTITY")
                                         && sink.getProperty(FEntwumSOptions.PORT_TYPE).equals(PortType.SIGNAL_MULTIPLE)
@@ -109,7 +130,7 @@ public class NetnameHandler {
                                     newEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.SINGLE);
                                 }
 
-                                if (!hideName) {
+                                /*if (!hideName) {
                                     ElkLabel newEdgeLabel = ElkElementCreator.createNewEdgeLabel(currentNetName +
                                                                                                          (currentNetBits.size() ==
                                                                                                                  1 ?
@@ -118,7 +139,7 @@ public class NetnameHandler {
                                                                                                                          currentIndexInNet +
                                                                                                                          "]"),
                                                                                                  newEdge, settings);
-                                }
+                                }*/
                             }
                         }
                     }
