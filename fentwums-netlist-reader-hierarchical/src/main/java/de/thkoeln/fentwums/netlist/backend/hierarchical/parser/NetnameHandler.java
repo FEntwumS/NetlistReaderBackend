@@ -80,6 +80,8 @@ public class NetnameHandler {
 
             if (currentNetAttributes.containsKey("unused_bits")) {
                 currentNetUnusedBits = Arrays.stream(((String) currentNetAttributes.get("unused_bits")).split(" ")).map(Integer::parseInt).toList();
+            } else {
+                currentNetUnusedBits = new ArrayList<>();
             }
 
 
@@ -99,36 +101,35 @@ public class NetnameHandler {
             }
 
             for (Object bit : currentNetBits) {
-                if (bit instanceof Integer) {
-                    currentSignalOccurences = signalMap.get(bit);
-                    if (currentSignalOccurences != null) {
-                        sourcePort = currentSignalOccurences.getSourcePort();
+                if (!currentNetUnusedBits.contains(currentIndexInNet)) {
+                    if (bit instanceof Integer) {
+                        currentSignalOccurences = signalMap.get(bit);
+                        if (currentSignalOccurences != null) {
+                            sourcePort = currentSignalOccurences.getSourcePort();
 
-                        if (sourcePort != null) {
-                            sourcePort.setProperty(FEntwumSOptions.MSB_FIRST, isReversed);
+                            if (sourcePort != null) {
+                                sourcePort.setProperty(FEntwumSOptions.MSB_FIRST, isReversed);
 
-                            for (ElkPort sink : currentSignalOccurences.getSinkPorts()) {
-                                sink.setProperty(FEntwumSOptions.MSB_FIRST, isReversed);
+                                for (ElkPort sink : currentSignalOccurences.getSinkPorts()) {
+                                    sink.setProperty(FEntwumSOptions.MSB_FIRST, isReversed);
 
-                                ElkEdge newEdge = createNewEdge(sink, sourcePort);
+                                    ElkEdge newEdge = createNewEdge(sink, sourcePort);
 
-                                newEdge.setProperty(FEntwumSOptions.SRC_LOCATION, currentNetSrc);
-                                newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, currentIndexInNet);
-                                if (!currentNetUnusedBits.contains(bit)) {
+                                    newEdge.setProperty(FEntwumSOptions.SRC_LOCATION, currentNetSrc);
+                                    newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, currentIndexInNet);
                                     newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, currentNetName);
-                                }
-                                newEdge.setProperty(FEntwumSOptions.MSB_FIRST, isReversed);
-                                newEdge.setProperty(FEntwumSOptions.SIGBIT, (int) bit);
-                                newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME_VALIDITY_LEVEL, currentNetValidityLevel);
+                                    newEdge.setProperty(FEntwumSOptions.MSB_FIRST, isReversed);
+                                    newEdge.setProperty(FEntwumSOptions.SIGBIT, (int) bit);
+                                    newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME_VALIDITY_LEVEL, currentNetValidityLevel);
 
-                                if (sink.getParent().getProperty(FEntwumSOptions.CELL_TYPE).equals("HDL_ENTITY")
-                                        && sink.getProperty(FEntwumSOptions.PORT_TYPE).equals(PortType.SIGNAL_MULTIPLE)
-                                    && sourcePort.getParent().getProperty(FEntwumSOptions.CELL_TYPE).equals("HDL_ENTITY")
-                                    && sourcePort.getProperty(FEntwumSOptions.PORT_TYPE).equals(PortType.SIGNAL_MULTIPLE)) {
-                                    newEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
-                                } else {
-                                    newEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.SINGLE);
-                                }
+                                    if (sink.getParent().getProperty(FEntwumSOptions.CELL_TYPE).equals("HDL_ENTITY")
+                                            && sink.getProperty(FEntwumSOptions.PORT_TYPE).equals(PortType.SIGNAL_MULTIPLE)
+                                            && sourcePort.getParent().getProperty(FEntwumSOptions.CELL_TYPE).equals("HDL_ENTITY")
+                                            && sourcePort.getProperty(FEntwumSOptions.PORT_TYPE).equals(PortType.SIGNAL_MULTIPLE)) {
+                                        newEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
+                                    } else {
+                                        newEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.SINGLE);
+                                    }
 
                                 /*if (!hideName) {
                                     ElkLabel newEdgeLabel = ElkElementCreator.createNewEdgeLabel(currentNetName +
@@ -140,13 +141,14 @@ public class NetnameHandler {
                                                                                                                          "]"),
                                                                                                  newEdge, settings);
                                 }*/
+                                }
                             }
                         }
-                    }
 
-                } else {
-                    logger.atDebug().setMessage("Net {} of module {} contains constant value. Skipping this bit...")
-                            .addArgument(currentNetName).addArgument(moduleName).log();
+                    } else {
+                        logger.atDebug().setMessage("Net {} of module {} contains constant value. Skipping this bit...")
+                                .addArgument(currentNetName).addArgument(moduleName).log();
+                    }
                 }
 
                 if (isReversed) {
