@@ -249,7 +249,7 @@ public class CellHandler {
                         newPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portName);
 
                         if (constRange.containedRange().singleElement()) {
-                            newPort.setProperty(FEntwumSOptions.CANONICAL_INDEX_IN_PORT_GROUP, constRange.containedRange().lower());
+                            newPort.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, constRange.containedRange().lower());
 
                             ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(
                                     portName + (currentCellPortDrivers.size() == 1 ? "" : " [" + (constRange.containedRange().lower()) + "]"), newPort,
