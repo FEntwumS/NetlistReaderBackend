@@ -22,177 +22,196 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 public class NetnameHandler {
-    private static Logger logger = LoggerFactory.getLogger(NetnameHandler.class);
+	private static Logger logger = LoggerFactory.getLogger(NetnameHandler.class);
 
-    public void handleNetnames(HashMap<String, Object> netlist,
-                               ConcurrentHashMap<String, HashMap<Integer, SignalOccurences>> signalMaps,
-                               NetlistCreationSettings settings, ModuleNode currentModuleNode, String moduleName,
-                               String instancePath) {
-        HashMap<String, Object> module, netnames, currentNet, currentNetAttributes;
-        HashMap<Integer, SignalOccurences> signalMap = signalMaps.get(instancePath);
-        boolean hideName, isReversed;
-        List<Object> currentNetBits;
-        String currentNetSrc;
-        int currentIndexInNet;
-        ElkPort sourcePort;
-        SignalOccurences currentSignalOccurences;
-        List<Integer> currentNetUnusedBits = new ArrayList<>();
-        Pattern ghdlGeneratedSignalPattern = Pattern.compile("\\\\?n[0-9]+(\\.[a-z]+)?$");
-        SignalNameValidityLevel currentNetValidityLevel;
+	public void handleNetnames(HashMap<String, Object> netlist,
+							   ConcurrentHashMap<String, HashMap<Integer, SignalOccurences>> signalMaps,
+							   NetlistCreationSettings settings, ModuleNode currentModuleNode, String moduleName,
+							   String instancePath) {
+		HashMap<String, Object> module, netnames, currentNet, currentNetAttributes;
+		HashMap<Integer, SignalOccurences> signalMap = signalMaps.get(instancePath);
+		boolean hideName, isReversed;
+		List<Object> currentNetBits;
+		String currentNetSrc;
+		int currentIndexInNet;
+		ElkPort sourcePort;
+		SignalOccurences currentSignalOccurences;
+		List<Integer> currentNetUnusedBits = new ArrayList<>();
+		Pattern ghdlGeneratedSignalPattern = Pattern.compile("\\\\?n[0-9]+(\\.[a-z]+)?$");
+		SignalNameValidityLevel currentNetValidityLevel;
 
-        if (signalMap == null) {
-            logger.atError().setMessage("signalMap is null for module {} at path {}. Aborting...").addArgument(
-                    moduleName).addArgument(instancePath).log();
-            return;
-        }
+		if (signalMap == null) {
+			logger.atError().setMessage("signalMap is null for module {} at path {}. Aborting...").addArgument(
+					moduleName).addArgument(instancePath).log();
+			return;
+		}
 
-        module = (HashMap<String, Object>) netlist.get(moduleName);
+		module = (HashMap<String, Object>) netlist.get(moduleName);
 
-        if (module == null) {
-            logger.atError().setMessage("Could not find module {} in Netlist. Aborting...").addArgument(moduleName)
-                    .log();
-            return;
-        }
+		if (module == null) {
+			logger.atError().setMessage("Could not find module {} in Netlist. Aborting...").addArgument(moduleName)
+					.log();
+			return;
+		}
 
-        netnames = (HashMap<String, Object>) module.get("netnames");
+		netnames = (HashMap<String, Object>) module.get("netnames");
 
-        for (String currentNetName : netnames.keySet()) {
-            currentNet = (HashMap<String, Object>) netnames.get(currentNetName);
+		for (String currentNetName : netnames.keySet()) {
+			currentNet = (HashMap<String, Object>) netnames.get(currentNetName);
 
-            // TODO filter better
-            hideName = currentNet.containsKey("hide_name") && !currentNet.get("hide_name").equals(0);
+			// TODO filter better
+			hideName = currentNet.containsKey("hide_name") && !currentNet.get("hide_name").equals(0);
 
-            currentNetBits = (ArrayList<Object>) currentNet.get("bits");
+			currentNetBits = (ArrayList<Object>) currentNet.get("bits");
 
-            currentNetAttributes = (HashMap<String, Object>) currentNet.get("attributes");
+			currentNetAttributes = (HashMap<String, Object>) currentNet.get("attributes");
 
-            if (currentNetAttributes.containsKey("src")) {
-                currentNetSrc = (String) currentNetAttributes.get("src");
-            } else {
-                currentNetSrc = "";
-            }
+			if (currentNetAttributes.containsKey("src")) {
+				currentNetSrc = (String) currentNetAttributes.get("src");
+			} else {
+				currentNetSrc = "";
+			}
 
-            if (currentNet.containsKey("offset")) {
-                currentIndexInNet = (int) currentNet.get("offset");
-            } else {
-                currentIndexInNet = 0;
-            }
+			if (currentNet.containsKey("offset")) {
+				currentIndexInNet = (int) currentNet.get("offset");
+			} else {
+				currentIndexInNet = 0;
+			}
 
-            if (currentNetAttributes.containsKey("unused_bits")) {
-                currentNetUnusedBits = Arrays.stream(((String) currentNetAttributes.get("unused_bits")).split(" ")).map(Integer::parseInt).toList();
-            } else {
-                currentNetUnusedBits = new ArrayList<>();
-            }
+			if (currentNetAttributes.containsKey("unused_bits")) {
+				currentNetUnusedBits =
+						Arrays.stream(((String) currentNetAttributes.get("unused_bits")).split(" ")).map(Integer::parseInt).toList();
+			} else {
+				currentNetUnusedBits = new ArrayList<>();
+			}
 
 
-            if (hideName) {
-                currentNetValidityLevel = SignalNameValidityLevel.YOSYS_GENERATED;
-            } else if (ghdlGeneratedSignalPattern.matcher(currentNetName).matches()) {
-                currentNetValidityLevel = SignalNameValidityLevel.GHDL_GENERATED;
-            } else {
-                currentNetValidityLevel = SignalNameValidityLevel.USER_CREATED;
-            }
+			if (hideName) {
+				currentNetValidityLevel = SignalNameValidityLevel.YOSYS_GENERATED;
+			} else if (ghdlGeneratedSignalPattern.matcher(currentNetName).matches()) {
+				currentNetValidityLevel = SignalNameValidityLevel.GHDL_GENERATED;
+			} else {
+				currentNetValidityLevel = SignalNameValidityLevel.USER_CREATED;
+			}
 
-            isReversed = currentNet.containsKey("upto");
+			isReversed = currentNet.containsKey("upto");
 
-            if (isReversed) {
-                currentNetBits = (List<Object>) currentNetBits.reversed();
-                currentIndexInNet += currentNetBits.size() - 1;
-            }
+			if (isReversed) {
+				currentNetBits = (List<Object>) currentNetBits.reversed();
+				currentIndexInNet += currentNetBits.size() - 1;
+			}
 
-            for (Object bit : currentNetBits) {
-                if (!currentNetUnusedBits.contains(currentIndexInNet)) {
-                    if (bit instanceof Integer) {
-                        currentSignalOccurences = signalMap.get(bit);
-                        if (currentSignalOccurences != null) {
-                            sourcePort = currentSignalOccurences.getSourcePort();
+			for (Object bit : currentNetBits) {
+				if (!currentNetUnusedBits.contains(currentIndexInNet)) {
+					if (bit instanceof Integer) {
+						currentSignalOccurences = signalMap.get(bit);
+						if (currentSignalOccurences != null) {
+							sourcePort = currentSignalOccurences.getSourcePort();
 
-                            if (sourcePort != null) {
-                                sourcePort.setProperty(FEntwumSOptions.MSB_FIRST, isReversed);
+							if (sourcePort != null) {
+								sourcePort.setProperty(FEntwumSOptions.MSB_FIRST, isReversed);
 
-                                for (ElkPort sink : currentSignalOccurences.getSinkPorts()) {
-                                    sink.setProperty(FEntwumSOptions.MSB_FIRST, isReversed);
+								for (ElkPort sink : currentSignalOccurences.getSinkPorts()) {
+									sink.setProperty(FEntwumSOptions.MSB_FIRST, isReversed);
 
-                                    ElkEdge newEdge = createNewEdge(sink, sourcePort);
+									ElkEdge newEdge = createNewEdge(sink, sourcePort);
 
-                                    newEdge.setProperty(FEntwumSOptions.SRC_LOCATION, currentNetSrc);
-                                    newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, currentIndexInNet);
-                                    newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, currentNetName);
-                                    newEdge.setProperty(FEntwumSOptions.MSB_FIRST, isReversed);
-                                    newEdge.setProperty(FEntwumSOptions.SIGBIT, (int) bit);
-                                    newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME_VALIDITY_LEVEL, currentNetValidityLevel);
+									newEdge.setProperty(FEntwumSOptions.SRC_LOCATION, currentNetSrc);
+									newEdge.setProperty(FEntwumSOptions.INDEX_IN_SIGNAL, currentIndexInNet);
 
-                                    if (sink.getParent().getProperty(FEntwumSOptions.CELL_TYPE).equals("HDL_ENTITY")
-                                            && sink.getProperty(FEntwumSOptions.PORT_TYPE).equals(PortType.SIGNAL_MULTIPLE)
-                                            && sourcePort.getParent().getProperty(FEntwumSOptions.CELL_TYPE).equals("HDL_ENTITY")
-                                            && sourcePort.getProperty(FEntwumSOptions.PORT_TYPE).equals(PortType.SIGNAL_MULTIPLE)) {
-                                        newEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
-                                    } else {
-                                        newEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.SINGLE);
-                                    }
+									if (newEdge.getProperty(FEntwumSOptions.SIGNAL_NAME).isEmpty()) {
+										newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, currentNetName);
+										newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME_VALIDITY_LEVEL,
+												currentNetValidityLevel);
+									} else if (newEdge.getProperty(FEntwumSOptions.SIGNAL_NAME_VALIDITY_LEVEL).equals(SignalNameValidityLevel.YOSYS_GENERATED) && currentNetValidityLevel != SignalNameValidityLevel.YOSYS_GENERATED ||
+											newEdge.getProperty(FEntwumSOptions.SIGNAL_NAME_VALIDITY_LEVEL).equals(SignalNameValidityLevel.GHDL_GENERATED) && currentNetValidityLevel == SignalNameValidityLevel.USER_CREATED) {
+										newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, currentNetName);
+										newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME_VALIDITY_LEVEL,
+												currentNetValidityLevel);
+									} else if (newEdge.getProperty(FEntwumSOptions.SIGNAL_NAME_VALIDITY_LEVEL).equals(SignalNameValidityLevel.USER_CREATED) && currentNetValidityLevel == SignalNameValidityLevel.USER_CREATED) {
+										newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME, newEdge.getProperty(FEntwumSOptions.SIGNAL_NAME) + ':' + currentNetName);
+									}
 
-                                /*if (!hideName) {
-                                    ElkLabel newEdgeLabel = ElkElementCreator.createNewEdgeLabel(currentNetName +
-                                                                                                         (currentNetBits.size() ==
-                                                                                                                 1 ?
-                                                                                                                 "" :
-                                                                                                                 " [" +
-                                                                                                                         currentIndexInNet +
-                                                                                                                         "]"),
-                                                                                                 newEdge, settings);
-                                }*/
-                                }
-                            }
-                        }
+									newEdge.setProperty(FEntwumSOptions.MSB_FIRST, isReversed);
+									newEdge.setProperty(FEntwumSOptions.SIGBIT, (int) bit);
+									newEdge.setProperty(FEntwumSOptions.SIGNAL_NAME_VALIDITY_LEVEL,
+											currentNetValidityLevel);
 
-                    } else {
-                        logger.atDebug().setMessage("Net {} of module {} contains constant value. Skipping this bit...")
-                                .addArgument(currentNetName).addArgument(moduleName).log();
-                    }
-                }
+									if (sink.getParent().getProperty(FEntwumSOptions.CELL_TYPE).equals("HDL_ENTITY")
+											&& sink.getProperty(FEntwumSOptions.PORT_TYPE).equals(PortType.SIGNAL_MULTIPLE)
+											&& sourcePort.getParent().getProperty(FEntwumSOptions.CELL_TYPE).equals(
+													"HDL_ENTITY")
+											&& sourcePort.getProperty(FEntwumSOptions.PORT_TYPE).equals(PortType.SIGNAL_MULTIPLE)) {
+										newEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
+									} else {
+										newEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.SINGLE);
+									}
 
-                if (isReversed) {
-                    currentIndexInNet--;
-                } else {
-                    currentIndexInNet++;
-                }
-            }
-        }
+									/*if (!hideName) {
 
-        // Now check for inside self loops
-        // All matches are marked appropriately
-        ElkNode currentNode = currentModuleNode.getNode();
+										List<ElkLabel> existingLabelList = newEdge.getLabels();
 
-        for (int index : signalMap.keySet()) {
-            SignalOccurences signalOccurences = signalMap.get(index);
+										if (existingLabelList.isEmpty()) {
+											ElkLabel newEdgeLabel = ElkElementCreator.createNewEdgeLabel(newEdge.getProperty(FEntwumSOptions.SIGNAL_NAME) +
+															(currentNetBits.size() == 1 ? "" : " [" + currentIndexInNet + "]"), newEdge, settings);
+										} else {
+											existingLabelList.getFirst().setText(newEdge.getProperty(FEntwumSOptions.SIGNAL_NAME) +
+													(currentNetBits.size() == 1 ? "" : " [" + currentIndexInNet + "]"));
+										}
+									}*/
+								}
+							}
+						}
 
-            ElkPort source = signalOccurences.getSourcePort();
+					} else {
+						logger.atDebug().setMessage("Net {} of module {} contains constant value. Skipping this bit." +
+										"..")
+								.addArgument(currentNetName).addArgument(moduleName).log();
+					}
+				}
 
-            if (source == null) {
-                continue;
-            }
+				if (isReversed) {
+					currentIndexInNet--;
+				} else {
+					currentIndexInNet++;
+				}
+			}
+		}
 
-            if (source.getProperty(CoreOptions.PORT_SIDE) != PortSide.WEST || source.getParent() != currentNode) {
-                continue;
-            }
+		// Now check for inside self loops
+		// All matches are marked appropriately
+		ElkNode currentNode = currentModuleNode.getNode();
 
-            for (ElkEdge candidate : source.getOutgoingEdges()) {
-                ElkPort sink = (ElkPort) candidate.getTargets().getFirst();
+		for (int index : signalMap.keySet()) {
+			SignalOccurences signalOccurences = signalMap.get(index);
 
-                if (sink.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST && sink.getParent() == currentNode) {
-                    candidate.setProperty(CoreOptions.INSIDE_SELF_LOOPS_YO, true);
-                }
-            }
-        }
-    }
+			ElkPort source = signalOccurences.getSourcePort();
 
-    private ElkEdge createNewEdge(ElkPort sink, ElkPort source) {
-        for (ElkEdge edge : source.getOutgoingEdges()) {
-            if (edge.getTargets().getFirst().equals(sink)) {
-                return edge;
-            }
-        }
+			if (source == null) {
+				continue;
+			}
 
-        return ElkElementCreator.createNewEdge(sink, source);
-    }
+			if (source.getProperty(CoreOptions.PORT_SIDE) != PortSide.WEST || source.getParent() != currentNode) {
+				continue;
+			}
+
+			for (ElkEdge candidate : source.getOutgoingEdges()) {
+				ElkPort sink = (ElkPort) candidate.getTargets().getFirst();
+
+				if (sink.getProperty(CoreOptions.PORT_SIDE) == PortSide.EAST && sink.getParent() == currentNode) {
+					candidate.setProperty(CoreOptions.INSIDE_SELF_LOOPS_YO, true);
+				}
+			}
+		}
+	}
+
+	private ElkEdge createNewEdge(ElkPort sink, ElkPort source) {
+		List<ElkEdge> existingEdgeList = source.getOutgoingEdges().stream().filter(e -> e.getTargets().getFirst().equals(sink)).toList();
+
+		if (!existingEdgeList.isEmpty()) {
+			return existingEdgeList.getFirst();
+		}
+
+		return ElkElementCreator.createNewEdge(sink, source);
+	}
 }
