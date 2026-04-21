@@ -148,6 +148,9 @@ public class PortHandler {
                 if (signalRange.containedRange().singleElement()) {
                     // newPort.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, (int) signalRange.drivers().getFirst());
                     newPort.setProperty(FEntwumSOptions.CANONICAL_INDEX_IN_PORT_GROUP, signalRange.containedRange().lower());
+                    newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_LOWER_INDEX_IN_PORT_GROUP,
+                            signalRange.containedRange().lower());
+                    newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP, signalRange.containedRange().upper());
                     newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.SIGNAL_SINGLE);
 
                     ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(
@@ -198,6 +201,8 @@ public class PortHandler {
 
                 if (constRange.containedRange().singleElement()) {
                     newPort.setProperty(FEntwumSOptions.CANONICAL_INDEX_IN_PORT_GROUP, constRange.containedRange().lower());
+                    newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_LOWER_INDEX_IN_PORT_GROUP, constRange.containedRange().lower());
+                    newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP, constRange.containedRange().upper());
 
                     ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(
                             portname + (portDrivers.size() == 1 ? "" : " [" + (constRange.containedRange().lower()) + "]"), newPort,

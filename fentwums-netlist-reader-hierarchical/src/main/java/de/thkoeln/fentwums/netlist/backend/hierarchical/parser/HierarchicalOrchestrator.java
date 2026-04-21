@@ -93,6 +93,7 @@ public class HierarchicalOrchestrator implements IGraphCreator {
         ((ModuleNode) rootNode).setAsLoaded();
 
         EdgeBundler.bundleEdges(topNode, settings);
+        EdgeBundler.fixHierarchyCrossings(topNode, settings);
 
         if (settings.getPerformanceTarget() == PerformanceTarget.Preloading) {
             for (String child : rootNode.getChildren().keySet()) {
@@ -153,6 +154,7 @@ public class HierarchicalOrchestrator implements IGraphCreator {
         currentModuleNode.setAsLoaded();
 
         EdgeBundler.bundleEdges(currentModuleNode.getNode(), settings);
+        EdgeBundler.fixHierarchyCrossings(currentModuleNode.getNode(), settings);
 
         for (String child : currentModuleNode.getChildren().keySet()) {
             addModulesRecursively(modules, blackBoxes, settings, (ModuleNode) currentModuleNode.getChildren().get(child),
@@ -174,6 +176,7 @@ public class HierarchicalOrchestrator implements IGraphCreator {
         toLoad.setAsLoaded();
 
         EdgeBundler.bundleEdges(toLoad.getNode(), this.settings);
+        EdgeBundler.fixHierarchyCrossings(toLoad.getNode(), this.settings);
 
         collapser.collapseRecursively(toLoad);
 

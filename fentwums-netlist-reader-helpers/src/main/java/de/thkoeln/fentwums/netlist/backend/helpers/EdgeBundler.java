@@ -418,6 +418,57 @@ public class EdgeBundler {
 		}
 	}
 
+	public static void fixHierarchyCrossings(ElkNode entityInstance, NetlistCreationSettings settings) {
+		for (ElkPort p : entityInstance.getPorts()) {
+			List<ElkEdge> edgeList = null;
+			if (p.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)) {
+				edgeList = p.getOutgoingEdges();
+			} else {
+				edgeList = p.getIncomingEdges();
+			}
+
+			// Skip ports with only single edges, since the edges are not ambiguous
+			if (edgeList.stream().noneMatch(e-> e.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED) || e.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT))) {
+				continue;
+			}
+
+			if (edgeList.isEmpty() || edgeList.size() == 1) {
+				continue;
+			}
+
+			List<String> dl = new ArrayList<>(1);
+			for(ElkEdge e : edgeList) {
+				dl.add("");
+			}
+
+			if (p.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)) {
+				SignalSplit split = ElkElementCreator.createSignalSplit(entityInstance, p, dl, settings);
+
+				int upper = edgeList.size();
+
+				for (int i = 0; i < upper; i++) {
+					moveEdgeToSource(edgeList.getFirst(), split.outPorts().get(i));
+				}
+
+				// Add connection to entity inport
+				ElkEdge newEdge = ElkElementCreator.createNewEdge(split.inPort(), p);
+				newEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
+			} else {
+				SignalAgg agg = ElkElementCreator.createSignalAgg(entityInstance, p, dl, settings);
+
+				int upper = edgeList.size();
+
+				for (int i = 0; i < upper; i++) {
+					moveEdgeToTarget(edgeList.getFirst(), agg.inPorts().get(i));
+				}
+
+				// Add connection to entity outport
+				ElkEdge newEdge = ElkElementCreator.createNewEdge(p, agg.outPort());
+				newEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
+			}
+		}
+	}
+
 	private static void removeEdgesFromGraph(List<ElkEdge> edges) {
 		for (ElkEdge edge : edges) {
 			removeEdgeFromGraph(edge);
@@ -446,48 +497,55 @@ public class EdgeBundler {
 
 	private static void moveEdgesToSource(List<ElkEdge> edges, ElkPort sourcePort) {
 		for (ElkEdge edge : edges) {
-			if (edge.getTargets().isEmpty() || edge.getSources().isEmpty()) {
-				// Skip removed edges
-				continue;
-			}
-
-			ElkEdge existingEdge = edgeExists(sourcePort, (ElkPort) edge.getTargets().getFirst());
-
-			if (existingEdge == null) {
-				edge.getSources().getFirst().getOutgoingEdges().remove(edge);
-				edge.getSources().clear();
-				edge.getSources().add(sourcePort);
-
-				sourcePort.getOutgoingEdges().add(edge);
-			} else if (!edge.equals(existingEdge)) {
-				removeEdgeFromGraph(edge);
-
-				existingEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
-			}
+			moveEdgeToSource(edge, sourcePort);
 		}
 	}
 
+	private static void moveEdgeToSource(ElkEdge edge, ElkPort sourcePort) {
+		if (edge.getTargets().isEmpty() || edge.getSources().isEmpty()) {
+			// Skip removed edges
+			return;
+		}
+
+		ElkEdge existingEdge = edgeExists(sourcePort, (ElkPort) edge.getTargets().getFirst());
+
+		if (existingEdge == null) {
+			edge.getSources().getFirst().getOutgoingEdges().remove(edge);
+			edge.getSources().clear();
+			edge.getSources().add(sourcePort);
+
+			sourcePort.getOutgoingEdges().add(edge);
+		} else if (!edge.equals(existingEdge)) {
+			removeEdgeFromGraph(edge);
+
+			existingEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
+		}
+	}
 
 	private static void moveEdgesToTarget(List<ElkEdge> edges, ElkPort targetPort) {
 		for (ElkEdge edge : edges) {
-			if (edge.getTargets().isEmpty() || edge.getSources().isEmpty()) {
-				// Skip removed edges
-				continue;
-			}
+			moveEdgeToTarget(edge, targetPort);
+		}
+	}
 
-			ElkEdge existingEdge = edgeExists((ElkPort) edge.getSources().getFirst(), targetPort);
+	private static void moveEdgeToTarget(ElkEdge edge, ElkPort targetPort) {
+		if (edge.getTargets().isEmpty() || edge.getSources().isEmpty()) {
+			// Skip removed edges
+			return;
+		}
 
-			if (existingEdge == null) {
-				edge.getTargets().getFirst().getIncomingEdges().remove(edge);
-				edge.getTargets().clear();
-				edge.getTargets().add(targetPort);
+		ElkEdge existingEdge = edgeExists((ElkPort) edge.getSources().getFirst(), targetPort);
 
-				targetPort.getIncomingEdges().add(edge);
-			} else if (!edge.equals(existingEdge)) {
-				removeEdgeFromGraph(edge);
+		if (existingEdge == null) {
+			edge.getTargets().getFirst().getIncomingEdges().remove(edge);
+			edge.getTargets().clear();
+			edge.getTargets().add(targetPort);
 
-				existingEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
-			}
+			targetPort.getIncomingEdges().add(edge);
+		} else if (!edge.equals(existingEdge)) {
+			removeEdgeFromGraph(edge);
+
+			existingEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 		}
 	}
 
