@@ -436,13 +436,13 @@ public class EdgeBundler {
 				continue;
 			}
 
-			List<String> dl = new ArrayList<>(1);
+			List<String> labelList = new ArrayList<>(1);
 			for(ElkEdge e : edgeList) {
-				dl.add("");
+				labelList.add(p.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
 			}
 
 			if (p.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)) {
-				SignalSplit split = ElkElementCreator.createSignalSplit(entityInstance, p, dl, settings);
+				SignalSplit split = ElkElementCreator.createSignalSplit(entityInstance, p, labelList, settings);
 
 				int upper = edgeList.size();
 
@@ -454,7 +454,7 @@ public class EdgeBundler {
 				ElkEdge newEdge = ElkElementCreator.createNewEdge(split.inPort(), p);
 				newEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 			} else {
-				SignalAgg agg = ElkElementCreator.createSignalAgg(entityInstance, p, dl, settings);
+				SignalAgg agg = ElkElementCreator.createSignalAgg(entityInstance, p, labelList, settings);
 
 				int upper = edgeList.size();
 
