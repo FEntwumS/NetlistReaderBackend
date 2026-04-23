@@ -256,6 +256,14 @@ public class EdgeBundler {
 
 							if (existingAgg != null) {
 								for (BundleRange b : bundleList) {
+									// A preexisting bundle may lead to a constant being no longer necessary
+									if (b.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.CONSTANT)
+											|| b.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT)) {
+										ElkNode constNode = ((ElkPort) b.associatedEdges().getFirst().getSources().getFirst()).getParent();
+										constNode.getParent().getChildren().remove(constNode);
+										constNode.setParent(null);
+									}
+
 									moveEdgesToSource(b.associatedEdges(), existingAgg.port());
 									moveEdgesToTarget(b.associatedEdges().stream().filter(edge -> !edge.getSources().isEmpty() && !edge.getTargets().getFirst().equals(currentPort)).toList(), currentPort);
 								}
@@ -418,6 +426,13 @@ public class EdgeBundler {
 		}
 	}
 
+	// Special fixup pass for hierarchy-crossing signals
+	// They require special handling due to loading behavior:
+	// All modes except for Preloading require finished instance interfaces for good display. The bundled interface may
+	// therefore be needed before the constituent edges are available.
+	//
+ 	// The fixup needs to be run _AFTER_ the "normal" bundling pass. This is required for the correct creation of the
+	// necessary splitter and aggregator nodes
 	public static void fixHierarchyCrossings(ElkNode entityInstance, NetlistCreationSettings settings) {
 		for (ElkPort p : entityInstance.getPorts()) {
 			List<ElkEdge> edgeList = null;
