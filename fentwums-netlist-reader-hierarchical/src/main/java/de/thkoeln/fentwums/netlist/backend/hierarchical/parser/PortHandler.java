@@ -109,6 +109,8 @@ public class PortHandler {
                 logger.atInfo().setMessage("Module type {} port {} has no connections. Skipping...").addArgument(moduleType).addArgument(portname).log();
             }
 
+            int lower = currentIndexInPort;
+
             for (int i = 0; i < portDrivers.size(); i++) {
                 if (i < instanceConnection.size()) {
                     if (instanceConnection.get(i) instanceof Integer) {
@@ -137,37 +139,46 @@ public class PortHandler {
                 }
             }
 
+            int upper = currentIndexInPort - 1;
+
             List<BundleRange> signalRanges = RangeCalculator.calculateRanges(signalIndexList, 10000);
             List<BundleRange> constRanges = RangeCalculator.calculateRanges(constantSignalIndexList, 10000);
 
+            ElkPort newPort = ElkElementCreator.createNewPort(currentNode, createdPortSide);
+            newPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portname);
+
+            if (portDrivers.size() > 1) {
+                newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.SIGNAL_MULTIPLE);
+            } else {
+                if (signalRanges.isEmpty()) {
+                    newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
+                } else {
+                    newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.SIGNAL_SINGLE);
+                }
+            }
+
+            if (reversedPort) {
+                newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_LOWER_INDEX_IN_PORT_GROUP, upper);
+                newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP, lower);
+
+                if (lower != upper) {
+                    ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(portname + " [" + upper + ":" + lower + "]",newPort, settings);
+                } else {
+                    ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(portname, newPort, settings);
+                }
+            } else {
+                newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_LOWER_INDEX_IN_PORT_GROUP, lower);
+                newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP, upper);
+
+                if (lower != upper) {
+                    ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(portname + " [" + lower + ":" + upper + "]",newPort, settings);
+                } else {
+                    ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(portname, newPort, settings);
+                }
+            }
+
             // First create ports for "normal" signals
             for (BundleRange signalRange : signalRanges) {
-                ElkPort newPort = ElkElementCreator.createNewPort(currentNode, createdPortSide);
-                newPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portname);
-
-                if (signalRange.containedRange().singleElement()) {
-                    // newPort.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, (int) signalRange.drivers().getFirst());
-                    newPort.setProperty(FEntwumSOptions.CANONICAL_INDEX_IN_PORT_GROUP, signalRange.containedRange().lower());
-                    newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_LOWER_INDEX_IN_PORT_GROUP,
-                            signalRange.containedRange().lower());
-                    newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP, signalRange.containedRange().upper());
-                    newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.SIGNAL_SINGLE);
-
-                    ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(
-                            portname + (portDrivers.size() == 1 ? "" : " [" + (signalRange.containedRange().lower()) + "]"), newPort,
-                            settings);
-                } else {
-                    // Add contained range data to port
-                    newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_LOWER_INDEX_IN_PORT_GROUP,
-                                        signalRange.containedRange().lower());
-                    newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP, signalRange.containedRange().upper());
-                    newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.SIGNAL_MULTIPLE);
-
-                    ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(
-                            portname + (reversedPort ? " [" + (signalRange.containedRange().lower()) + ":" + (signalRange.containedRange().upper()) : " [" + (signalRange.containedRange().upper()) + ":" + (signalRange.containedRange().lower())) + "]", newPort,
-                            settings);
-                }
-
                 if (!instanceConnection.isEmpty()) {
                     for (Object driver : signalRange.internalDrivers()) {
                         if (driver instanceof Integer) {
@@ -195,26 +206,6 @@ public class PortHandler {
                 ElkPort constPort;
                 ElkPort source, sink;
                 ElkNode constNode;
-
-                ElkPort newPort = ElkElementCreator.createNewPort(currentNode, createdPortSide);
-                newPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portname);
-
-                if (constRange.containedRange().singleElement()) {
-                    newPort.setProperty(FEntwumSOptions.CANONICAL_INDEX_IN_PORT_GROUP, constRange.containedRange().lower());
-                    newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_LOWER_INDEX_IN_PORT_GROUP, constRange.containedRange().lower());
-                    newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP, constRange.containedRange().upper());
-
-                    ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(
-                            portname + (portDrivers.size() == 1 ? "" : " [" + (constRange.containedRange().lower()) + "]"), newPort,
-                            settings);
-                } else {
-                    newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_LOWER_INDEX_IN_PORT_GROUP, constRange.containedRange().lower());
-                    newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP, constRange.containedRange().upper());
-
-                    ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(
-                            portname + (reversedPort ? " [" + (constRange.containedRange().lower()) + ":" + (constRange.containedRange().upper()) : " [" + (constRange.containedRange().upper()) + ":" + (constRange.containedRange().lower())) + "]", newPort,
-                            settings);
-                }
 
                 StringBuilder constantValues = new StringBuilder();
 
@@ -257,17 +248,21 @@ public class PortHandler {
                     sink = newPort;
                 }
 
-                if (portDrivers.size() == 1) {
-                    newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
-                    constNode.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
-                } else {
-                    newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_MULTIPLE);
-                    constNode.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_MULTIPLE);
-                }
+//                if (portDrivers.size() == 1) {
+//                    newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
+//                    constNode.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
+//                } else {
+//                    newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_MULTIPLE);
+//                    constNode.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_MULTIPLE);
+//                }
 
                 // Add connection
                 ElkEdge constEdge = ElkElementCreator.createNewEdge(sink, source);
-                constEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.CONSTANT);
+                if (constRange.containedRange().singleElement()) {
+                    constEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.CONSTANT);
+                } else {
+                    constEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED_CONSTANT);
+                }
 
                 ElkLabel constEdgeLabel = ElkElementCreator.createNewEdgeLabel(constantValues.toString(), constEdge,
                                                                                settings);
