@@ -178,6 +178,21 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 			0
 	);
 
+	public static final IProperty<Boolean> SCAFFOLDING_ELEMENT = new Property<Boolean>(
+			"de.thkoeln.fentwums.netlist.backend.scaffolding-element",
+			false
+	);
+
+	public static final IProperty<Boolean> NO_TIP = new Property<Boolean>(
+			"de.thkoeln.fentwums.netlist.backend.no-tip",
+			false
+	);
+
+	public static final IProperty<Boolean> USE_SQUARE_JUNCTIONS = new Property<Boolean> (
+			"de.thkoeln.fentwums.netlist.backend.use-square-junctions",
+			false
+	);
+
 	@Override
 	public void apply(Registry registry) {
 		registry.register(new LayoutOptionData.Builder()
@@ -434,6 +449,36 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 				.defaultValue(SignalNameValidityLevel.YOSYS_GENERATED)
 				.type(LayoutOptionData.Type.ENUM)
 				.optionClass(SignalNameValidityLevel.class)
+				.targets(EnumSet.of(LayoutOptionData.Target.EDGES))
+				.visibility(LayoutOptionData.Visibility.HIDDEN)
+				.create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+				.id("de.thkoeln.fentwums.netlist.backend.scaffolding-element")
+				.defaultValue(false)
+				.type(LayoutOptionData.Type.BOOLEAN)
+				.optionClass(Boolean.class)
+				.targets(EnumSet.allOf(LayoutOptionData.Target.class))
+				.visibility(LayoutOptionData.Visibility.HIDDEN)
+				.create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+				.id("de.thkoeln.fentwums.netlist.backend.no-tip")
+				.defaultValue(false)
+				.type(LayoutOptionData.Type.BOOLEAN)
+				.optionClass(Boolean.class)
+				.targets(EnumSet.of(LayoutOptionData.Target.EDGES))
+				.visibility(LayoutOptionData.Visibility.HIDDEN)
+				.create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+				.id("de.thkoeln.fentwums.netlist.backend.use-square-junctions")
+				.defaultValue(false)
+				.type(LayoutOptionData.Type.BOOLEAN)
+				.optionClass(Boolean.class)
 				.targets(EnumSet.of(LayoutOptionData.Target.EDGES))
 				.visibility(LayoutOptionData.Visibility.HIDDEN)
 				.create()
