@@ -286,6 +286,7 @@ public class EdgeBundler {
 						// Draw edge
 						ElkEdge toSplitEdge = ElkElementCreator.createNewEdge(split.inPort(), currentPort);
 						toSplitEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
+						toSplitEdge.setProperty(FEntwumSOptions.NO_TIP, true);
 
 						for (int i = 0; i < bundleList.size(); i++) {
 							BundleRange currentBundleRange = bundleList.get(i);
@@ -318,6 +319,10 @@ public class EdgeBundler {
 
 						for (int i = 0; i < bundleList.size(); i++) {
 							BundleRange currentBundleRange = bundleList.get(i);
+
+							for (ElkEdge e : currentBundleRange.associatedEdges()) {
+								e.setProperty(FEntwumSOptions.NO_TIP, true);
+							}
 
 							// Set correct edge type for internal incoming edge and dummy edge
 							if (currentBundleRange.containedRange().singleElement()) {

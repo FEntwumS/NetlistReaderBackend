@@ -10,6 +10,7 @@ import org.eclipse.elk.alg.layered.options.*;
 import org.eclipse.elk.core.data.LayoutAlgorithmData;
 import org.eclipse.elk.core.data.LayoutMetaDataService;
 import org.eclipse.elk.core.math.KVector;
+import org.eclipse.elk.core.math.KVectorChain;
 import org.eclipse.elk.core.options.*;
 import org.eclipse.elk.graph.*;
 import org.eclipse.elk.graph.impl.ElkGraphFactoryImpl;
@@ -347,6 +348,7 @@ public class ElkElementCreator {
 		newAggNode.setProperty(CoreOptions.SPACING_EDGE_EDGE, 10.0d);
 		newAggNode.setProperty(CoreOptions.RANDOM_SEED, 1);
 		newAggNode.setProperty(FEntwumSOptions.CELL_TYPE, "AGG_NODE");
+		newAggNode.setProperty(FEntwumSOptions.SCAFFOLDING_ELEMENT, true);
 
 		return newAggNode;
 	}
@@ -365,6 +367,7 @@ public class ElkElementCreator {
 		newSplitNode.setProperty(CoreOptions.RANDOM_SEED, 1);
 		newSplitNode.setProperty(FEntwumSOptions.CELL_TYPE, "SPLIT_NODE");
 		newSplitNode.setProperty(CoreOptions.PARTITIONING_ACTIVATE, true);
+		newSplitNode.setProperty(FEntwumSOptions.SCAFFOLDING_ELEMENT, true);
 
 		return newSplitNode;
 	}
@@ -373,6 +376,7 @@ public class ElkElementCreator {
 		ElkPort newAggSplitPort = createPort(parent);
 		newAggSplitPort.setProperty(CoreOptions.PORT_SIDE, side);
 		newAggSplitPort.setDimensions(10, 10);
+		newAggSplitPort.setProperty(FEntwumSOptions.SCAFFOLDING_ELEMENT, true);
 
 		return newAggSplitPort;
 	}
@@ -402,6 +406,7 @@ public class ElkElementCreator {
 		containerNode.setDimensions(10.0 + maxLabelWidth, verticalLabelSpace + 30 * (neededOutputs - 1) + 15);
 		containerNode.setWidth(10.0 + maxLabelWidth);
 		containerNode.setProperty(CoreOptions.NODE_SIZE_FIXED_GRAPH_SIZE, true);
+		containerNode.setProperty(FEntwumSOptions.SCAFFOLDING_ELEMENT, true);
 
 		for (int i = 0; i < neededOutputs; i++) {
 			ElkNode newNode = createNewSplitNode(containerNode);
@@ -430,6 +435,8 @@ public class ElkElementCreator {
 			ElkEdge exOutEdge = createNewEdge(exOutPort, outPort);
 			exOutEdge.setProperty(LayeredOptions.PRIORITY_STRAIGHTNESS, 1000000);
 			exOutEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
+			exOutEdge.setProperty(FEntwumSOptions.NO_TIP, true);
+
 			ElkEdgeSection exOutEdgeSec = graphFactory.createElkEdgeSection();
 			exOutEdgeSec.setStartLocation(x_i, y);
 			exOutEdgeSec.setEndLocation(x_r, y);
@@ -466,6 +473,8 @@ public class ElkElementCreator {
 				ElkEdge exInEdge = createNewEdge(inPort, exInPort);
 				exInEdge.setProperty(LayeredOptions.PRIORITY_STRAIGHTNESS, 1000000);
 				exInEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
+				exInEdge.setProperty(FEntwumSOptions.NO_TIP, true);
+
 				ElkEdgeSection exInSec = graphFactory.createElkEdgeSection();
 				exInSec.setStartLocation(x_l, y);
 				exInSec.setEndLocation(x_i, y);
@@ -482,19 +491,33 @@ public class ElkElementCreator {
 					ElkEdge distEdge = createNewEdge(priorSouthPort, northPort);
 					distEdge.setProperty(CoreOptions.NO_LAYOUT, true);
 					distEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
+					distEdge.setProperty(FEntwumSOptions.NO_TIP, true);
+					distEdge.setProperty(FEntwumSOptions.USE_SQUARE_JUNCTIONS, true);
+
 					ElkEdgeSection distEdgeSec = graphFactory.createElkEdgeSection();
 					distEdgeSec.setStartLocation(x_i, y);
 					distEdgeSec.setEndLocation(x_i, y_p);
 					distEdge.getSections().add(distEdgeSec);
+
+					KVectorChain junctionPoints = new KVectorChain();
+					junctionPoints.add(x_i, y);
+					distEdge.setProperty(CoreOptions.JUNCTION_POINTS, junctionPoints);
 				} else {
 					// prior south to north
 					ElkEdge distEdge = createNewEdge(northPort, priorSouthPort);
 					distEdge.setProperty(CoreOptions.NO_LAYOUT, true);
 					distEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
+					distEdge.setProperty(FEntwumSOptions.NO_TIP, true);
+					distEdge.setProperty(FEntwumSOptions.USE_SQUARE_JUNCTIONS, true);
+
 					ElkEdgeSection distEdgeSec = graphFactory.createElkEdgeSection();
 					distEdgeSec.setStartLocation(x_i, y_p);
 					distEdgeSec.setEndLocation(x_i, y);
 					distEdge.getSections().add(distEdgeSec);
+
+					KVectorChain junctionPoints = new KVectorChain();
+					junctionPoints.add(x_i, y_p);
+					distEdge.setProperty(CoreOptions.JUNCTION_POINTS, junctionPoints);
 				}
 			}
 
@@ -529,6 +552,7 @@ public class ElkElementCreator {
 		containerNode.setDimensions(10.0 + maxLabelWidth, verticalLabelSpace + 30 * (neededOutputs - 1) + 15);
 		containerNode.setWidth(10.0 + maxLabelWidth);
 		containerNode.setProperty(CoreOptions.NODE_SIZE_FIXED_GRAPH_SIZE, true);
+		containerNode.setProperty(FEntwumSOptions.SCAFFOLDING_ELEMENT, true);
 
 		for (int i = 0; i < neededOutputs; i++) {
 			ElkNode newNode = createNewAggNode(containerNode);
@@ -558,6 +582,8 @@ public class ElkElementCreator {
 			ElkEdge exInEdge = createNewEdge(inPort, exInPort);
 			exInEdge.setProperty(LayeredOptions.PRIORITY_STRAIGHTNESS, 1000000);
 			exInEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
+			exInEdge.setProperty(FEntwumSOptions.NO_TIP, true);
+
 			ElkEdgeSection exInEdgeSec = graphFactory.createElkEdgeSection();
 			exInEdgeSec.setStartLocation(x_l, y);
 			exInEdgeSec.setEndLocation(x_i, y);
@@ -592,6 +618,8 @@ public class ElkElementCreator {
 				ElkEdge exOutEdge = createNewEdge(exOutPort, outPort);
 				exOutEdge.setProperty(LayeredOptions.PRIORITY_STRAIGHTNESS, 1000000);
 				exOutEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
+				exOutEdge.setProperty(FEntwumSOptions.NO_TIP, true);
+
 				ElkEdgeSection exOutEdgeSec = graphFactory.createElkEdgeSection();
 				exOutEdgeSec.setStartLocation(x_i, y);
 				exOutEdgeSec.setEndLocation(x_r, y);
@@ -609,19 +637,34 @@ public class ElkElementCreator {
 					ElkEdge distEdge = createNewEdge(northPort, priorSouthPort);
 					distEdge.setProperty(CoreOptions.NO_LAYOUT, true);
 					distEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
+					distEdge.setProperty(FEntwumSOptions.NO_TIP, true);
+					distEdge.setProperty(FEntwumSOptions.USE_SQUARE_JUNCTIONS, true);
+
 					ElkEdgeSection distEdgeSec = graphFactory.createElkEdgeSection();
 					distEdgeSec.setStartLocation(x_i, y_p);
 					distEdgeSec.setEndLocation(x_i, y);
 					distEdge.getSections().add(distEdgeSec);
+
+					KVectorChain junctionPoints = new KVectorChain();
+					junctionPoints.add(x_i, y);
+					distEdge.setProperty(CoreOptions.JUNCTION_POINTS, junctionPoints);
 				} else {
 					// north to prior south
 					ElkEdge distEdge = createNewEdge(priorSouthPort, northPort);
 					distEdge.setProperty(CoreOptions.NO_LAYOUT, true);
 					distEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
+					distEdge.setProperty(FEntwumSOptions.NO_TIP, true);
+					distEdge.setProperty(FEntwumSOptions.USE_SQUARE_JUNCTIONS, true);
+
+
 					ElkEdgeSection distEdgeSec = graphFactory.createElkEdgeSection();
 					distEdgeSec.setStartLocation(x_i, y);
 					distEdgeSec.setEndLocation(x_i, y_p);
 					distEdge.getSections().add(distEdgeSec);
+
+					KVectorChain junctionPoints = new KVectorChain();
+					junctionPoints.add(x_i, y_p);
+					distEdge.setProperty(CoreOptions.JUNCTION_POINTS, junctionPoints);
 				}
 			}
 
