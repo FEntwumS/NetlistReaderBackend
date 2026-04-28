@@ -188,9 +188,9 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 			false
 	);
 
-	public static final IProperty<Boolean> USE_SQUARE_JUNCTIONS = new Property<Boolean> (
-			"de.thkoeln.fentwums.netlist.backend.use-square-junctions",
-			false
+	public static final IProperty<JunctionShape> JUNCTION_SHAPE = new Property<JunctionShape> (
+			"de.thkoeln.fentwums.netlist.backend.junction-shape",
+			JunctionShape.CIRCLE
 	);
 
 	@Override
@@ -475,10 +475,10 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 		);
 
 		registry.register(new LayoutOptionData.Builder()
-				.id("de.thkoeln.fentwums.netlist.backend.use-square-junctions")
+				.id("de.thkoeln.fentwums.netlist.backend.junction-shape")
 				.defaultValue(false)
-				.type(LayoutOptionData.Type.BOOLEAN)
-				.optionClass(Boolean.class)
+				.type(LayoutOptionData.Type.ENUM)
+				.optionClass(JunctionShape.class)
 				.targets(EnumSet.of(LayoutOptionData.Target.EDGES))
 				.visibility(LayoutOptionData.Visibility.HIDDEN)
 				.create()
