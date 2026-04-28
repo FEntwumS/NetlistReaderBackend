@@ -1,10 +1,8 @@
 package de.thkoeln.fentwums.netlist.backend.helpers;
 
-import de.thkoeln.fentwums.netlist.backend.datatypes.BundleRange;
-import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
-import de.thkoeln.fentwums.netlist.backend.datatypes.SignalAgg;
-import de.thkoeln.fentwums.netlist.backend.datatypes.SignalSplit;
+import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
+import de.thkoeln.fentwums.netlist.backend.elkoptions.JunctionShape;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
 import org.eclipse.elk.alg.layered.options.*;
 import org.eclipse.elk.core.data.LayoutAlgorithmData;
@@ -437,10 +435,73 @@ public class ElkElementCreator {
 			exOutEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 			exOutEdge.setProperty(FEntwumSOptions.NO_TIP, true);
 
-			ElkEdgeSection exOutEdgeSec = graphFactory.createElkEdgeSection();
-			exOutEdgeSec.setStartLocation(x_i, y);
-			exOutEdgeSec.setEndLocation(x_r, y);
-			exOutEdge.getSections().add(exOutEdgeSec);
+			switch (settings.getJunctionShape()) {
+				case CIRCLE -> {
+					exOutEdge.setProperty(FEntwumSOptions.JUNCTION_SHAPE, JunctionShape.CIRCLE);
+					break;
+				}
+
+				case SQUARE -> {
+					exOutEdge.setProperty(FEntwumSOptions.JUNCTION_SHAPE, JunctionShape.SQUARE);
+					break;
+				}
+
+				case DIAMOND -> {
+					exOutEdge.setProperty(FEntwumSOptions.JUNCTION_SHAPE, JunctionShape.DIAMOND);
+					break;
+				}
+
+				case TRIANGLE -> {
+					exOutEdge.setProperty(FEntwumSOptions.JUNCTION_SHAPE, JunctionShape.TRIANGLE_RIGHT);
+					break;
+				}
+
+				case LINE -> {
+					exOutEdge.setProperty(FEntwumSOptions.JUNCTION_SHAPE, JunctionShape.LINE);
+					break;
+				}
+			}
+
+			if (settings.getJunctionShape() == RequestedJunctionShape.LINE) {
+				if (i != indexOfInPort) {
+					ElkEdgeSection bentSection = graphFactory.createElkEdgeSection();
+
+					if (i <= indexOfInPort) {
+						bentSection.setStartLocation(x_i, y + 5);
+						ElkBendPoint bendPoint = graphFactory.createElkBendPoint();
+						bendPoint.set(x_i + 5, y);
+						bentSection.getBendPoints().add(bendPoint);
+						bentSection.setEndLocation(x_r, y);
+					} else {
+						bentSection.setStartLocation(x_i, y - 5);
+						ElkBendPoint bendPoint = graphFactory.createElkBendPoint();
+						bendPoint.set(x_i + 5, y);
+						bentSection.getBendPoints().add(bendPoint);
+						bentSection.setEndLocation(x_r, y);
+					}
+
+					exOutEdge.getSections().add(bentSection);
+				} else {
+					KVectorChain exOutJunctionPoints = new KVectorChain();
+					exOutJunctionPoints.add(x_i, y);
+					exOutEdge.setProperty(CoreOptions.JUNCTION_POINTS, exOutJunctionPoints);
+					exOutEdge.setProperty(FEntwumSOptions.JUNCTION_SHAPE, JunctionShape.DIAMOND);
+
+					ElkEdgeSection exOutEdgeSec = graphFactory.createElkEdgeSection();
+					exOutEdgeSec.setStartLocation(x_i, y);
+					exOutEdgeSec.setEndLocation(x_r, y);
+					exOutEdge.getSections().add(exOutEdgeSec);
+				}
+			} else {
+				KVectorChain exOutJunctionPoints = new KVectorChain();
+				exOutJunctionPoints.add(x_i, y);
+				exOutEdge.setProperty(CoreOptions.JUNCTION_POINTS, exOutJunctionPoints);
+
+				ElkEdgeSection exOutEdgeSec = graphFactory.createElkEdgeSection();
+				exOutEdgeSec.setStartLocation(x_i, y);
+				exOutEdgeSec.setEndLocation(x_r, y);
+				exOutEdge.getSections().add(exOutEdgeSec);
+			}
 
 			outPort = exOutPort;
 
@@ -480,6 +541,14 @@ public class ElkElementCreator {
 				exInSec.setEndLocation(x_i, y);
 				exInEdge.getSections().add(exInSec);
 
+				if (settings.getJunctionShape() == RequestedJunctionShape.TRIANGLE) {
+					exInEdge.setProperty(FEntwumSOptions.JUNCTION_SHAPE, JunctionShape.TRIANGLE_LEFT);
+
+					KVectorChain exInJunctionPoints = new KVectorChain();
+					exInJunctionPoints.add(x_i, y);
+					exInEdge.setProperty(CoreOptions.JUNCTION_POINTS, exInJunctionPoints);
+				}
+
 				inPort = exInPort;
 				newNode.setProperty(LayeredOptions.PARTITIONING_PARTITION, 2);
 			}
@@ -492,32 +561,32 @@ public class ElkElementCreator {
 					distEdge.setProperty(CoreOptions.NO_LAYOUT, true);
 					distEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 					distEdge.setProperty(FEntwumSOptions.NO_TIP, true);
-					distEdge.setProperty(FEntwumSOptions.USE_SQUARE_JUNCTIONS, true);
 
 					ElkEdgeSection distEdgeSec = graphFactory.createElkEdgeSection();
-					distEdgeSec.setStartLocation(x_i, y);
-					distEdgeSec.setEndLocation(x_i, y_p);
+					if (settings.getJunctionShape() == RequestedJunctionShape.LINE && i == 1) {
+						distEdgeSec.setStartLocation(x_i, y);
+						distEdgeSec.setEndLocation(x_i, y_p + 5);
+					} else {
+						distEdgeSec.setStartLocation(x_i, y);
+						distEdgeSec.setEndLocation(x_i, y_p);
+					}
 					distEdge.getSections().add(distEdgeSec);
-
-					KVectorChain junctionPoints = new KVectorChain();
-					junctionPoints.add(x_i, y);
-					distEdge.setProperty(CoreOptions.JUNCTION_POINTS, junctionPoints);
 				} else {
 					// prior south to north
 					ElkEdge distEdge = createNewEdge(northPort, priorSouthPort);
 					distEdge.setProperty(CoreOptions.NO_LAYOUT, true);
 					distEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 					distEdge.setProperty(FEntwumSOptions.NO_TIP, true);
-					distEdge.setProperty(FEntwumSOptions.USE_SQUARE_JUNCTIONS, true);
 
 					ElkEdgeSection distEdgeSec = graphFactory.createElkEdgeSection();
-					distEdgeSec.setStartLocation(x_i, y_p);
-					distEdgeSec.setEndLocation(x_i, y);
+					if (settings.getJunctionShape() == RequestedJunctionShape.LINE && i == neededOutputs - 1) {
+						distEdgeSec.setStartLocation(x_i, y_p);
+						distEdgeSec.setEndLocation(x_i, y - 5);
+					} else {
+						distEdgeSec.setStartLocation(x_i, y_p);
+						distEdgeSec.setEndLocation(x_i, y);
+					}
 					distEdge.getSections().add(distEdgeSec);
-
-					KVectorChain junctionPoints = new KVectorChain();
-					junctionPoints.add(x_i, y_p);
-					distEdge.setProperty(CoreOptions.JUNCTION_POINTS, junctionPoints);
 				}
 			}
 
@@ -584,10 +653,73 @@ public class ElkElementCreator {
 			exInEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 			exInEdge.setProperty(FEntwumSOptions.NO_TIP, true);
 
-			ElkEdgeSection exInEdgeSec = graphFactory.createElkEdgeSection();
-			exInEdgeSec.setStartLocation(x_l, y);
-			exInEdgeSec.setEndLocation(x_i, y);
-			exInEdge.getSections().add(exInEdgeSec);
+			switch (settings.getJunctionShape()) {
+				case CIRCLE -> {
+					exInEdge.setProperty(FEntwumSOptions.JUNCTION_SHAPE, JunctionShape.CIRCLE);
+					break;
+				}
+
+				case SQUARE -> {
+					exInEdge.setProperty(FEntwumSOptions.JUNCTION_SHAPE, JunctionShape.SQUARE);
+					break;
+				}
+
+				case DIAMOND -> {
+					exInEdge.setProperty(FEntwumSOptions.JUNCTION_SHAPE, JunctionShape.DIAMOND);
+					break;
+				}
+
+				case TRIANGLE -> {
+					exInEdge.setProperty(FEntwumSOptions.JUNCTION_SHAPE, JunctionShape.TRIANGLE_LEFT);
+					break;
+				}
+
+				case LINE -> {
+					exInEdge.setProperty(FEntwumSOptions.JUNCTION_SHAPE, JunctionShape.LINE);
+					break;
+				}
+			}
+
+			if (settings.getJunctionShape() == RequestedJunctionShape.LINE) {
+				if (i != indexOfInPort) {
+					ElkEdgeSection bentSection = graphFactory.createElkEdgeSection();
+
+					if (i <= indexOfInPort) {
+						bentSection.setStartLocation(x_l, y);
+						ElkBendPoint bendPoint = graphFactory.createElkBendPoint();
+						bendPoint.set(x_i - 5, y);
+						bentSection.getBendPoints().add(bendPoint);
+						bentSection.setEndLocation(x_i, y + 5);
+					} else {
+						bentSection.setStartLocation(x_l, y);
+						ElkBendPoint bendPoint = graphFactory.createElkBendPoint();
+						bendPoint.set(x_i - 5, y);
+						bentSection.getBendPoints().add(bendPoint);
+						bentSection.setEndLocation(x_i, y - 5);
+					}
+
+					exInEdge.getSections().add(bentSection);
+				} else {
+					KVectorChain exOutJunctionPoints = new KVectorChain();
+					exOutJunctionPoints.add(x_i, y);
+					exInEdge.setProperty(CoreOptions.JUNCTION_POINTS, exOutJunctionPoints);
+					exInEdge.setProperty(FEntwumSOptions.JUNCTION_SHAPE, JunctionShape.DIAMOND);
+
+					ElkEdgeSection exOutEdgeSec = graphFactory.createElkEdgeSection();
+					exOutEdgeSec.setStartLocation(x_l, y);
+					exOutEdgeSec.setEndLocation(x_i, y);
+					exInEdge.getSections().add(exOutEdgeSec);
+				}
+			} else {
+				KVectorChain exOutJunctionPoints = new KVectorChain();
+				exOutJunctionPoints.add(x_i, y);
+				exInEdge.setProperty(CoreOptions.JUNCTION_POINTS, exOutJunctionPoints);
+
+				ElkEdgeSection exOutEdgeSec = graphFactory.createElkEdgeSection();
+				exOutEdgeSec.setStartLocation(x_l, y);
+				exOutEdgeSec.setEndLocation(x_i, y);
+				exInEdge.getSections().add(exOutEdgeSec);
+			}
 
 			inPorts.add(exInPort);
 
@@ -625,6 +757,14 @@ public class ElkElementCreator {
 				exOutEdgeSec.setEndLocation(x_r, y);
 				exOutEdge.getSections().add(exOutEdgeSec);
 
+				if (settings.getJunctionShape() == RequestedJunctionShape.TRIANGLE) {
+					exOutEdge.setProperty(FEntwumSOptions.JUNCTION_SHAPE, JunctionShape.TRIANGLE_RIGHT);
+
+					KVectorChain exInJunctionPoints = new KVectorChain();
+					exInJunctionPoints.add(x_i, y);
+					exOutEdge.setProperty(CoreOptions.JUNCTION_POINTS, exInJunctionPoints);
+				}
+
 				outPort = exOutPort;
 
 				newNode.setProperty(LayeredOptions.PARTITIONING_PARTITION, 2);
@@ -638,33 +778,32 @@ public class ElkElementCreator {
 					distEdge.setProperty(CoreOptions.NO_LAYOUT, true);
 					distEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 					distEdge.setProperty(FEntwumSOptions.NO_TIP, true);
-					distEdge.setProperty(FEntwumSOptions.USE_SQUARE_JUNCTIONS, true);
 
 					ElkEdgeSection distEdgeSec = graphFactory.createElkEdgeSection();
-					distEdgeSec.setStartLocation(x_i, y_p);
-					distEdgeSec.setEndLocation(x_i, y);
+					if (settings.getJunctionShape() == RequestedJunctionShape.LINE && i == 1) {
+						distEdgeSec.setStartLocation(x_i, y_p + 5);
+						distEdgeSec.setEndLocation(x_i, y);
+					} else {
+						distEdgeSec.setStartLocation(x_i, y_p);
+						distEdgeSec.setEndLocation(x_i, y);
+					}
 					distEdge.getSections().add(distEdgeSec);
-
-					KVectorChain junctionPoints = new KVectorChain();
-					junctionPoints.add(x_i, y);
-					distEdge.setProperty(CoreOptions.JUNCTION_POINTS, junctionPoints);
 				} else {
 					// north to prior south
 					ElkEdge distEdge = createNewEdge(priorSouthPort, northPort);
 					distEdge.setProperty(CoreOptions.NO_LAYOUT, true);
 					distEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 					distEdge.setProperty(FEntwumSOptions.NO_TIP, true);
-					distEdge.setProperty(FEntwumSOptions.USE_SQUARE_JUNCTIONS, true);
-
 
 					ElkEdgeSection distEdgeSec = graphFactory.createElkEdgeSection();
-					distEdgeSec.setStartLocation(x_i, y);
-					distEdgeSec.setEndLocation(x_i, y_p);
+					if (settings.getJunctionShape() == RequestedJunctionShape.LINE && i == neededOutputs - 1) {
+						distEdgeSec.setStartLocation(x_i, y - 5);
+						distEdgeSec.setEndLocation(x_i, y_p);
+					} else {
+						distEdgeSec.setStartLocation(x_i, y);
+						distEdgeSec.setEndLocation(x_i, y_p);
+					}
 					distEdge.getSections().add(distEdgeSec);
-
-					KVectorChain junctionPoints = new KVectorChain();
-					junctionPoints.add(x_i, y_p);
-					distEdge.setProperty(CoreOptions.JUNCTION_POINTS, junctionPoints);
 				}
 			}
 
