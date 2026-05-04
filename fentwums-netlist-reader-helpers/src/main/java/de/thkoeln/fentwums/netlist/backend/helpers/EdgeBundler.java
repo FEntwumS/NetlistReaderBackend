@@ -350,6 +350,14 @@ public class EdgeBundler {
 
 							// Move the now bundled edges
 							moveEdgesToTarget(currentBundleRange.associatedEdges(), agg.inPorts().get(i));
+
+							ElkEdge edge = currentBundleRange.associatedEdges().getFirst();
+
+							if (edge.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.CONSTANT)) {
+								agg.inPorts().get(i).setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
+							} else if (edge.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT)) {
+								agg.inPorts().get(i).setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_MULTIPLE);
+							}
 						}
 
 						AggSet aggSet = new AggSet(sigbitList, agg.outPort());
