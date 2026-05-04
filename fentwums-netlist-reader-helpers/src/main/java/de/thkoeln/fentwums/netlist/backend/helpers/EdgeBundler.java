@@ -383,6 +383,8 @@ public class EdgeBundler {
 					// Remove existing label
 					reworkPort.getLabels().clear();
 
+					reworkPort.setProperty(FEntwumSOptions.NOT_CONNECTED, true);
+
 					// Create new label
 					ElkLabel newConstLabel = ElkElementCreator
 							.createNewPortLabel(currentPortGroupName
