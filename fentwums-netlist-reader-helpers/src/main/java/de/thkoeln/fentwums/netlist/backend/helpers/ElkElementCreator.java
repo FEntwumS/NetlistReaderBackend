@@ -77,7 +77,7 @@ public class ElkElementCreator {
 	 *
 	 * @param parent The ElkNode to which the port is to be attached
 	 * @param side   The side on which the port is to be attached
-	 * @return the creted port
+	 * @return the created port
 	 */
 	public static ElkPort createNewPort(ElkNode parent, PortSide side) {
 		ElkPort newPort = createPort(parent);
