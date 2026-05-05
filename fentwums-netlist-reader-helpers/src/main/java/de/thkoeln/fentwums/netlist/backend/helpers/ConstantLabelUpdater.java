@@ -77,6 +77,7 @@ public class ConstantLabelUpdater {
 
 				// Add the dummy edge
 				ElkEdge dummyEdge = ElkElementCreator.createNewEdge(dummyEdgeSink, p);
+				dummyEdge.setProperty(FEntwumSOptions.SCAFFOLDING_ELEMENT, true);
 
 				// Add the label
 				ElkLabel constLabel = ElkElementCreator.createNewEdgeLabel(labelContents, dummyEdge, settings);
