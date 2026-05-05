@@ -88,6 +88,15 @@ public class ConstantLabelUpdater {
 				dummyEdgeSink.setDimensions(10.0d, 0.2d);
 				p.setProperty(CoreOptions.PORT_ANCHOR, new KVector(10.0, 0.2));
 				dummyEdgeSink.setProperty(CoreOptions.PORT_ANCHOR, new KVector(10.0, 0.2));
+
+				if (childNode.getProperty(FEntwumSOptions.CELL_TYPE).equals("SPLIT_CONTAINER")
+						|| childNode.getProperty(FEntwumSOptions.CELL_TYPE).equals("AGG_CONTAINER")) {
+					dummyEdgeSink.setY(p.getY() + 10.0d);
+				} else {
+					// Update label height for port label of cell
+					// This ensures consistent alignment of all port labels, both on constant and non-constant ports
+					p.getLabels().getFirst().setHeight(0.2d);
+				}
 			}
 
 		}
