@@ -477,7 +477,18 @@ public class EdgeBundler {
 				int upper = edgeList.size();
 
 				for (int i = 0; i < upper; i++) {
-					moveEdgeToSource(edgeList.getFirst(), split.outPorts().get(i));
+					ElkEdge currentEdge = edgeList.getFirst();
+					ElkPort currentPort = split.outPorts().get(i);
+					moveEdgeToSource(currentEdge, currentPort);
+
+					ElkEdge innerEdge = currentPort.getIncomingEdges().getFirst();
+					innerEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, currentEdge.getProperty(FEntwumSOptions.SIGNAL_TYPE));
+
+					if (currentEdge.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.CONSTANT)) {
+						currentPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
+					} else if (currentEdge.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT)) {
+						currentPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_MULTIPLE);
+					}
 				}
 
 				// Add connection to entity inport
@@ -489,7 +500,20 @@ public class EdgeBundler {
 				int upper = edgeList.size();
 
 				for (int i = 0; i < upper; i++) {
-					moveEdgeToTarget(edgeList.getFirst(), agg.inPorts().get(i));
+					ElkEdge currentEdge = edgeList.getFirst();
+					ElkPort currentPort = agg.inPorts().get(i);
+					moveEdgeToTarget(currentEdge, currentPort);
+
+					currentEdge.setProperty(FEntwumSOptions.NO_TIP, true);
+
+					ElkEdge innerEdge = currentPort.getOutgoingEdges().getFirst();
+					innerEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, currentEdge.getProperty(FEntwumSOptions.SIGNAL_TYPE));
+
+					if (currentEdge.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.CONSTANT)) {
+						currentPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
+					} else if (currentEdge.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT)) {
+						currentPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_MULTIPLE);
+					}
 				}
 
 				// Add connection to entity outport
