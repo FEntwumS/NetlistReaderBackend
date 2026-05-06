@@ -169,6 +169,8 @@ public class HierarchicalOrchestrator implements IGraphCreator {
         NetnameHandler netnameHandler = new NetnameHandler();
         CellCollapser collapser = new CellCollapser();
 
+        collapser.expandCell(toLoad);
+
         logger.atInfo().setMessage("Loading module {}").addArgument(toLoad.getCellName()).log();
         cellHandler.createCells(this.modules, toLoad.getNode(), this.signalMaps, this.settings, this.blackBoxes, toLoad,
                                 toLoad.getCellType(), instancePath);

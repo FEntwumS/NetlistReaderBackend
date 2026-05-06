@@ -95,7 +95,7 @@ public class CellCollapser {
 			hNode.setChildList(new ArrayList<>());
 		}
 
-        if (!hNode.getChildList().isEmpty() && hNode.getChildList().size() == currentGraphNode.getChildren().size()) {
+        if (!hNode.getChildList().isEmpty()) {
             hNode.getChildList().clear();
         }
         hNode.getChildList().addAll(currentGraphNode.getChildren());
@@ -106,7 +106,7 @@ public class CellCollapser {
 			hNode.setEdgeList(new ArrayList<ElkEdge>());
 		}
 
-        if (!hNode.getEdgeList().isEmpty() && hNode.getEdgeList().size() == currentGraphNode.getContainedEdges().size()) {
+        if (!hNode.getEdgeList().isEmpty()) {
             hNode.getEdgeList().clear();
         }
         hNode.getEdgeList().addAll(currentGraphNode.getContainedEdges());
