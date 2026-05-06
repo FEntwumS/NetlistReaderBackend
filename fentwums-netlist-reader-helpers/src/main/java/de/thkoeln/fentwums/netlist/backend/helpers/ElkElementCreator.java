@@ -3,6 +3,7 @@ package de.thkoeln.fentwums.netlist.backend.helpers;
 import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.JunctionShape;
+import de.thkoeln.fentwums.netlist.backend.elkoptions.PortShape;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
 import org.eclipse.elk.alg.layered.options.*;
 import org.eclipse.elk.core.data.LayoutAlgorithmData;
@@ -811,5 +812,12 @@ public class ElkElementCreator {
 		}
 
 		return new SignalAgg(outPort, inPorts);
+	}
+
+	public static void setPortWidth(ElkPort port) {
+		switch (port.getProperty(FEntwumSOptions.PORT_SHAPE)) {
+			case PortShape.SQUARE -> port.setWidth(10.0d);
+			case PortShape.TAG -> port.setWidth(13.0d);
+		}
 	}
 }
