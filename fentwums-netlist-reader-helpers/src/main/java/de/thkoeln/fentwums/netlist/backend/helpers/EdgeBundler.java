@@ -3,6 +3,7 @@ package de.thkoeln.fentwums.netlist.backend.helpers;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
+import de.thkoeln.fentwums.netlist.backend.elkoptions.PortShape;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.PortType;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
 import org.eclipse.elk.core.options.CoreOptions;
@@ -511,8 +512,16 @@ public class EdgeBundler {
 
 					if (currentEdge.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.CONSTANT)) {
 						currentPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
+						currentPort.setProperty(FEntwumSOptions.PORT_SHAPE, PortShape.TAG);
+						currentPort.setProperty(FEntwumSOptions.SCAFFOLDING_ELEMENT, false);
+						ElkElementCreator.setPortWidth(currentPort);
+						currentPort.setX(-currentPort.getWidth());
 					} else if (currentEdge.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT)) {
 						currentPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_MULTIPLE);
+						currentPort.setProperty(FEntwumSOptions.PORT_SHAPE, PortShape.TAG);
+						currentPort.setProperty(FEntwumSOptions.SCAFFOLDING_ELEMENT, false);
+						ElkElementCreator.setPortWidth(currentPort);
+						currentPort.setX(-currentPort.getWidth());
 					}
 				}
 
