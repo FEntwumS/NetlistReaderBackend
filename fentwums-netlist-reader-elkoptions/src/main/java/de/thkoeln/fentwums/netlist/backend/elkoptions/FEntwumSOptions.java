@@ -193,6 +193,11 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 			JunctionShape.CIRCLE
 	);
 
+	public static final IProperty<PortShape> PORT_SHAPE = new Property<PortShape>(
+			"de.thkoeln.fentwums.netlist.backend.port-shape",
+			PortShape.SQUARE
+	);
+
 	@Override
 	public void apply(Registry registry) {
 		registry.register(new LayoutOptionData.Builder()
@@ -480,6 +485,16 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 				.type(LayoutOptionData.Type.ENUM)
 				.optionClass(JunctionShape.class)
 				.targets(EnumSet.of(LayoutOptionData.Target.EDGES))
+				.visibility(LayoutOptionData.Visibility.HIDDEN)
+				.create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+				.id("de.thkoeln.fentwums.netlist.backend.port-shape")
+				.defaultValue(PortShape.SQUARE)
+				.type(LayoutOptionData.Type.ENUM)
+				.optionClass(PortShape.class)
+				.targets(EnumSet.of(LayoutOptionData.Target.PORTS))
 				.visibility(LayoutOptionData.Visibility.HIDDEN)
 				.create()
 		);
