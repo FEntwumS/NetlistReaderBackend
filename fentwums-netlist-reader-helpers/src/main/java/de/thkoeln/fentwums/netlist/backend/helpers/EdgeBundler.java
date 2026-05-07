@@ -356,8 +356,16 @@ public class EdgeBundler {
 
 							if (edge.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.CONSTANT)) {
 								agg.inPorts().get(i).setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
+								agg.inPorts().get(i).setProperty(FEntwumSOptions.PORT_SHAPE, PortShape.TAG);
+								agg.inPorts().get(i).setProperty(FEntwumSOptions.SCAFFOLDING_ELEMENT, false);
+								ElkElementCreator.setPortWidth(agg.inPorts().get(i));
+								currentPort.setX(-agg.inPorts().get(i).getWidth());
 							} else if (edge.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT)) {
 								agg.inPorts().get(i).setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_MULTIPLE);
+								agg.inPorts().get(i).setProperty(FEntwumSOptions.PORT_SHAPE, PortShape.TAG);
+								agg.inPorts().get(i).setProperty(FEntwumSOptions.SCAFFOLDING_ELEMENT, false);
+								ElkElementCreator.setPortWidth(agg.inPorts().get(i));
+								currentPort.setX(-agg.inPorts().get(i).getWidth());
 							}
 						}
 
