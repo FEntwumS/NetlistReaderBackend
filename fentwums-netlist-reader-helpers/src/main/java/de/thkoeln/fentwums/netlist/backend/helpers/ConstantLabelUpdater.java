@@ -84,7 +84,7 @@ public class ConstantLabelUpdater {
 				constLabel.setDimensions(constLabel.getWidth() - 10.0d, 0.1d);
 
 				// Modify the ports
-				p.setDimensions(10.0d, 0.2d);
+				p.setHeight(0.2d);
 				dummyEdgeSink.setDimensions(10.0d, 0.2d);
 				p.setProperty(CoreOptions.PORT_ANCHOR, new KVector(10.0, 0.2));
 				dummyEdgeSink.setProperty(CoreOptions.PORT_ANCHOR, new KVector(10.0, 0.2));
