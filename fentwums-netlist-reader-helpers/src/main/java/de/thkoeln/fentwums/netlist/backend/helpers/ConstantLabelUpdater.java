@@ -20,9 +20,8 @@ public class ConstantLabelUpdater {
 
 	public static void updateLabels (ElkNode entityInstance, NetlistCreationSettings settings) {
 		for (ElkNode childNode : List.of(entityInstance.getChildren().toArray(new ElkNode[0]))) {
-			if (childNode.getProperty(FEntwumSOptions.CELL_TYPE).equals("HDL_ENTITY")
-					|| childNode.getProperty(FEntwumSOptions.CELL_TYPE).equals("Constant driver")) {
-				// Skip entity instances and constant drivers/sinks
+			if (childNode.getProperty(FEntwumSOptions.CELL_TYPE).equals("Constant driver")) {
+				// Skip constant drivers/sinks
 
 				continue;
 			}
@@ -97,6 +96,8 @@ public class ConstantLabelUpdater {
 					// This ensures consistent alignment of all port labels, both on constant and non-constant ports
 					p.getLabels().getFirst().setHeight(0.2d);
 				}
+
+				i++;	// Skip the next iteration since the ports have just moved due to the insertion of the dummy edge sink port
 			}
 
 		}
