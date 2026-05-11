@@ -459,17 +459,19 @@ public class EdgeBundler {
 	// necessary splitter and aggregator nodes
 	public static void fixHierarchyCrossings(ElkNode entityInstance, NetlistCreationSettings settings) {
 		for (ElkPort p : entityInstance.getPorts()) {
-			List<ElkEdge> edgeList = null;
+			List<ElkEdge> edgeList = new ArrayList<>();
 			if (p.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)) {
-				edgeList = p.getOutgoingEdges();
+				edgeList.addAll(p.getOutgoingEdges());
 			} else {
-				edgeList = p.getIncomingEdges();
+				edgeList.addAll(p.getIncomingEdges());
 			}
 
 			// Skip ports with only single edges, since the edges are not ambiguous
 			if (edgeList.stream().noneMatch(e-> e.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED) || e.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT))) {
 				continue;
 			}
+
+			edgeList.removeAll(edgeList.stream().filter(e -> ((ElkPort) e.getSources().getFirst()).getParent().equals(((ElkPort) e.getTargets().getFirst()).getParent())).toList());
 
 			if (edgeList.isEmpty() || edgeList.size() == 1) {
 				continue;
@@ -486,7 +488,7 @@ public class EdgeBundler {
 				int upper = edgeList.size();
 
 				for (int i = 0; i < upper; i++) {
-					ElkEdge currentEdge = edgeList.getFirst();
+					ElkEdge currentEdge = edgeList.get(i);
 					ElkPort currentPort = split.outPorts().get(i);
 					moveEdgeToSource(currentEdge, currentPort);
 
@@ -509,7 +511,7 @@ public class EdgeBundler {
 				int upper = edgeList.size();
 
 				for (int i = 0; i < upper; i++) {
-					ElkEdge currentEdge = edgeList.getFirst();
+					ElkEdge currentEdge = edgeList.get(i);
 					ElkPort currentPort = agg.inPorts().get(i);
 					moveEdgeToTarget(currentEdge, currentPort);
 
