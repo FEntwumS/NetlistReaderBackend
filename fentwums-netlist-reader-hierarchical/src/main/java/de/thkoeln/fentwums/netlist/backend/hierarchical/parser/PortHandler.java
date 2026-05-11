@@ -221,6 +221,14 @@ public class PortHandler {
                     constantValues.reverse();
                 }
 
+                if (signalRanges.isEmpty()) {
+                    if (constRange.containedRange().singleElement()) {
+                        newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
+                    } else {
+                        newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_MULTIPLE);
+                    }
+                }
+
                 // Also generate the driver node
                 if (createdPortSide == PortSide.EAST) {
                     // Const outputs are generated as a child
