@@ -179,6 +179,26 @@ public class EdgeBundler {
 					}
 				}
 
+				int portInCurrentGroupCount = 0;
+
+				for (ElkPort p :  portsInCurrentPortGroup) {
+					if (p.getProperty(FEntwumSOptions.PORT_TYPE).equals(PortType.CONSTANT_MULTIPLE)) {
+						portInCurrentGroupCount += p.getProperty(FEntwumSOptions.CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP)
+													- p.getProperty(FEntwumSOptions.CANONICAL_BUNDLE_LOWER_INDEX_IN_PORT_GROUP)
+													+ 1;
+					} else if (p.getProperty(FEntwumSOptions.PORT_TYPE).equals(PortType.SIGNAL_MULTIPLE)) {
+						portInCurrentGroupCount += p.getProperty(FEntwumSOptions.CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP)
+								- p.getProperty(FEntwumSOptions.CANONICAL_BUNDLE_LOWER_INDEX_IN_PORT_GROUP)
+								+ 1;
+					} else {
+						portInCurrentGroupCount++;
+					}
+				}
+
+				// Get full-width bundles for special handling
+				int finalPortInCurrentGroupCount = portInCurrentGroupCount;
+				List<BundleRange> fullsizeBundles = bundleList.stream().filter(b -> b.containedRange().upper() - b.containedRange().lower() + 1 == finalPortInCurrentGroupCount).toList();
+
 				// sort bundles for edge crossing minimization
 				bundleList.sort(BundleRange::compareTo);
 
@@ -279,7 +299,7 @@ public class EdgeBundler {
 
 				if (currentPort.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
 					if (bundleList.size() > 1) {
-						List<String> strl = createLabelsFromBundles(bundleList);
+						List<String> strl = createLabelsFromBundles(bundleList, fullsizeBundles);
 
 						SignalSplit split = ElkElementCreator.createSignalSplit(entityInstance, currentPort,
 								strl, settings);
@@ -289,26 +309,44 @@ public class EdgeBundler {
 						toSplitEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 						toSplitEdge.setProperty(FEntwumSOptions.NO_TIP, true);
 
-						for (int i = 0; i < bundleList.size(); i++) {
-							BundleRange currentBundleRange = bundleList.get(i);
+						int offset = 0;
 
-							// Set correct edge type for internal outgoing edge and dummy edge
-							if (currentBundleRange.containedRange().singleElement()) {
-								ElkEdge exOutEdge = split.outPorts().get(i).getIncomingEdges().getFirst();
-								exOutEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.SINGLE);
+						for (int i = 0; i + offset < bundleList.size(); i++) {
+							BundleRange currentBundleRange = bundleList.get(i + offset);
+
+							if (fullsizeBundles.contains(currentBundleRange)) {
+								moveEdgesToSource(currentBundleRange.associatedEdges(), currentPort);
+								i -= 1;
+								offset += 1;
+							} else {
+
+								// Set correct edge type for internal outgoing edge and dummy edge
+								if (currentBundleRange.containedRange().singleElement()) {
+									ElkEdge exOutEdge = split.outPorts().get(i).getIncomingEdges().getFirst();
+									exOutEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.SINGLE);
+								}
+
+								// Move the now bundled edges
+								moveEdgesToSource(currentBundleRange.associatedEdges(), split.outPorts().get(i));
 							}
-
-							// Move the now bundled edges
-							moveEdgesToSource(currentBundleRange.associatedEdges(), split.outPorts().get(i));
 						}
-					} else {
+					} else if (bundleList.size() == 1) {
 						// Create direct connection
 						moveEdgesToSource(bundleList.getFirst().associatedEdges().stream().filter(edge -> !edge.getSources().getFirst().equals(currentPort)).toList(),
 								currentPort);
 					}
 				} else {
 					if (bundleList.size() > 1) {
-						List<String> strl = createLabelsFromBundles(bundleList);
+						if (!fullsizeBundles.isEmpty()) {
+							logger.atError()
+									.setMessage("Entity {} cell {} port group {} is input with more than one incoming bundles, one of which is full size")
+									.addArgument(entityInstance.getIdentifier())
+									.addArgument(childNode.getIdentifier())
+									.addArgument(currentPortGroupName)
+									.log();
+						}
+
+						List<String> strl = createLabelsFromBundles(bundleList, new ArrayList<BundleRange>());
 
 						SignalAgg agg = ElkElementCreator.createSignalAgg(entityInstance, currentPort,
 								strl, settings);
@@ -320,6 +358,11 @@ public class EdgeBundler {
 
 						for (int i = 0; i < bundleList.size(); i++) {
 							BundleRange currentBundleRange = bundleList.get(i);
+
+							if (fullsizeBundles.contains(currentBundleRange)) {
+								logger.error("Full size bundle on multi-bundle agg encountered. Skipping...");
+								continue;
+							}
 
 							for (ElkEdge e : currentBundleRange.associatedEdges()) {
 								e.setProperty(FEntwumSOptions.NO_TIP, true);
@@ -654,8 +697,8 @@ public class EdgeBundler {
 		return sigBitList;
 	}
 
-	private static List<String> createLabelsFromBundles(List<BundleRange> bundleList) {
-		List<String> strl = bundleList.stream().map(b -> {
+	private static List<String> createLabelsFromBundles(List<BundleRange> bundleList, List<BundleRange> excludedBundles) {
+		List<String> strl = bundleList.stream().filter(b -> !excludedBundles.contains(b)).map(b -> {
 			String ret = "";
 
 			ret += b.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGNAL_NAME);
