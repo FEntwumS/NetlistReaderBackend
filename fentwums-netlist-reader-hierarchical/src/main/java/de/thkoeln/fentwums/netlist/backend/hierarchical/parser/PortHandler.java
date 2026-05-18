@@ -157,9 +157,9 @@ public class PortHandler {
                 }
             }
 
-            if (reversedPort) {
-                newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_LOWER_INDEX_IN_PORT_GROUP, upper);
-                newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP, lower);
+            if (!reversedPort) {
+                newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_LOWER_INDEX_IN_PORT_GROUP, lower);
+                newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP, upper);
 
                 if (lower != upper) {
                     ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(portname + " [" + upper + ":" + lower + "]",newPort, settings);
