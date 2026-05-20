@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -208,43 +207,7 @@ public class EdgeBundler {
 					continue;
 				}
 
-				// Deduplicate bundles
-				boolean done = false;
-				int index = 1;
-				while (!done && bundleList.size() > 1) {
-					BundleRange existingRange = null;
-					BundleRange testedRange = bundleList.get(index);
-
-					for (int j = 0; j < index; j++) {
-						BundleRange candidate = bundleList.get(j);
-
-						if (testedRange.actualDrivers().size() != candidate.actualDrivers().size()) {
-							continue;
-						}
-
-						if (testedRange.actualDrivers().isEmpty()) {
-							break;
-						}
-
-						existingRange = candidate;
-
-						for (int k = 0; k < testedRange.actualDrivers().size(); k++) {
-							if (!testedRange.actualDrivers().get(k).equals(candidate.actualDrivers().get(k))) {
-								existingRange = null;
-								break;
-							}
-						}
-					}
-
-					if (existingRange != null) {
-						existingRange.associatedEdges().addAll(testedRange.associatedEdges());
-						bundleList.remove(index);
-					} else {
-						index++;
-					}
-
-					done = index >= bundleList.size();
-				}
+				deduplicateBundlesByDriver(bundleList);
 
 				// Check if the requested signal aggregation has already been created
 				// If so, re-use it. This greatly reduces clutter when a vector is compared to a lot of different values
@@ -501,13 +464,75 @@ public class EdgeBundler {
  	// The fixup needs to be run _AFTER_ the "normal" bundling pass. This is required for the correct creation of the
 	// necessary splitter and aggregator nodes
 	public static void fixHierarchyCrossings(ElkNode entityInstance, NetlistCreationSettings settings) {
-		for (ElkPort p : entityInstance.getPorts()) {
+		for (ElkPort crossingPort : entityInstance.getPorts()) {
 			List<ElkEdge> edgeList = new ArrayList<>();
-			if (p.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)) {
-				edgeList.addAll(p.getOutgoingEdges());
+			if (crossingPort.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)) {
+				edgeList.addAll(crossingPort.getOutgoingEdges());
 			} else {
-				edgeList.addAll(p.getIncomingEdges());
+				edgeList.addAll(crossingPort.getIncomingEdges());
 			}
+
+			HashMap<ElkNode, HashMap<String, List<PortEdgeAssociation>>> destNodePortMap = new HashMap<>();
+
+			for (ElkEdge e : edgeList) {
+				ElkPort innerPort;
+				if (crossingPort.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
+					innerPort = (ElkPort) e.getSources().getFirst();
+				} else {
+					innerPort = (ElkPort) e.getTargets().getFirst();
+				}
+				ElkNode innerNode = innerPort.getParent();
+				String innerPortgroup = innerPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME);
+				int innerPortgroupSubdivisionIndex = innerPort.getProperty(FEntwumSOptions.PORT_GROUP_SPLIT_INDEX);
+				String combinedPortgroupSubdivisionName = innerPortgroup + innerPortgroupSubdivisionIndex;
+				HashMap<String, List<PortEdgeAssociation>> innerPortgroupSubdivisionMap = destNodePortMap.computeIfAbsent(innerNode, k -> new HashMap<>());
+
+				List<PortEdgeAssociation> portEdgeAssociationList = innerPortgroupSubdivisionMap.computeIfAbsent(combinedPortgroupSubdivisionName, k -> new ArrayList<>());
+
+				PortEdgeAssociation association = new PortEdgeAssociation(innerPort, e);
+				portEdgeAssociationList.add(association);
+			}
+
+			List<BundleRange> bundleList = new ArrayList<>();
+
+			for (ElkNode keyNode : destNodePortMap.keySet()) {
+				HashMap<String, List<PortEdgeAssociation>> innerPortgroupSubdivisionMap = destNodePortMap.get(keyNode);
+
+				for (String portgroupSubdivisionKey  : innerPortgroupSubdivisionMap.keySet()) {
+					List<PortEdgeAssociation> associationList = innerPortgroupSubdivisionMap.get(portgroupSubdivisionKey);
+					List<SignalElement> signalElements = new ArrayList<>();
+
+					for (PortEdgeAssociation association : associationList) {
+						ElkPort port = association.port();
+						ElkEdge edge = association.edge();
+
+						int indexInSignal = edge.getProperty(FEntwumSOptions.INDEX_IN_SIGNAL);
+
+						if (port.getProperty(FEntwumSOptions.PORT_TYPE) == PortType.SIGNAL_SINGLE
+								|| port.getProperty(FEntwumSOptions.PORT_TYPE) == PortType.CONSTANT_SINGLE) {
+							SignalElement toAdd = new SignalElement(indexInSignal, port,
+									edge.getProperty(FEntwumSOptions.INDEX_IN_SIGNAL), edge);
+
+							signalElements.add(toAdd);
+						} else {
+							for (int i = port.getProperty(FEntwumSOptions.CANONICAL_LOWER_INDEX_IN_SIGNAL);
+							     i <= port.getProperty(FEntwumSOptions.CANONICAL_UPPER_INDEX_IN_SIGNAL);
+							     i++) {
+								SignalElement toAdd = new SignalElement(i, port,
+										i, edge);
+
+								signalElements.add(toAdd);
+							}
+						}
+					}
+
+					bundleList.addAll(RangeCalculator.calculateRanges(signalElements, 10000));
+				}
+			}
+
+			bundleList.sort(BundleRange::compareTo);
+
+			deduplicateBundlesByDriver(bundleList);
 
 			// Skip ports with only single edges, since the edges are not ambiguous
 			if (edgeList.stream().noneMatch(e-> e.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED) || e.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT))) {
@@ -520,13 +545,13 @@ public class EdgeBundler {
 				continue;
 			}
 
-			List<String> labelList = new ArrayList<>(1);
+			List<String> labelList = new ArrayList<>(edgeList.size());
 			for(ElkEdge e : edgeList) {
-				labelList.add(p.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
+				labelList.add(crossingPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
 			}
 
-			if (p.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)) {
-				SignalSplit split = ElkElementCreator.createSignalSplit(entityInstance, p, labelList, settings);
+			if (crossingPort.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)) {
+				SignalSplit split = ElkElementCreator.createSignalSplit(entityInstance, crossingPort, labelList, settings);
 
 				int upper = edgeList.size();
 
@@ -546,10 +571,10 @@ public class EdgeBundler {
 				}
 
 				// Add connection to entity inport
-				ElkEdge newEdge = ElkElementCreator.createNewEdge(split.inPort(), p);
+				ElkEdge newEdge = ElkElementCreator.createNewEdge(split.inPort(), crossingPort);
 				newEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 			} else {
-				SignalAgg agg = ElkElementCreator.createSignalAgg(entityInstance, p, labelList, settings);
+				SignalAgg agg = ElkElementCreator.createSignalAgg(entityInstance, crossingPort, labelList, settings);
 
 				int upper = edgeList.size();
 
@@ -579,7 +604,7 @@ public class EdgeBundler {
 				}
 
 				// Add connection to entity outport
-				ElkEdge newEdge = ElkElementCreator.createNewEdge(p, agg.outPort());
+				ElkEdge newEdge = ElkElementCreator.createNewEdge(crossingPort, agg.outPort());
 				newEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 			}
 		}
@@ -718,5 +743,49 @@ public class EdgeBundler {
 		}).toList();
 
 		return strl;
+	}
+
+	private static void deduplicateBundlesByDriver(List<BundleRange> bundleList) {
+		boolean done = false;
+		int index = 1;
+		while (!done && bundleList.size() > 1) {
+			BundleRange existingRange = null;
+			BundleRange testedRange = bundleList.get(index);
+
+			for (int j = 0; j < index; j++) {
+				BundleRange candidate = bundleList.get(j);
+
+				if (testedRange.actualDrivers().size() != candidate.actualDrivers().size()) {
+					continue;
+				}
+
+				if (testedRange.actualDrivers().isEmpty()) {
+					break;
+				}
+
+				existingRange = candidate;
+
+				for (int k = 0; k < testedRange.actualDrivers().size(); k++) {
+					if (!testedRange.actualDrivers().get(k).equals(candidate.actualDrivers().get(k))) {
+						existingRange = null;
+						break;
+					}
+				}
+			}
+
+			if (existingRange != null) {
+				existingRange.associatedEdges().addAll(testedRange.associatedEdges());
+				bundleList.remove(index);
+			} else {
+				index++;
+			}
+
+			done = index >= bundleList.size();
+		}
+	}
+
+	private static void deduplicateBundlesByContainedRange(List<BundleRange> bundleList) {
+		// Sort the bundle list
+		bundleList.sort(BundleRange::compareTo);
 	}
 }
