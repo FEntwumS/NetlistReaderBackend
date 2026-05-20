@@ -198,6 +198,16 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 			PortShape.SQUARE
 	);
 
+	public static final IProperty<Integer> CANONICAL_UPPER_INDEX_IN_SIGNAL = new Property<Integer>(
+			"de.thkoeln.fentwums.netlist.backen.canonical-upper-index-in-signal",
+			0
+	);
+
+	public static final IProperty<Integer> CANONICAL_LOWER_INDEX_IN_SIGNAL = new Property<Integer>(
+			"de.thkoeln.fentwums.netlist.backen.canonical-lower-index-in-signal",
+			0
+	);
+
 	@Override
 	public void apply(Registry registry) {
 		registry.register(new LayoutOptionData.Builder()
@@ -495,6 +505,26 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 				.type(LayoutOptionData.Type.ENUM)
 				.optionClass(PortShape.class)
 				.targets(EnumSet.of(LayoutOptionData.Target.PORTS))
+				.visibility(LayoutOptionData.Visibility.HIDDEN)
+				.create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+				.id("de.thkoeln.fentwums.netlist.backend.canonical-upper-index-in-signal")
+				.defaultValue(0)
+				.type(LayoutOptionData.Type.INT)
+				.optionClass(Integer.class)
+				.targets(EnumSet.of(LayoutOptionData.Target.EDGES))
+				.visibility(LayoutOptionData.Visibility.HIDDEN)
+				.create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+				.id("de.thkoeln.fentwums.netlist.backend.canonical-lower-index-in-signal")
+				.defaultValue(0)
+				.type(LayoutOptionData.Type.INT)
+				.optionClass(Integer.class)
+				.targets(EnumSet.of(LayoutOptionData.Target.EDGES))
 				.visibility(LayoutOptionData.Visibility.HIDDEN)
 				.create()
 		);
