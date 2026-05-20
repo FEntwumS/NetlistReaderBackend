@@ -272,6 +272,9 @@ public class PortHandler {
                     constEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED_CONSTANT);
                 }
 
+                constEdge.setProperty(FEntwumSOptions.CANONICAL_UPPER_INDEX_IN_SIGNAL, constRange.containedRange().upper());
+                constEdge.setProperty(FEntwumSOptions.CANONICAL_LOWER_INDEX_IN_SIGNAL, constRange.containedRange().lower());
+
                 ElkLabel constEdgeLabel = ElkElementCreator.createNewEdgeLabel(constantValues.toString(), constEdge,
                                                                                settings);
                 constEdgeLabel.setProperty(CoreOptions.EDGE_LABELS_PLACEMENT, EdgeLabelPlacement.TAIL);
