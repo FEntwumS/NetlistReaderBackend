@@ -534,7 +534,50 @@ public class EdgeBundler {
 
 			deduplicateBundlesByDriver(bundleList);
 
-			// Skip ports with only single edges, since the edges are not ambiguous
+			if (bundleList.size() <= 1) {
+				// Todo improve behavior
+				continue;
+			}
+
+			//Now create aggs and splits
+
+			if (crossingPort.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
+				// Instance output -> agg
+				List<String> strl = createLabelsFromBundles(bundleList, new ArrayList<>());
+
+				SignalAgg agg = ElkElementCreator.createSignalAgg(entityInstance, crossingPort, strl, settings);
+
+				// Draw outgoing edge
+				ElkEdge outEdge =  ElkElementCreator.createNewEdge(crossingPort, agg.outPort());
+				outEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
+
+				for (int i = 0; i < bundleList.size(); i++) {
+					BundleRange currentBundleRange = bundleList.get(i);
+					ElkPort currentInPort = agg.inPorts().get(i);
+
+					moveEdgesToTarget(currentBundleRange.associatedEdges(), currentInPort);
+				}
+			} else {
+				// Instance input -> split
+				List<String> strl = createLabelsFromBundles(bundleList, new ArrayList<>());
+
+				SignalSplit split = ElkElementCreator.createSignalSplit(entityInstance, crossingPort, strl, settings);
+
+				// Draw incomming edge
+				ElkEdge inEdge = ElkElementCreator.createNewEdge(split.inPort(), crossingPort);
+				inEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
+
+				for (int i = 0; i < bundleList.size(); i++) {
+					BundleRange currentBundleRange = bundleList.get(i);
+					ElkPort currentOutPort = split.outPorts().get(i);
+
+					moveEdgesToSource(currentBundleRange.associatedEdges(), currentOutPort);
+				}
+			}
+
+			continue;
+
+			/*// Skip ports with only single edges, since the edges are not ambiguous
 			if (edgeList.stream().noneMatch(e-> e.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED) || e.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT))) {
 				continue;
 			}
@@ -606,7 +649,7 @@ public class EdgeBundler {
 				// Add connection to entity outport
 				ElkEdge newEdge = ElkElementCreator.createNewEdge(crossingPort, agg.outPort());
 				newEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
-			}
+			}*/
 		}
 	}
 
