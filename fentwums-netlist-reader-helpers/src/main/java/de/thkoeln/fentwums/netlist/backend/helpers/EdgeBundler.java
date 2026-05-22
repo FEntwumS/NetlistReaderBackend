@@ -830,5 +830,23 @@ public class EdgeBundler {
 	private static void deduplicateBundlesByContainedRange(List<BundleRange> bundleList) {
 		// Sort the bundle list
 		bundleList.sort(BundleRange::compareTo);
+		for (int i = 0; i < bundleList.size(); i++) {
+			BundleRange compRange = bundleList.get(i);
+
+			for (int  j = i + 1; j < bundleList.size(); j++) {
+				BundleRange candidate = bundleList.get(j);
+
+				if (candidate.containedRange().upper() > compRange.containedRange().upper()
+				&&  candidate.containedRange().lower() > compRange.containedRange().lower()) {
+					break;
+				}
+
+				if (candidate.containedRange().equals(compRange.containedRange())) {
+					compRange.associatedEdges().addAll(candidate.associatedEdges());
+					bundleList.remove(j);
+					j--;
+				}
+			}
+		}
 	}
 }
