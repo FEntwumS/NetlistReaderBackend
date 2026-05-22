@@ -508,15 +508,15 @@ public class EdgeBundler {
 
 						int indexInSignal = edge.getProperty(FEntwumSOptions.INDEX_IN_SIGNAL);
 
-						if (port.getProperty(FEntwumSOptions.PORT_TYPE) == PortType.SIGNAL_SINGLE
-								|| port.getProperty(FEntwumSOptions.PORT_TYPE) == PortType.CONSTANT_SINGLE) {
+						if (edge.getProperty(FEntwumSOptions.SIGNAL_TYPE) == SignalType.SINGLE
+								|| edge.getProperty(FEntwumSOptions.SIGNAL_TYPE) == SignalType.CONSTANT) {
 							SignalElement toAdd = new SignalElement(indexInSignal, port,
 									edge.getProperty(FEntwumSOptions.INDEX_IN_SIGNAL), edge);
 
 							signalElements.add(toAdd);
 						} else {
-							for (int i = port.getProperty(FEntwumSOptions.CANONICAL_LOWER_INDEX_IN_SIGNAL);
-							     i <= port.getProperty(FEntwumSOptions.CANONICAL_UPPER_INDEX_IN_SIGNAL);
+							for (int i = edge.getProperty(FEntwumSOptions.CANONICAL_LOWER_INDEX_IN_SIGNAL);
+							     i <= edge.getProperty(FEntwumSOptions.CANONICAL_UPPER_INDEX_IN_SIGNAL);
 							     i++) {
 								SignalElement toAdd = new SignalElement(i, port,
 										i, edge);
