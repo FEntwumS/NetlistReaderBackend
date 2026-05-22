@@ -532,7 +532,7 @@ public class EdgeBundler {
 
 			bundleList.sort(BundleRange::compareTo);
 
-			deduplicateBundlesByDriver(bundleList);
+			deduplicateBundlesByContainedRange(bundleList);
 
 			if (bundleList.size() <= 1) {
 				// Todo improve behavior
