@@ -464,6 +464,7 @@ public class EdgeBundler {
  	// The fixup needs to be run _AFTER_ the "normal" bundling pass. This is required for the correct creation of the
 	// necessary splitter and aggregator nodes
 	public static void fixHierarchyCrossings(ElkNode entityInstance, NetlistCreationSettings settings) {
+		// First, bundle the inner part of the hierarchy crossing
 		for (ElkPort crossingPort : entityInstance.getPorts()) {
 			List<ElkEdge> edgeList = new ArrayList<>();
 			if (crossingPort.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)) {
@@ -650,6 +651,24 @@ public class EdgeBundler {
 				ElkEdge newEdge = ElkElementCreator.createNewEdge(crossingPort, agg.outPort());
 				newEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 			}*/
+		}
+
+		// Now, bundle the outer part of the contained entity instances
+		for (ElkNode childEntityInstance : entityInstance.getChildren().stream().filter(i -> i.getProperty(FEntwumSOptions.CELL_TYPE).equals("HDL_ENTITY")).toList()) {
+			fixOuterInterface(childEntityInstance, settings);
+		}
+	}
+
+	// This sub-pass creates aggs for incoming and splits for outgoing edges
+	private static void fixOuterInterface(ElkNode entityInstance, NetlistCreationSettings settings) {
+		for (ElkPort port : entityInstance.getPorts()) {
+			List<ElkEdge> edgeList;
+
+			if (port.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
+				edgeList = port.getOutgoingEdges();
+			} else {
+				edgeList = port.getIncomingEdges();
+			}
 		}
 	}
 
