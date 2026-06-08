@@ -507,6 +507,17 @@ public class EdgeBundler {
 
 						int indexInSignal = edge.getProperty(FEntwumSOptions.INDEX_IN_SIGNAL);
 
+						if (edge.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.SINGLE)) {
+							String expectedSignalName = crossingPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME);
+
+							NetAssociation netAssociation =
+									edge.getProperty(FEntwumSOptions.NET_ASSOCIATIONS).stream().filter(a -> a.netName().equals(expectedSignalName)).findFirst().orElse(null);
+
+							if (netAssociation != null) {
+								indexInSignal = netAssociation.indexInNet();
+							}
+						}
+
 						if (edge.getProperty(FEntwumSOptions.SIGNAL_TYPE) == SignalType.SINGLE
 								|| edge.getProperty(FEntwumSOptions.SIGNAL_TYPE) == SignalType.CONSTANT) {
 							SignalElement toAdd = new SignalElement(indexInSignal, port,
