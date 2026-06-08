@@ -1,10 +1,7 @@
 package de.thkoeln.fentwums.netlist.backend.helpers;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.*;
-import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
-import de.thkoeln.fentwums.netlist.backend.elkoptions.JunctionShape;
-import de.thkoeln.fentwums.netlist.backend.elkoptions.PortShape;
-import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
+import de.thkoeln.fentwums.netlist.backend.elkoptions.*;
 import org.eclipse.elk.alg.layered.options.*;
 import org.eclipse.elk.core.data.LayoutAlgorithmData;
 import org.eclipse.elk.core.data.LayoutMetaDataService;
@@ -50,8 +47,6 @@ public class ElkElementCreator {
 		newNode.setProperty(CoreOptions.RANDOM_SEED, 1);
 		newNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
 		newNode.setProperty(LayeredOptions.NODE_PLACEMENT_BK_FIXED_ALIGNMENT, FixedAlignment.BALANCED);
-		newNode.setProperty(CoreOptions.PARTITIONING_ACTIVATE, true);
-		newNode.setProperty(CoreOptions.SEPARATE_CONNECTED_COMPONENTS, false);
 
 		return newNode;
 	}
@@ -818,6 +813,45 @@ public class ElkElementCreator {
 		switch (port.getProperty(FEntwumSOptions.PORT_SHAPE)) {
 			case PortShape.SQUARE -> port.setWidth(10.0d);
 			case PortShape.TAG -> port.setWidth(13.0d);
+		}
+	}
+
+	public static void addNetAssociationToEdge(ElkEdge edge, int sigbit, NetAssociation toAdd) {
+		if ((edge.getProperty(FEntwumSOptions.SIGBIT) == sigbit || edge.getProperty(FEntwumSOptions.SIGBIT) == 0)
+			&& edge.getProperty(FEntwumSOptions.BUNDLED_NET_ASSOCIATIONS) == null) {
+			edge.getProperty(FEntwumSOptions.NET_ASSOCIATIONS).add(toAdd);
+		} else {
+			// Edge is pre-bundled
+			edge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
+
+			// Check if existing information needs to be moved
+			List<NetAssociation> existingAssociations = edge.getProperty(FEntwumSOptions.NET_ASSOCIATIONS);
+
+			Map<Integer, List<NetAssociation>> bundledAssociations = edge.getProperty(FEntwumSOptions.BUNDLED_NET_ASSOCIATIONS);
+
+			if (bundledAssociations == null) {
+				bundledAssociations = new HashMap<>();
+
+				edge.setProperty(FEntwumSOptions.BUNDLED_NET_ASSOCIATIONS, bundledAssociations);
+			}
+
+			if (!existingAssociations.isEmpty()) {
+
+				bundledAssociations.put(edge.getProperty(FEntwumSOptions.SIGBIT), existingAssociations);
+
+				edge.setProperty(FEntwumSOptions.NET_ASSOCIATIONS, new ArrayList<>());
+			}
+
+			List<NetAssociation> newAssociations = bundledAssociations.get(sigbit);
+
+			if  (newAssociations == null) {
+				newAssociations = new ArrayList<>();
+			}
+
+			newAssociations.add(toAdd);
+
+			edge.getProperty(FEntwumSOptions.BUNDLED_NET_ASSOCIATIONS)
+					.put(sigbit, newAssociations);
 		}
 	}
 }

@@ -2,10 +2,7 @@ package de.thkoeln.fentwums.netlist.backend.helpers;
 
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.*;
-import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
-import de.thkoeln.fentwums.netlist.backend.elkoptions.PortShape;
-import de.thkoeln.fentwums.netlist.backend.elkoptions.PortType;
-import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
+import de.thkoeln.fentwums.netlist.backend.elkoptions.*;
 import org.eclipse.elk.core.options.CoreOptions;
 import org.eclipse.elk.core.options.PortSide;
 import org.eclipse.elk.graph.*;
@@ -15,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This is an alternative bundling approach. It only works on a single entity instance (so multiple calls are necessary)
@@ -501,11 +499,11 @@ public class EdgeBundler {
 
 				for (String portgroupSubdivisionKey  : innerPortgroupSubdivisionMap.keySet()) {
 					List<PortEdgeAssociation> associationList = innerPortgroupSubdivisionMap.get(portgroupSubdivisionKey);
-					List<SignalElement> signalElements = new ArrayList<>();
 
 					for (PortEdgeAssociation association : associationList) {
 						ElkPort port = association.port();
 						ElkEdge edge = association.edge();
+						List<SignalElement> signalElements = new ArrayList<>();
 
 						int indexInSignal = edge.getProperty(FEntwumSOptions.INDEX_IN_SIGNAL);
 
@@ -525,9 +523,9 @@ public class EdgeBundler {
 								signalElements.add(toAdd);
 							}
 						}
-					}
 
-					bundleList.addAll(RangeCalculator.calculateRanges(signalElements, 10000));
+						bundleList.addAll(RangeCalculator.calculateRanges(signalElements, 10000));
+					}
 				}
 			}
 
@@ -719,6 +717,8 @@ public class EdgeBundler {
 
 			sourcePort.getOutgoingEdges().add(edge);
 		} else if (!edge.equals(existingEdge)) {
+			moveNetAssociationinformation(edge, existingEdge);
+
 			removeEdgeFromGraph(edge);
 
 			existingEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
@@ -746,6 +746,8 @@ public class EdgeBundler {
 
 			targetPort.getIncomingEdges().add(edge);
 		} else if (!edge.equals(existingEdge)) {
+			moveNetAssociationinformation(edge, existingEdge);
+
 			removeEdgeFromGraph(edge);
 
 			existingEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
@@ -864,6 +866,33 @@ public class EdgeBundler {
 					compRange.associatedEdges().addAll(candidate.associatedEdges());
 					bundleList.remove(j);
 					j--;
+				}
+			}
+		}
+	}
+
+	private static void moveNetAssociationinformation(ElkEdge sourceEdge, ElkEdge targetEdge) {
+		if (sourceEdge.getProperty(FEntwumSOptions.SIGBIT).equals(targetEdge.getProperty(FEntwumSOptions.SIGBIT))) {
+			int sharedSigbit =  sourceEdge.getProperty(FEntwumSOptions.SIGBIT);
+			for (NetAssociation a : sourceEdge.getProperty(FEntwumSOptions.NET_ASSOCIATIONS)) {
+				ElkElementCreator.addNetAssociationToEdge(targetEdge, sharedSigbit, a);
+			}
+
+			return;
+		}
+
+		Map<Integer, List<NetAssociation>> existingAssociations = targetEdge.getProperty(FEntwumSOptions.BUNDLED_NET_ASSOCIATIONS);
+
+		if (existingAssociations == null) {
+			for (NetAssociation a :  sourceEdge.getProperty(FEntwumSOptions.NET_ASSOCIATIONS)) {
+				ElkElementCreator.addNetAssociationToEdge(targetEdge, sourceEdge.getProperty(FEntwumSOptions.SIGBIT), a);
+			}
+		} else {
+			for (int key :  existingAssociations.keySet()) {
+				List<NetAssociation> associationsForCurrentKey = existingAssociations.get(key);
+
+				for (NetAssociation a :  associationsForCurrentKey) {
+					ElkElementCreator.addNetAssociationToEdge(targetEdge, key, a);
 				}
 			}
 		}

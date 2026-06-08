@@ -5,8 +5,7 @@ import org.eclipse.elk.core.data.LayoutOptionData;
 import org.eclipse.elk.graph.properties.IProperty;
 import org.eclipse.elk.graph.properties.Property;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
+import java.util.*;
 
 /**
  * Custom options provider
@@ -206,6 +205,16 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 	public static final IProperty<Integer> CANONICAL_LOWER_INDEX_IN_SIGNAL = new Property<Integer>(
 			"de.thkoeln.fentwums.netlist.backen.canonical-lower-index-in-signal",
 			0
+	);
+
+	public static final IProperty<List<NetAssociation>> NET_ASSOCIATIONS = new Property<>(
+			"de.thkoeln.fentwums.netlist.backend.net-associations",
+			new ArrayList<>()
+	);
+
+	public static final IProperty<Map<Integer, List<NetAssociation>>> BUNDLED_NET_ASSOCIATIONS = new Property<>(
+			"de.thkoeln.fentwums.netlist.backend.bundled-net-associations",
+			null
 	);
 
 	@Override
