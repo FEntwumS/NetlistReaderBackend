@@ -2,10 +2,7 @@ package de.thkoeln.fentwums.netlist.backend.hierarchical.parser;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.*;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
-import de.thkoeln.fentwums.netlist.backend.helpers.CellCollapser;
-import de.thkoeln.fentwums.netlist.backend.helpers.EdgeBundler;
-import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
-import de.thkoeln.fentwums.netlist.backend.helpers.OutputReverser;
+import de.thkoeln.fentwums.netlist.backend.helpers.*;
 import de.thkoeln.fentwums.netlist.backend.interfaces.ICollapsableNode;
 import de.thkoeln.fentwums.netlist.backend.interfaces.IGraphCreator;
 import org.eclipse.elk.core.RecursiveGraphLayoutEngine;
@@ -93,6 +90,9 @@ public class HierarchicalOrchestrator implements IGraphCreator {
         ((ModuleNode) rootNode).setAsLoaded();
 
         EdgeBundler.bundleEdges(topNode, settings);
+        EdgeBundler.fixHierarchyCrossings(topNode, settings);
+
+        ConstantLabelUpdater.updateLabels(topNode, settings);
 
         if (settings.getPerformanceTarget() == PerformanceTarget.Preloading) {
             for (String child : rootNode.getChildren().keySet()) {
@@ -153,6 +153,9 @@ public class HierarchicalOrchestrator implements IGraphCreator {
         currentModuleNode.setAsLoaded();
 
         EdgeBundler.bundleEdges(currentModuleNode.getNode(), settings);
+        EdgeBundler.fixHierarchyCrossings(currentModuleNode.getNode(), settings);
+
+        ConstantLabelUpdater.updateLabels(currentModuleNode.getNode(), settings);
 
         for (String child : currentModuleNode.getChildren().keySet()) {
             addModulesRecursively(modules, blackBoxes, settings, (ModuleNode) currentModuleNode.getChildren().get(child),
@@ -166,6 +169,8 @@ public class HierarchicalOrchestrator implements IGraphCreator {
         NetnameHandler netnameHandler = new NetnameHandler();
         CellCollapser collapser = new CellCollapser();
 
+        collapser.expandCell(toLoad);
+
         logger.atInfo().setMessage("Loading module {}").addArgument(toLoad.getCellName()).log();
         cellHandler.createCells(this.modules, toLoad.getNode(), this.signalMaps, this.settings, this.blackBoxes, toLoad,
                                 toLoad.getCellType(), instancePath);
@@ -174,6 +179,9 @@ public class HierarchicalOrchestrator implements IGraphCreator {
         toLoad.setAsLoaded();
 
         EdgeBundler.bundleEdges(toLoad.getNode(), this.settings);
+        EdgeBundler.fixHierarchyCrossings(toLoad.getNode(), this.settings);
+
+        ConstantLabelUpdater.updateLabels(toLoad.getNode(), this.settings);
 
         collapser.collapseRecursively(toLoad);
 

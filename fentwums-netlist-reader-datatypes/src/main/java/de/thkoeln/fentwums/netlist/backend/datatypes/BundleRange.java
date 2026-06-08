@@ -8,6 +8,12 @@ public record BundleRange(Range containedRange, List<Object> actualDrivers, List
 	
 	@Override
 	public int compareTo(BundleRange o) {
-		return Integer.compare(this.containedRange().upper(), o.containedRange.upper());
+		int compVal = Integer.compare(this.containedRange().lower(), o.containedRange.lower());
+
+		if (compVal == 0) {
+			compVal = Integer.compare(this.containedRange().upper(), o.containedRange.upper());
+		}
+
+		return compVal;
 	}
 }
