@@ -801,7 +801,15 @@ public class EdgeBundler {
 		List<String> strl = bundleList.stream().filter(b -> !excludedBundles.contains(b)).map(b -> {
 			String ret = "";
 
-			ret += b.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGNAL_NAME);
+			//List<String> a =
+
+			String sharedName = findSharedNetNameInBundle(bundleList);
+
+			if (sharedName.isEmpty()) {
+				ret += b.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGNAL_NAME);
+			} else {
+				ret += sharedName;
+			}
 			ret += " [";
 
 			if (b.containedRange().singleElement()) {
@@ -892,7 +900,7 @@ public class EdgeBundler {
 			return;
 		}
 
-		Map<Integer, List<NetAssociation>> existingAssociations = targetEdge.getProperty(FEntwumSOptions.BUNDLED_NET_ASSOCIATIONS);
+		Map<Integer, List<NetAssociation>> existingAssociations = sourceEdge.getProperty(FEntwumSOptions.BUNDLED_NET_ASSOCIATIONS);
 
 		if (existingAssociations == null) {
 			for (NetAssociation a :  sourceEdge.getProperty(FEntwumSOptions.NET_ASSOCIATIONS)) {
@@ -906,6 +914,74 @@ public class EdgeBundler {
 					ElkElementCreator.addNetAssociationToEdge(targetEdge, key, a);
 				}
 			}
+		}
+	}
+
+	private static String findSharedNetNameInBundle(List<BundleRange> bundleList) {
+		List<List<String>> candidates = bundleList.stream().filter(b -> !(b.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.CONSTANT)
+						|| b.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT))).map(EdgeBundler::findSharedNetName).toList();
+
+		if (candidates.isEmpty()) {
+			return "";
+		} else if (candidates.size() == 1) {
+			return candidates.getFirst().getFirst();
+		}
+
+		List<String> choices = candidates.getFirst();
+
+		List<String> results = choices.stream().filter(c -> candidates.stream().allMatch(comp -> comp.contains(c))).toList();
+
+		if (results.isEmpty()) {
+			return "";
+		} else {
+			return results.getFirst();
+		}
+	}
+
+	private static List<String> findSharedNetName(BundleRange bundleRange) {
+		if (bundleRange.containedRange().singleElement()) {
+			return bundleRange.associatedEdges().getFirst().getProperty(FEntwumSOptions.NET_ASSOCIATIONS).stream().map(NetAssociation::netName).toList();
+		} else {
+			// Find the list of candidates
+			ElkEdge edge = bundleRange.associatedEdges().getFirst();
+			List<NetAssociation> candidates;
+
+			if (edge.getProperty(FEntwumSOptions.NET_ASSOCIATIONS).isEmpty()) {
+				if (edge.getProperty(FEntwumSOptions.BUNDLED_NET_ASSOCIATIONS) == null) {
+					new ArrayList<>(0);
+				}
+
+				int key = edge.getProperty(FEntwumSOptions.BUNDLED_NET_ASSOCIATIONS).keySet().iterator().next();
+				candidates = edge.getProperty(FEntwumSOptions.BUNDLED_NET_ASSOCIATIONS).get(key);
+			} else {
+				candidates = edge.getProperty(FEntwumSOptions.NET_ASSOCIATIONS);
+			}
+
+			List<String> sharedAssociations = candidates.stream().filter(candidate -> {
+				for(ElkEdge currentEdge : bundleRange.associatedEdges()) {
+					if (currentEdge.getProperty(FEntwumSOptions.NET_ASSOCIATIONS).isEmpty()) {
+						for (int key : currentEdge.getProperty(FEntwumSOptions.BUNDLED_NET_ASSOCIATIONS).keySet()) {
+							if (currentEdge.getProperty(FEntwumSOptions.BUNDLED_NET_ASSOCIATIONS).get(key).stream().noneMatch(a -> candidate.netName().equals(a.netName()))) {
+								return false;
+							}
+						}
+					} else {
+						if(currentEdge.getProperty(FEntwumSOptions.NET_ASSOCIATIONS).stream().noneMatch(a -> candidate.netName().equals(a.netName()))) {
+							return false;
+						}
+					}
+				}
+
+				return true;
+			}).map(NetAssociation::netName).toList();
+
+			if (sharedAssociations.size() > 1) {
+					logger.warn("Found more than one shared net name");
+			} else if (sharedAssociations.isEmpty()) {
+				logger.warn("Could not find shared net name");
+			}
+
+			return sharedAssociations;
 		}
 	}
 }
