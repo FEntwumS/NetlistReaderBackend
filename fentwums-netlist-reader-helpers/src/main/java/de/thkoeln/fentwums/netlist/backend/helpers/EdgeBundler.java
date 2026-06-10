@@ -939,7 +939,7 @@ public class EdgeBundler {
 	}
 
 	private static List<String> findSharedNetName(BundleRange bundleRange) {
-		if (bundleRange.containedRange().singleElement()) {
+		if (bundleRange.containedRange().singleElement() && !bundleRange.associatedEdges().getFirst().getProperty(FEntwumSOptions.NET_ASSOCIATIONS).isEmpty()) {
 			return bundleRange.associatedEdges().getFirst().getProperty(FEntwumSOptions.NET_ASSOCIATIONS).stream().map(NetAssociation::netName).toList();
 		} else {
 			// Find the list of candidates
@@ -959,6 +959,11 @@ public class EdgeBundler {
 
 			List<String> sharedAssociations = candidates.stream().filter(candidate -> {
 				for(ElkEdge currentEdge : bundleRange.associatedEdges()) {
+					if (currentEdge.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.CONSTANT)
+						|| currentEdge.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT)) {
+						continue;
+					}
+
 					if (currentEdge.getProperty(FEntwumSOptions.NET_ASSOCIATIONS).isEmpty()) {
 						for (int key : currentEdge.getProperty(FEntwumSOptions.BUNDLED_NET_ASSOCIATIONS).keySet()) {
 							if (currentEdge.getProperty(FEntwumSOptions.BUNDLED_NET_ASSOCIATIONS).get(key).stream().noneMatch(a -> candidate.netName().equals(a.netName()))) {
