@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.eclipse.elk.graph.util.ElkGraphUtil.updateContainment;
+
 /**
  * This is an alternative bundling approach. It only works on a single entity instance (so multiple calls are necessary)
  * and only bundles ports  on actual  cells. The ports belonging to entity instances are not affected by this bundler
@@ -246,8 +248,8 @@ public class EdgeBundler {
 										constNode.setParent(null);
 									}
 
-									moveEdgesToSource(b.associatedEdges(), existingAgg.port());
-									moveEdgesToTarget(b.associatedEdges().stream().filter(edge -> !edge.getSources().isEmpty() && !edge.getTargets().getFirst().equals(currentPort)).toList(), currentPort);
+									moveEdgesToSource(b.associatedEdges(), existingAgg.port(), false);
+									moveEdgesToTarget(b.associatedEdges().stream().filter(edge -> !edge.getSources().isEmpty() && !edge.getTargets().getFirst().equals(currentPort)).toList(), currentPort, false);
 								}
 
 								bundleList.clear();
@@ -276,7 +278,7 @@ public class EdgeBundler {
 							BundleRange currentBundleRange = bundleList.get(i + offset);
 
 							if (fullsizeBundles.contains(currentBundleRange)) {
-								moveEdgesToSource(currentBundleRange.associatedEdges(), currentPort);
+								moveEdgesToSource(currentBundleRange.associatedEdges(), currentPort, false);
 								i -= 1;
 								offset += 1;
 							} else {
@@ -288,13 +290,13 @@ public class EdgeBundler {
 								}
 
 								// Move the now bundled edges
-								moveEdgesToSource(currentBundleRange.associatedEdges(), split.outPorts().get(i));
+								moveEdgesToSource(currentBundleRange.associatedEdges(), split.outPorts().get(i), false);
 							}
 						}
 					} else if (bundleList.size() == 1) {
 						// Create direct connection
 						moveEdgesToSource(bundleList.getFirst().associatedEdges().stream().filter(edge -> !edge.getSources().getFirst().equals(currentPort)).toList(),
-								currentPort);
+								currentPort, false);
 					}
 				} else {
 					if (bundleList.size() > 1) {
@@ -354,7 +356,7 @@ public class EdgeBundler {
 							}
 
 							// Move the now bundled edges
-							moveEdgesToTarget(currentBundleRange.associatedEdges(), agg.inPorts().get(i));
+							moveEdgesToTarget(currentBundleRange.associatedEdges(), agg.inPorts().get(i), false);
 
 							ElkEdge edge = currentBundleRange.associatedEdges().getFirst();
 
@@ -378,7 +380,7 @@ public class EdgeBundler {
 					} else if (bundleList.size() == 1){
 						// Create direct connection
 						moveEdgesToTarget(bundleList.getFirst().associatedEdges().stream().filter(edge -> !edge.getTargets().getFirst().equals(currentPort)).toList(),
-								currentPort);
+								currentPort, false);
 					}
 				}
 
@@ -565,7 +567,7 @@ public class EdgeBundler {
 					BundleRange currentBundleRange = bundleList.get(i);
 					ElkPort currentInPort = agg.inPorts().get(i);
 
-					moveEdgesToTarget(currentBundleRange.associatedEdges(), currentInPort);
+					moveEdgesToTarget(currentBundleRange.associatedEdges(), currentInPort, true);
 				}
 			} else {
 				// Instance input -> split
@@ -581,7 +583,7 @@ public class EdgeBundler {
 					BundleRange currentBundleRange = bundleList.get(i);
 					ElkPort currentOutPort = split.outPorts().get(i);
 
-					moveEdgesToSource(currentBundleRange.associatedEdges(), currentOutPort);
+					moveEdgesToSource(currentBundleRange.associatedEdges(), currentOutPort, true);
 				}
 			}
 
@@ -707,13 +709,13 @@ public class EdgeBundler {
 		edge.setContainingNode(null);
 	}
 
-	private static void moveEdgesToSource(List<ElkEdge> edges, ElkPort sourcePort) {
+	private static void moveEdgesToSource(List<ElkEdge> edges, ElkPort sourcePort, boolean updateContainment) {
 		for (ElkEdge edge : edges) {
-			moveEdgeToSource(edge, sourcePort);
+			moveEdgeToSource(edge, sourcePort, updateContainment);
 		}
 	}
 
-	private static void moveEdgeToSource(ElkEdge edge, ElkPort sourcePort) {
+	private static void moveEdgeToSource(ElkEdge edge, ElkPort sourcePort, boolean updateContainment) {
 		if (edge.getTargets().isEmpty() || edge.getSources().isEmpty()) {
 			// Skip removed edges
 			return;
@@ -727,6 +729,10 @@ public class EdgeBundler {
 			edge.getSources().add(sourcePort);
 
 			sourcePort.getOutgoingEdges().add(edge);
+
+			if (updateContainment) {
+				updateContainment(edge);
+			}
 		} else if (!edge.equals(existingEdge)) {
 			moveNetAssociationinformation(edge, existingEdge);
 
@@ -736,13 +742,13 @@ public class EdgeBundler {
 		}
 	}
 
-	private static void moveEdgesToTarget(List<ElkEdge> edges, ElkPort targetPort) {
+	private static void moveEdgesToTarget(List<ElkEdge> edges, ElkPort targetPort, boolean updateContainment) {
 		for (ElkEdge edge : edges) {
-			moveEdgeToTarget(edge, targetPort);
+			moveEdgeToTarget(edge, targetPort, updateContainment);
 		}
 	}
 
-	private static void moveEdgeToTarget(ElkEdge edge, ElkPort targetPort) {
+	private static void moveEdgeToTarget(ElkEdge edge, ElkPort targetPort, boolean updateContainment) {
 		if (edge.getTargets().isEmpty() || edge.getSources().isEmpty()) {
 			// Skip removed edges
 			return;
@@ -756,6 +762,10 @@ public class EdgeBundler {
 			edge.getTargets().add(targetPort);
 
 			targetPort.getIncomingEdges().add(edge);
+
+			if (updateContainment) {
+				updateContainment(edge);
+			}
 		} else if (!edge.equals(existingEdge)) {
 			moveNetAssociationinformation(edge, existingEdge);
 
