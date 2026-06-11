@@ -120,7 +120,7 @@ public class CellCollapser {
 			}
 
 			for (ElkEdge edge : hNode.getNode().getParent().getContainedEdges()) {
-				if (((ElkPort) edge.getTargets().getFirst()).getParent().equals(hNode.getNode()) && edge.getProperty(CoreOptions.INSIDE_SELF_LOOPS_YO).equals(true)) {
+				if (((ElkPort) edge.getTargets().getFirst()).getParent().equals(hNode.getNode()) && ((ElkPort) edge.getSources().getFirst()).getParent().equals(hNode.getNode()) && edge.getProperty(CoreOptions.INSIDE_SELF_LOOPS_YO).equals(true)) {
 					((ModuleNode) hNode).getInnerSelfLoopEdgeList().add(edge);
 				}
 			}
