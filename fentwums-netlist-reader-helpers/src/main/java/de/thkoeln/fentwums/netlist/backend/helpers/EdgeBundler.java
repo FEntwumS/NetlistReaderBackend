@@ -928,29 +928,64 @@ public class EdgeBundler {
 	}
 
 	private static String findSharedNetNameInBundle(List<BundleRange> bundleList) {
-		List<List<String>> candidates = bundleList.stream().filter(b -> !(b.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.CONSTANT)
+		List<List<NetAssociation>> candidates = bundleList.stream().filter(b -> !(b.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.CONSTANT)
 						|| b.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT))).map(EdgeBundler::findSharedNetName).toList();
 
 		if (candidates.isEmpty()) {
 			return "";
 		} else if (candidates.size() == 1) {
-			return candidates.getFirst().getFirst();
+			return candidates.getFirst().getFirst().netName();
 		}
 
-		List<String> choices = candidates.getFirst();
+		List<NetAssociation> choices = candidates.getFirst();
 
-		List<String> results = choices.stream().filter(c -> candidates.stream().allMatch(comp -> comp.contains(c))).toList();
+		List<NetAssociation> results = choices.stream().filter(c -> candidates.stream().allMatch(comp -> comp.stream().anyMatch(m -> m.netName().equals(c.netName())))).toList();
 
 		if (results.isEmpty()) {
 			return "";
 		} else {
-			return results.getFirst();
+			if (results.size() > 1) {
+				List<NetAssociation> userGeneratedAssociations = results.stream().filter(a -> a.validityLevel().equals(SignalNameValidityLevel.USER_CREATED)).toList();
+
+				if  (userGeneratedAssociations.size() > 1) {
+					String sinkPortName = bundleList.getFirst().associatedEdges().getFirst().getTargets().getFirst().getProperty(FEntwumSOptions.PORT_GROUP_NAME);
+
+					boolean isSinkPortNameShared = bundleList.stream().allMatch(b -> b.associatedEdges().stream().allMatch(e -> e.getTargets().getFirst().getProperty(FEntwumSOptions.PORT_GROUP_NAME).equals(sinkPortName)));
+
+					if  (isSinkPortNameShared && userGeneratedAssociations.stream().anyMatch(a -> a.netName().equals(sinkPortName))) {
+						return sinkPortName;
+					}
+
+					String sourcePortName = bundleList.getFirst().associatedEdges().getFirst().getSources().getFirst().getProperty(FEntwumSOptions.PORT_GROUP_NAME);
+
+					boolean isSourcePortNameShared = bundleList.stream().allMatch(b -> b.associatedEdges().stream().allMatch(e -> e.getSources().getFirst().getProperty(FEntwumSOptions.PORT_GROUP_NAME).equals(sinkPortName)));
+
+					if (isSourcePortNameShared && userGeneratedAssociations.stream().anyMatch(a -> a.netName().equals(sourcePortName))) {
+						return sourcePortName;
+					}
+					ElkNode containingModule = bundleList.getFirst().associatedEdges().getFirst().getContainingNode();
+
+					List<String> modulePortNameList = containingModule.getPorts().stream().map(p -> p.getProperty(FEntwumSOptions.PORT_GROUP_NAME)).toList();
+
+					List<NetAssociation> nonModulePortNameAssociationList = userGeneratedAssociations.stream().filter(a -> !modulePortNameList.contains(a.netName())).toList();
+
+					if (nonModulePortNameAssociationList.isEmpty()) {
+						return userGeneratedAssociations.getFirst().netName();
+					} else {
+						return nonModulePortNameAssociationList.getFirst().netName();
+					}
+				} else if  (userGeneratedAssociations.size() == 1) {
+					return userGeneratedAssociations.getFirst().netName();
+				}
+			}
+
+			return results.getFirst().netName();
 		}
 	}
 
-	private static List<String> findSharedNetName(BundleRange bundleRange) {
+	private static List<NetAssociation> findSharedNetName(BundleRange bundleRange) {
 		if (bundleRange.containedRange().singleElement() && !bundleRange.associatedEdges().getFirst().getProperty(FEntwumSOptions.NET_ASSOCIATIONS).isEmpty()) {
-			return bundleRange.associatedEdges().getFirst().getProperty(FEntwumSOptions.NET_ASSOCIATIONS).stream().map(NetAssociation::netName).toList();
+			return bundleRange.associatedEdges().getFirst().getProperty(FEntwumSOptions.NET_ASSOCIATIONS).stream().toList();
 		} else {
 			// Find the list of candidates
 			ElkEdge edge = bundleRange.associatedEdges().getFirst();
@@ -967,7 +1002,7 @@ public class EdgeBundler {
 				candidates = edge.getProperty(FEntwumSOptions.NET_ASSOCIATIONS);
 			}
 
-			List<String> sharedAssociations = candidates.stream().filter(candidate -> {
+			List<NetAssociation> sharedAssociations = candidates.stream().filter(candidate -> {
 				for(ElkEdge currentEdge : bundleRange.associatedEdges()) {
 					if (currentEdge.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.CONSTANT)
 						|| currentEdge.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT)) {
@@ -988,7 +1023,7 @@ public class EdgeBundler {
 				}
 
 				return true;
-			}).map(NetAssociation::netName).toList();
+			}).toList();
 
 			if (sharedAssociations.size() > 1) {
 					logger.warn("Found more than one shared net name");
