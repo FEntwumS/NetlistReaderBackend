@@ -2,6 +2,7 @@ package de.thkoeln.fentwums.netlist.backend.helpers;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.NetlistCreationSettings;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
+import de.thkoeln.fentwums.netlist.backend.elkoptions.PortShape;
 import de.thkoeln.fentwums.netlist.backend.elkoptions.PortType;
 import org.eclipse.elk.core.math.KVector;
 import org.eclipse.elk.core.options.CoreOptions;
@@ -43,7 +44,7 @@ public class ConstantLabelUpdater {
 				if (p.getIncomingEdges().size() > 1) {
 					logger.atError().setMessage("Cell {} port {} is marked as constant but has {} incoming edges. Skipping...")
 							.addArgument(childNode.getIdentifier())
-							.addArgument(p.getLabels().getFirst().getText())
+							.addArgument(p.getProperty(FEntwumSOptions.PORT_GROUP_NAME))
 							.addArgument(p.getIncomingEdges().size())
 							.log();
 
@@ -87,10 +88,13 @@ public class ConstantLabelUpdater {
 				dummyEdgeSink.setDimensions(10.0d, 0.2d);
 				p.setProperty(CoreOptions.PORT_ANCHOR, new KVector(10.0, 0.2));
 				dummyEdgeSink.setProperty(CoreOptions.PORT_ANCHOR, new KVector(10.0, 0.2));
+				p.setProperty(FEntwumSOptions.SCAFFOLDING_ELEMENT, false);
 
 				if (childNode.getProperty(FEntwumSOptions.CELL_TYPE).equals("SPLIT_CONTAINER")
 						|| childNode.getProperty(FEntwumSOptions.CELL_TYPE).equals("AGG_CONTAINER")) {
 					dummyEdgeSink.setY(p.getY() + 10.0d);
+					p.setProperty(FEntwumSOptions.PORT_SHAPE, PortShape.TAG);
+					ElkElementCreator.setPortWidth(p);
 				} else {
 					// Update label height for port label of cell
 					// This ensures consistent alignment of all port labels, both on constant and non-constant ports

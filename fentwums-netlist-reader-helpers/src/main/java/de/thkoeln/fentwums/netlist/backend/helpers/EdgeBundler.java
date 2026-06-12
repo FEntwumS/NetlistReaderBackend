@@ -568,6 +568,20 @@ public class EdgeBundler {
 					ElkPort currentInPort = agg.inPorts().get(i);
 
 					moveEdgesToTarget(currentBundleRange.associatedEdges(), currentInPort, true);
+
+					if (currentBundleRange.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT)) {
+						currentInPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_MULTIPLE);
+					} else if (currentBundleRange.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.CONSTANT)) {
+						currentInPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
+					}
+
+					if (currentBundleRange.containedRange().singleElement()) {
+						currentInPort.getOutgoingEdges().getFirst().setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.SINGLE);
+					}
+
+					for (ElkEdge e : currentBundleRange.associatedEdges()) {
+						e.setProperty(FEntwumSOptions.NO_TIP, true);
+					}
 				}
 			} else {
 				// Instance input -> split
@@ -575,7 +589,7 @@ public class EdgeBundler {
 
 				SignalSplit split = ElkElementCreator.createSignalSplit(entityInstance, crossingPort, strl, settings);
 
-				// Draw incomming edge
+				// Draw incoming edge
 				ElkEdge inEdge = ElkElementCreator.createNewEdge(split.inPort(), crossingPort);
 				inEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 
@@ -584,6 +598,10 @@ public class EdgeBundler {
 					ElkPort currentOutPort = split.outPorts().get(i);
 
 					moveEdgesToSource(currentBundleRange.associatedEdges(), currentOutPort, true);
+
+					if (currentBundleRange.containedRange().singleElement()) {
+						currentOutPort.getIncomingEdges().getFirst().setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.SINGLE);
+					}
 				}
 			}
 
@@ -1024,12 +1042,6 @@ public class EdgeBundler {
 
 				return true;
 			}).toList();
-
-			if (sharedAssociations.size() > 1) {
-					logger.warn("Found more than one shared net name");
-			} else if (sharedAssociations.isEmpty()) {
-				logger.warn("Could not find shared net name");
-			}
 
 			return sharedAssociations;
 		}
