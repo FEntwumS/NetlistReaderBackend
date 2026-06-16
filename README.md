@@ -74,7 +74,7 @@ in the root directory, an über-JAR containing all dependencies can be created. 
 `fentwums-netlist-reader-server/target` can then be executed using
 
 ```
-java -Xmx16G -jar fentwums-netlist-reader-server-0.11.2-exec.jar
+java -Xmx16G -jar fentwums-netlist-reader-server-0.11.10-exec.jar
 ```
 
 Alternatively, from the `fentwums-netlist-reader-server` directory, you can execute the `spring-boot:run` goal like so
