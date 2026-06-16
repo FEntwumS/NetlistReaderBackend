@@ -1,8 +1,18 @@
 package de.thkoeln.fentwums.netlist.backend.datatypes;
 
+import de.thkoeln.fentwums.netlist.backend.elkoptions.NetAssociation;
+
 import java.util.List;
 
-public record Range(int lower, int upper) {
+public record Range(int lower, int upper) implements Comparable<Range> {
+    @Override
+    public int compareTo(Range o) {
+        int upperComp = Integer.compare(this.upper(), o.upper());
+
+        if (upperComp != 0) return upperComp;
+        return Integer.compare(this.lower(), o.lower());
+    }
+
     public boolean singleElement() {
         return lower == upper;
     }
