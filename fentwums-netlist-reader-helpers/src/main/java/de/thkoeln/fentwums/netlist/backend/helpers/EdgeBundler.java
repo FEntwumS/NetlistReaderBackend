@@ -929,11 +929,13 @@ public class EdgeBundler {
 
 
 			if (sharedNameAcrossBundles.isEmpty()) {
-				ret += b.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGNAL_NAME);
+				if (!forAgg) {
+					ret += b.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGNAL_NAME);
+				}
 			} else {
 				ret += sharedNameAcrossBundles;
 			}
-			ret += " [";
+			ret += "[";
 
 			if (b.containedRange().singleElement()) {
 				ret += b.containedRange().lower();
