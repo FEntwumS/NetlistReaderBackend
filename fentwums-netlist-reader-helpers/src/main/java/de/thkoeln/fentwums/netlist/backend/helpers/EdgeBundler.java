@@ -909,14 +909,14 @@ public class EdgeBundler {
 
 					if (sharedOriginBitRanges.size() > 1 || !sharedOriginBitRanges.getFirst().singleElement() || sharedOriginBitRanges.getFirst().lower() != 0) {
 						ret += '[';
-						ret += !sharedOriginBitRanges.getFirst().singleElement() ? sharedOriginBitRanges.getFirst().lower() : sharedOriginBitRanges.getFirst().upper() + ':' + sharedOriginBitRanges.getFirst().lower();
+						ret += sharedOriginBitRanges.getFirst().singleElement() ? sharedOriginBitRanges.getFirst().lower() : (Integer.toString(sharedOriginBitRanges.getFirst().upper()) + ':' + sharedOriginBitRanges.getFirst().lower());
 
 						if (sharedOriginBitRanges.size() > 1) {
 							for (int i = 1; i < sharedOriginBitRanges.size(); i++) {
 								Range currentRange = sharedOriginBitRanges.get(i);
 								ret += "; ";
 
-								ret += !currentRange.singleElement() ? currentRange.lower() : currentRange.upper() + ':' + currentRange.lower();
+								ret += currentRange.singleElement() ? currentRange.lower() : (Integer.toString(currentRange.upper()) + ':' + currentRange.lower());
 							}
 						}
 
