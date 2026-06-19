@@ -1043,16 +1043,26 @@ public class EdgeBundler {
 	}
 
 	private static String findSharedNetNameAcrossBundles(List<BundleRange> bundleList) {
+		if (bundleList.getFirst().associatedEdges().getFirst().getContainingNode().getIdentifier().contains("ws2812")) {
+			int i = 0;
+		}
+
 		List<List<NetAssociation>> candidates = bundleList.stream().filter(b -> !(b.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.CONSTANT)
 						|| b.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT))).map(EdgeBundler::findSharedNetNameInBundle).toList();
 
 		if (candidates.isEmpty()) {
 			return "";
-		} else if (candidates.size() == 1) {
-			return candidates.getFirst().getFirst().netName();
 		}
 
-		List<NetAssociation> choices = candidates.getFirst();
+		List<NetAssociation> choices = new ArrayList<>();
+
+		for (List<NetAssociation> l : candidates) {
+			choices.addAll(l);
+		}
+
+		if (choices.size() == 1) {
+			return choices.getFirst().netName();
+		}
 
 		List<NetAssociation> results = choices.stream().filter(c -> candidates.stream().allMatch(comp -> comp.stream().anyMatch(m -> m.netName().equals(c.netName())))).toList();
 
@@ -1063,6 +1073,20 @@ public class EdgeBundler {
 				List<NetAssociation> userGeneratedAssociations = results.stream().filter(a -> a.validityLevel().equals(SignalNameValidityLevel.USER_CREATED)).toList();
 
 				if  (userGeneratedAssociations.size() > 1) {
+					// First check if the edge is connected to an entity instance port
+
+					ElkPort sinkPort = (ElkPort) bundleList.getFirst().associatedEdges().getFirst().getTargets().getFirst();
+
+					if (sinkPort.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
+						return sinkPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME);
+					}
+
+					ElkPort sourcePort = (ElkPort) bundleList.getFirst().associatedEdges().getFirst().getSources().getFirst();
+
+					if (sourcePort.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)) {
+						return sourcePort.getProperty(FEntwumSOptions.PORT_GROUP_NAME);
+					}
+
 					String sinkPortName = bundleList.getFirst().associatedEdges().getFirst().getTargets().getFirst().getProperty(FEntwumSOptions.PORT_GROUP_NAME);
 
 					boolean isSinkPortNameShared = bundleList.stream().allMatch(b -> b.associatedEdges().stream().allMatch(e -> e.getTargets().getFirst().getProperty(FEntwumSOptions.PORT_GROUP_NAME).equals(sinkPortName)));
