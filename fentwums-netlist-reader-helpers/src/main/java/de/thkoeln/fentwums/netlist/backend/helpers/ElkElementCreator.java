@@ -429,7 +429,7 @@ public class ElkElementCreator {
 			exOutEdge.setProperty(FEntwumSOptions.NO_TIP, true);
 
 			ElkLabel splitLabel = createNewLabel(currentLabelContent, exOutEdge, settings.getPortLabelFontSize());
-			splitLabel.setLocation(x_r - splitLabel.getWidth() - 3.0, y - splitLabel.getHeight());
+			splitLabel.setLocation(x_r - maxLabelWidth + 3.0, y - splitLabel.getHeight());
 
 			switch (settings.getJunctionShape()) {
 				case CIRCLE -> {
@@ -647,7 +647,7 @@ public class ElkElementCreator {
 			exInEdge.setProperty(FEntwumSOptions.NO_TIP, true);
 
 			ElkLabel splitLabel = createNewLabel(currentLabelContent, exInEdge, settings.getPortLabelFontSize());
-			splitLabel.setLocation(x_l + 3.0, y - splitLabel.getHeight());
+			splitLabel.setLocation(x_l + maxLabelWidth - splitLabel.getWidth() - 3.0, y - splitLabel.getHeight());
 
 			switch (settings.getJunctionShape()) {
 				case CIRCLE -> {
