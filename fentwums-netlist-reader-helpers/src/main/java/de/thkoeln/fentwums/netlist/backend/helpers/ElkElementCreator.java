@@ -419,9 +419,6 @@ public class ElkElementCreator {
 			ElkPort outPort = createNewAggSplitPort(newNode, PortSide.EAST);
 			outPort.setLocation(0, 0);
 
-			ElkLabel splitLabel = createNewLabel(currentLabelContent, outPort, settings.getPortLabelFontSize());
-			splitLabel.setLocation(3.0, -splitLabel.getHeight());
-
 			ElkPort exOutPort = createNewAggSplitPort(containerNode, PortSide.EAST);
 			exOutPort.setLocation(x_r, y - 5.0);
 			exOutPort.setProperty(CoreOptions.PORT_ANCHOR, new KVector(0, 5));
@@ -430,6 +427,9 @@ public class ElkElementCreator {
 			exOutEdge.setProperty(LayeredOptions.PRIORITY_STRAIGHTNESS, 1000000);
 			exOutEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 			exOutEdge.setProperty(FEntwumSOptions.NO_TIP, true);
+
+			ElkLabel splitLabel = createNewLabel(currentLabelContent, exOutEdge, settings.getPortLabelFontSize());
+			splitLabel.setLocation(x_r - splitLabel.getWidth() - 3.0, y - splitLabel.getHeight());
 
 			switch (settings.getJunctionShape()) {
 				case CIRCLE -> {
@@ -637,9 +637,6 @@ public class ElkElementCreator {
 			ElkPort inPort = createNewAggSplitPort(newNode, PortSide.WEST);
 			inPort.setLocation(0, 0);
 
-			ElkLabel splitLabel = createNewLabel(currentLabelContent, inPort, settings.getPortLabelFontSize());
-			splitLabel.setLocation(-splitLabel.getWidth() - 3.0, -splitLabel.getHeight());
-
 			ElkPort exInPort = createNewAggSplitPort(containerNode, PortSide.WEST);
 			exInPort.setLocation(x_l, y - 5.0);
 			exInPort.setProperty(CoreOptions.PORT_ANCHOR, new KVector(10, 5));
@@ -648,6 +645,9 @@ public class ElkElementCreator {
 			exInEdge.setProperty(LayeredOptions.PRIORITY_STRAIGHTNESS, 1000000);
 			exInEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 			exInEdge.setProperty(FEntwumSOptions.NO_TIP, true);
+
+			ElkLabel splitLabel = createNewLabel(currentLabelContent, exInEdge, settings.getPortLabelFontSize());
+			splitLabel.setLocation(x_l + 3.0, y - splitLabel.getHeight());
 
 			switch (settings.getJunctionShape()) {
 				case CIRCLE -> {
