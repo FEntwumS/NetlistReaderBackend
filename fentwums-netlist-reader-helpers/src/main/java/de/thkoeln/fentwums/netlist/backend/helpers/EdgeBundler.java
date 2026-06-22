@@ -592,6 +592,7 @@ public class EdgeBundler {
 				// Draw incoming edge
 				ElkEdge inEdge = ElkElementCreator.createNewEdge(split.inPort(), crossingPort);
 				inEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
+				inEdge.setProperty(FEntwumSOptions.NO_TIP, true);
 
 				for (int i = 0; i < bundleList.size(); i++) {
 					BundleRange currentBundleRange = bundleList.get(i);
