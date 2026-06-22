@@ -91,7 +91,7 @@ public class HierarchicalOrchestrator implements IGraphCreator {
         ((ModuleNode) rootNode).setAsLoaded();
 
         EdgeBundler.bundleEdges(topNode, settings);
-        EdgeBundler.fixHierarchyCrossings(topNode, settings);
+        EdgeBundler.fixHierarchyCrossings(topNode, settings, true);
 
         ConstantLabelUpdater.updateLabels(topNode, settings);
 
@@ -154,7 +154,7 @@ public class HierarchicalOrchestrator implements IGraphCreator {
         currentModuleNode.setAsLoaded();
 
         EdgeBundler.bundleEdges(currentModuleNode.getNode(), settings);
-        EdgeBundler.fixHierarchyCrossings(currentModuleNode.getNode(), settings);
+        EdgeBundler.fixHierarchyCrossings(currentModuleNode.getNode(), settings, true);
 
         ConstantLabelUpdater.updateLabels(currentModuleNode.getNode(), settings);
 
@@ -180,7 +180,7 @@ public class HierarchicalOrchestrator implements IGraphCreator {
         toLoad.setAsLoaded();
 
         EdgeBundler.bundleEdges(toLoad.getNode(), this.settings);
-        EdgeBundler.fixHierarchyCrossings(toLoad.getNode(), this.settings);
+        EdgeBundler.fixHierarchyCrossings(toLoad.getNode(), this.settings, true);
 
         ConstantLabelUpdater.updateLabels(toLoad.getNode(), this.settings);
 

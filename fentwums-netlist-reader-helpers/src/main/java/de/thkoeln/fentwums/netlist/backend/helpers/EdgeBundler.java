@@ -463,11 +463,17 @@ public class EdgeBundler {
 	//
  	// The fixup needs to be run _AFTER_ the "normal" bundling pass. This is required for the correct creation of the
 	// necessary splitter and aggregator nodes
-	public static void fixHierarchyCrossings(ElkNode entityInstance, NetlistCreationSettings settings) {
+	public static void fixHierarchyCrossings(ElkNode entityInstance, NetlistCreationSettings settings, boolean innerFixup) {
+		PortSide comparisonPortSide = PortSide.WEST;
+
+		if (!innerFixup) {
+			comparisonPortSide = PortSide.EAST;
+		}
+
 		// First, bundle the inner part of the hierarchy crossing
 		for (ElkPort crossingPort : entityInstance.getPorts()) {
 			List<ElkEdge> edgeList = new ArrayList<>();
-			if (crossingPort.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)) {
+			if (crossingPort.getProperty(CoreOptions.PORT_SIDE).equals(comparisonPortSide)) {
 				edgeList.addAll(crossingPort.getOutgoingEdges());
 			} else {
 				edgeList.addAll(crossingPort.getIncomingEdges());
@@ -476,21 +482,21 @@ public class EdgeBundler {
 			HashMap<ElkNode, HashMap<String, List<PortEdgeAssociation>>> destNodePortMap = new HashMap<>();
 
 			for (ElkEdge e : edgeList) {
-				ElkPort innerPort;
-				if (crossingPort.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
-					innerPort = (ElkPort) e.getSources().getFirst();
+				ElkPort oppositePort;
+				if (crossingPort.getProperty(CoreOptions.PORT_SIDE).equals(comparisonPortSide)) {
+					oppositePort = (ElkPort) e.getTargets().getFirst();
 				} else {
-					innerPort = (ElkPort) e.getTargets().getFirst();
+					oppositePort = (ElkPort) e.getSources().getFirst();
 				}
-				ElkNode innerNode = innerPort.getParent();
-				String innerPortgroup = innerPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME);
-				int innerPortgroupSubdivisionIndex = innerPort.getProperty(FEntwumSOptions.PORT_GROUP_SPLIT_INDEX);
-				String combinedPortgroupSubdivisionName = innerPortgroup + innerPortgroupSubdivisionIndex;
-				HashMap<String, List<PortEdgeAssociation>> innerPortgroupSubdivisionMap = destNodePortMap.computeIfAbsent(innerNode, k -> new HashMap<>());
+				ElkNode oppositeNode = oppositePort.getParent();
+				String oppositePortgroup = oppositePort.getProperty(FEntwumSOptions.PORT_GROUP_NAME);
+				int oppositePortgroupSubdivisionIndex = oppositePort.getProperty(FEntwumSOptions.PORT_GROUP_SPLIT_INDEX);
+				String combinedPortgroupSubdivisionName = oppositePortgroup + oppositePortgroupSubdivisionIndex;
+				HashMap<String, List<PortEdgeAssociation>> oppositePortgroupSubdivisionMap = destNodePortMap.computeIfAbsent(oppositeNode, k -> new HashMap<>());
 
-				List<PortEdgeAssociation> portEdgeAssociationList = innerPortgroupSubdivisionMap.computeIfAbsent(combinedPortgroupSubdivisionName, k -> new ArrayList<>());
+				List<PortEdgeAssociation> portEdgeAssociationList = oppositePortgroupSubdivisionMap.computeIfAbsent(combinedPortgroupSubdivisionName, k -> new ArrayList<>());
 
-				PortEdgeAssociation association = new PortEdgeAssociation(innerPort, e);
+				PortEdgeAssociation association = new PortEdgeAssociation(oppositePort, e);
 				portEdgeAssociationList.add(association);
 			}
 
@@ -499,7 +505,7 @@ public class EdgeBundler {
 			for (ElkNode keyNode : destNodePortMap.keySet()) {
 				HashMap<String, List<PortEdgeAssociation>> innerPortgroupSubdivisionMap = destNodePortMap.get(keyNode);
 
-				for (String portgroupSubdivisionKey  : innerPortgroupSubdivisionMap.keySet()) {
+				for (String portgroupSubdivisionKey : innerPortgroupSubdivisionMap.keySet()) {
 					List<PortEdgeAssociation> associationList = innerPortgroupSubdivisionMap.get(portgroupSubdivisionKey);
 
 					for (PortEdgeAssociation association : associationList) {
@@ -550,17 +556,44 @@ public class EdgeBundler {
 				// Todo improve behavior
 				continue;
 			}
+			ElkNode aggSplitContainingNode = entityInstance;
+
+			if (!innerFixup) {
+				aggSplitContainingNode = entityInstance.getParent();
+			}
+
 
 			//Now create aggs and splits
 
-			if (crossingPort.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
+			if (crossingPort.getProperty(CoreOptions.PORT_SIDE).equals(comparisonPortSide)) {
+				// Instance input -> split
+				List<String> strl = createLabelsFromBundles(bundleList, new ArrayList<>(), false);
+
+				SignalSplit split = ElkElementCreator.createSignalSplit(aggSplitContainingNode, crossingPort, strl, settings);
+
+				// Draw incoming edge
+				ElkEdge inEdge = ElkElementCreator.createNewEdge(split.inPort(), crossingPort);
+				inEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
+				inEdge.setProperty(FEntwumSOptions.NO_TIP, true);
+
+				for (int i = 0; i < bundleList.size(); i++) {
+					BundleRange currentBundleRange = bundleList.get(i);
+					ElkPort currentOutPort = split.outPorts().get(i);
+
+					moveEdgesToSource(currentBundleRange.associatedEdges(), currentOutPort, true);
+
+					if (currentBundleRange.containedRange().singleElement()) {
+						currentOutPort.getIncomingEdges().getFirst().setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.SINGLE);
+					}
+				}
+			} else {
 				// Instance output -> agg
 				List<String> strl = createLabelsFromBundles(bundleList, new ArrayList<>(), true);
 
-				SignalAgg agg = ElkElementCreator.createSignalAgg(entityInstance, crossingPort, strl, settings);
+				SignalAgg agg = ElkElementCreator.createSignalAgg(aggSplitContainingNode, crossingPort, strl, settings);
 
 				// Draw outgoing edge
-				ElkEdge outEdge =  ElkElementCreator.createNewEdge(crossingPort, agg.outPort());
+				ElkEdge outEdge = ElkElementCreator.createNewEdge(crossingPort, agg.outPort());
 				outEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
 
 				for (int i = 0; i < bundleList.size(); i++) {
@@ -583,121 +616,13 @@ public class EdgeBundler {
 						e.setProperty(FEntwumSOptions.NO_TIP, true);
 					}
 				}
-			} else {
-				// Instance input -> split
-				List<String> strl = createLabelsFromBundles(bundleList, new ArrayList<>(), false);
-
-				SignalSplit split = ElkElementCreator.createSignalSplit(entityInstance, crossingPort, strl, settings);
-
-				// Draw incoming edge
-				ElkEdge inEdge = ElkElementCreator.createNewEdge(split.inPort(), crossingPort);
-				inEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
-				inEdge.setProperty(FEntwumSOptions.NO_TIP, true);
-
-				for (int i = 0; i < bundleList.size(); i++) {
-					BundleRange currentBundleRange = bundleList.get(i);
-					ElkPort currentOutPort = split.outPorts().get(i);
-
-					moveEdgesToSource(currentBundleRange.associatedEdges(), currentOutPort, true);
-
-					if (currentBundleRange.containedRange().singleElement()) {
-						currentOutPort.getIncomingEdges().getFirst().setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.SINGLE);
-					}
-				}
 			}
-
-			continue;
-
-			/*// Skip ports with only single edges, since the edges are not ambiguous
-			if (edgeList.stream().noneMatch(e-> e.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED) || e.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT))) {
-				continue;
-			}
-
-			edgeList.removeAll(edgeList.stream().filter(e -> ((ElkPort) e.getSources().getFirst()).getParent().equals(((ElkPort) e.getTargets().getFirst()).getParent())).toList());
-
-			if (edgeList.isEmpty() || edgeList.size() == 1) {
-				continue;
-			}
-
-			List<String> labelList = new ArrayList<>(edgeList.size());
-			for(ElkEdge e : edgeList) {
-				labelList.add(crossingPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME));
-			}
-
-			if (crossingPort.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)) {
-				SignalSplit split = ElkElementCreator.createSignalSplit(entityInstance, crossingPort, labelList, settings);
-
-				int upper = edgeList.size();
-
-				for (int i = 0; i < upper; i++) {
-					ElkEdge currentEdge = edgeList.get(i);
-					ElkPort currentPort = split.outPorts().get(i);
-					moveEdgeToSource(currentEdge, currentPort);
-
-					ElkEdge innerEdge = currentPort.getIncomingEdges().getFirst();
-					innerEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, currentEdge.getProperty(FEntwumSOptions.SIGNAL_TYPE));
-
-					if (currentEdge.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.CONSTANT)) {
-						currentPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
-					} else if (currentEdge.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT)) {
-						currentPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_MULTIPLE);
-					}
-				}
-
-				// Add connection to entity inport
-				ElkEdge newEdge = ElkElementCreator.createNewEdge(split.inPort(), crossingPort);
-				newEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
-			} else {
-				SignalAgg agg = ElkElementCreator.createSignalAgg(entityInstance, crossingPort, labelList, settings);
-
-				int upper = edgeList.size();
-
-				for (int i = 0; i < upper; i++) {
-					ElkEdge currentEdge = edgeList.get(i);
-					ElkPort currentPort = agg.inPorts().get(i);
-					moveEdgeToTarget(currentEdge, currentPort);
-
-					currentEdge.setProperty(FEntwumSOptions.NO_TIP, true);
-
-					ElkEdge innerEdge = currentPort.getOutgoingEdges().getFirst();
-					innerEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, currentEdge.getProperty(FEntwumSOptions.SIGNAL_TYPE));
-
-					if (currentEdge.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.CONSTANT)) {
-						currentPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
-						currentPort.setProperty(FEntwumSOptions.PORT_SHAPE, PortShape.TAG);
-						currentPort.setProperty(FEntwumSOptions.SCAFFOLDING_ELEMENT, false);
-						ElkElementCreator.setPortWidth(currentPort);
-						currentPort.setX(-currentPort.getWidth());
-					} else if (currentEdge.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT)) {
-						currentPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_MULTIPLE);
-						currentPort.setProperty(FEntwumSOptions.PORT_SHAPE, PortShape.TAG);
-						currentPort.setProperty(FEntwumSOptions.SCAFFOLDING_ELEMENT, false);
-						ElkElementCreator.setPortWidth(currentPort);
-						currentPort.setX(-currentPort.getWidth());
-					}
-				}
-
-				// Add connection to entity outport
-				ElkEdge newEdge = ElkElementCreator.createNewEdge(crossingPort, agg.outPort());
-				newEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
-			}*/
 		}
 
-		// Now, bundle the outer part of the contained entity instances
-		for (ElkNode childEntityInstance : entityInstance.getChildren().stream().filter(i -> i.getProperty(FEntwumSOptions.CELL_TYPE).equals("HDL_ENTITY")).toList()) {
-			fixOuterInterface(childEntityInstance, settings);
-		}
-	}
-
-	// This sub-pass creates aggs for incoming and splits for outgoing edges
-	private static void fixOuterInterface(ElkNode entityInstance, NetlistCreationSettings settings) {
-		for (ElkPort port : entityInstance.getPorts()) {
-			List<ElkEdge> edgeList;
-
-			if (port.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
-				edgeList = port.getOutgoingEdges();
-			} else {
-				edgeList = port.getIncomingEdges();
+		if (innerFixup) {
+			// Now, bundle the outer part of the contained entity instances
+			for (ElkNode childEntityInstance : entityInstance.getChildren().stream().filter(i -> i.getProperty(FEntwumSOptions.CELL_TYPE).equals("HDL_ENTITY")).toList()) {
+				fixHierarchyCrossings(childEntityInstance, settings, false);
 			}
 		}
 	}
