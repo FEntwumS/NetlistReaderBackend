@@ -1,9 +1,7 @@
 package de.thkoeln.fentwums.netlist.backend.hierarchical.parser;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.*;
-import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
-import de.thkoeln.fentwums.netlist.backend.elkoptions.PortType;
-import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
+import de.thkoeln.fentwums.netlist.backend.elkoptions.*;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
 import de.thkoeln.fentwums.netlist.backend.helpers.RangeCalculator;
 import org.eclipse.elk.core.options.CoreOptions;
@@ -142,7 +140,7 @@ public class CellHandler {
                 newCellNode.setProperty(FEntwumSOptions.CELL_TYPE, cellType);
             }
 
-            ElkLabel newCellNodeLabel = ElkElementCreator.createNewCellLabel(cellType, newCellNode, settings);
+            ElkLabel newCellNodeLabel = ElkElementCreator.createNewCellLabel(cellType.replace('$', ' ').trim(), newCellNode, settings);
 
             // Create label containing the cell's/module's name for non-hidden cells
             // The label is placed below the generated node
@@ -334,6 +332,8 @@ public class CellHandler {
                     currentPortIndex++;
                 }
             } else {
+                newCellNodeLabel.setText(cellType);
+
                 PortHandler portHandler = new PortHandler();
                 newSubModulePath = instancePath + " " + cellName;
 
