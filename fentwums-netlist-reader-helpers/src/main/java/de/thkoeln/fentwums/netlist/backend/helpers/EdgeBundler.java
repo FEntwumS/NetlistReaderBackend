@@ -995,56 +995,68 @@ public class EdgeBundler {
 		if (results.isEmpty()) {
 			return "";
 		} else {
-			if (results.size() > 1) {
-				List<NetAssociation> userGeneratedAssociations = results.stream().filter(a -> a.validityLevel().equals(SignalNameValidityLevel.USER_CREATED)).toList();
+			NetAssociation bestMatch = results.getFirst();
+			for (int i = 1; i < results.size(); i++) {
+				NetAssociation candidate = results.get(i);
+				boolean isBetterValidityLevel = (bestMatch.validityLevel().equals(SignalNameValidityLevel.YOSYS_GENERATED)
+						&& !candidate.validityLevel().equals(SignalNameValidityLevel.YOSYS_GENERATED))
+						|| (bestMatch.validityLevel().equals(SignalNameValidityLevel.GHDL_GENERATED)
+						&& candidate.validityLevel().equals(SignalNameValidityLevel.USER_CREATED));
 
-				if  (userGeneratedAssociations.size() > 1) {
-					// First check if the edge is connected to an entity instance port
+				List<Integer> indexList = new ArrayList<>();
 
-					ElkPort sinkPort = (ElkPort) bundleList.getFirst().associatedEdges().getFirst().getTargets().getFirst();
+				for(BundleRange b : bundleList) {
+					for (ElkEdge e : b.associatedEdges()) {
+						if (e.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.CONSTANT)
+						|| e.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT)) {
+							for (NetAssociation a : e.getProperty(FEntwumSOptions.NET_ASSOCIATIONS)) {
+								indexList.add(a.indexInNet());
+							}
+						} else {
+							if (e.getProperty(FEntwumSOptions.NET_ASSOCIATIONS).isEmpty()) {
+								for (int key : e.getProperty(FEntwumSOptions.BUNDLED_NET_ASSOCIATIONS).keySet()) {
+									List<NetAssociation> nameMatches = e.getProperty(FEntwumSOptions.BUNDLED_NET_ASSOCIATIONS).get(key).stream().filter(a -> a.netName().equals(candidate.netName())).toList();
 
-					if (sinkPort.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
-						return sinkPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME);
+									for  (NetAssociation a : nameMatches) {
+										indexList.add(a.indexInNet());
+									}
+								}
+							} else {
+								List<NetAssociation> nameMatches = e.getProperty(FEntwumSOptions.NET_ASSOCIATIONS).stream().filter(a -> a.netName().equals(candidate.netName())).toList();
+
+								for  (NetAssociation a : nameMatches) {
+									indexList.add(a.indexInNet());
+								}
+							}
+						}
 					}
+				}
 
-					ElkPort sourcePort = (ElkPort) bundleList.getFirst().associatedEdges().getFirst().getSources().getFirst();
+				indexList.sort(Integer::compareTo);
 
-					if (sourcePort.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)) {
-						return sourcePort.getProperty(FEntwumSOptions.PORT_GROUP_NAME);
+				boolean isContiguous = true;
+				if (indexList.size() == 1) {
+					isContiguous = true;
+				} else {
+					int prev = indexList.getFirst();
+
+					for (int j = 1; j < indexList.size(); j++) {
+						int curr = indexList.get(j);
+						prev += 1;
+
+						if (prev != curr) {
+							isContiguous = false;
+							break;
+						}
 					}
+				}
 
-					String sinkPortName = bundleList.getFirst().associatedEdges().getFirst().getTargets().getFirst().getProperty(FEntwumSOptions.PORT_GROUP_NAME);
-
-					boolean isSinkPortNameShared = bundleList.stream().allMatch(b -> b.associatedEdges().stream().allMatch(e -> e.getTargets().getFirst().getProperty(FEntwumSOptions.PORT_GROUP_NAME).equals(sinkPortName)));
-
-					if  (isSinkPortNameShared && userGeneratedAssociations.stream().anyMatch(a -> a.netName().equals(sinkPortName))) {
-						return sinkPortName;
-					}
-
-					String sourcePortName = bundleList.getFirst().associatedEdges().getFirst().getSources().getFirst().getProperty(FEntwumSOptions.PORT_GROUP_NAME);
-
-					boolean isSourcePortNameShared = bundleList.stream().allMatch(b -> b.associatedEdges().stream().allMatch(e -> e.getSources().getFirst().getProperty(FEntwumSOptions.PORT_GROUP_NAME).equals(sinkPortName)));
-
-					if (isSourcePortNameShared && userGeneratedAssociations.stream().anyMatch(a -> a.netName().equals(sourcePortName))) {
-						return sourcePortName;
-					}
-					ElkNode containingModule = bundleList.getFirst().associatedEdges().getFirst().getContainingNode();
-
-					List<String> modulePortNameList = containingModule.getPorts().stream().map(p -> p.getProperty(FEntwumSOptions.PORT_GROUP_NAME)).toList();
-
-					List<NetAssociation> nonModulePortNameAssociationList = userGeneratedAssociations.stream().filter(a -> !modulePortNameList.contains(a.netName())).toList();
-
-					if (nonModulePortNameAssociationList.isEmpty()) {
-						return userGeneratedAssociations.getFirst().netName();
-					} else {
-						return nonModulePortNameAssociationList.getFirst().netName();
-					}
-				} else if  (userGeneratedAssociations.size() == 1) {
-					return userGeneratedAssociations.getFirst().netName();
+				if (isContiguous && isBetterValidityLevel) {
+					bestMatch = candidate;
 				}
 			}
 
-			return results.getFirst().netName();
+			return bestMatch.netName();
 		}
 	}
 
