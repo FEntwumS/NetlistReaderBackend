@@ -31,7 +31,7 @@ public class CellHandler {
         HashMap<String, Object> module, cells, currentCell, currentCellAttributes, currentCellPortDirections,
                 currentCellConnections, currentCellParameters;
         int currentCellIndex = 0, maxSignals, currentPortIndex, currentBitIndex, width, currentIndexInGroup;
-        String cellType, srcLocation = "", newSubModulePath;
+        String cellType, srcLocation = "", newSubModulePath, cleanCellType = "";
         PortSide newPortSide, oppositeSide = PortSide.WEST;
         boolean isHidden, isDerived, hasWidth;
         // HashMap<Integer, String> constantValues;
@@ -67,6 +67,7 @@ public class CellHandler {
             currentCellParameters = (HashMap<String, Object>) currentCell.get("parameters");
 
             cellType = (String) currentCell.get("type");
+            cleanCellType = "";
 
             // Check whether the module / cell is hidden or not
             isHidden = currentCell.get("hide_name").equals(1);
@@ -121,6 +122,10 @@ public class CellHandler {
                     if (cellModuleDescription.containsKey("attributes")) {
                         HashMap<String, Object> internalCellAttributes = (HashMap<String, Object>) cellModuleDescription.get("attributes");
 
+                        if (internalCellAttributes.containsKey("hdlname")) {
+                            cleanCellType = (String) internalCellAttributes.get("hdlname");
+                        }
+
                         if (internalCellAttributes.containsKey("blackbox")) {
                             newCellNode.setProperty(FEntwumSOptions.CELL_TYPE, cellType);
                             logger.atInfo().setMessage("Cell {} is a primitive").addArgument(cellName).log();
@@ -140,7 +145,11 @@ public class CellHandler {
                 newCellNode.setProperty(FEntwumSOptions.CELL_TYPE, cellType);
             }
 
-            ElkLabel newCellNodeLabel = ElkElementCreator.createNewCellLabel(cellType.replace('$', ' ').trim(), newCellNode, settings);
+            if (cleanCellType.isEmpty()) {
+                cleanCellType = cellType;
+            }
+
+            ElkLabel newCellNodeLabel = ElkElementCreator.createNewCellLabel(cleanCellType.replace('$', ' ').trim(), newCellNode, settings);
 
             // Create label containing the cell's/module's name for non-hidden cells
             // The label is placed below the generated node
@@ -204,7 +213,7 @@ public class CellHandler {
                             newCellPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.SIGNAL_SINGLE);
 
                             ElkLabel newCellPortLabel = ElkElementCreator.createNewPortLabel(
-                                    portName + (currentCellPortDrivers.size() == 1 ? "" : " [" + currentBitIndex + "]"),
+                                    portName + (currentCellPortDrivers.size() == 1 ? "" : "[" + currentBitIndex + "]"),
                                     newCellPort, settings);
 
                             SignalOccurences signalOccurences = signalMap.get(driver);
@@ -249,14 +258,14 @@ public class CellHandler {
                             newPort.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, constRange.containedRange().lower());
 
                             ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(
-                                    portName + (currentCellPortDrivers.size() == 1 ? "" : " [" + (constRange.containedRange().lower()) + "]"), newPort,
+                                    portName + (currentCellPortDrivers.size() == 1 ? "" : "[" + (constRange.containedRange().lower()) + "]"), newPort,
                                     settings);
                         } else {
                             newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_LOWER_INDEX_IN_PORT_GROUP, constRange.containedRange().lower());
                             newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP, constRange.containedRange().upper());
 
                             ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(
-                                    portName + " [" + (constRange.containedRange().upper()) + ":" + (constRange.containedRange().lower()) + "]", newPort,
+                                    portName + "[" + (constRange.containedRange().upper()) + ":" + (constRange.containedRange().lower()) + "]", newPort,
                                     settings);
                         }
 
@@ -324,6 +333,11 @@ public class CellHandler {
                             constEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED_CONSTANT);
                         }
 
+                        for (int i = constRange.containedRange().lower(); i <= constRange.containedRange().upper(); i++) {
+                            constEdge.getProperty(FEntwumSOptions.NET_ASSOCIATIONS)
+                                    .add(new NetAssociation("", i, SignalNameValidityLevel.YOSYS_GENERATED));
+                        }
+
                         ElkLabel constEdgeLabel = ElkElementCreator.createNewEdgeLabel(constantValues.toString(), constEdge,
                                                                                        settings);
                         constEdgeLabel.setProperty(CoreOptions.EDGE_LABELS_PLACEMENT, EdgeLabelPlacement.HEAD);
@@ -332,8 +346,6 @@ public class CellHandler {
                     currentPortIndex++;
                 }
             } else {
-                newCellNodeLabel.setText(cellType);
-
                 PortHandler portHandler = new PortHandler();
                 newSubModulePath = instancePath + " " + cellName;
 

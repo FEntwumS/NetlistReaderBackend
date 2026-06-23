@@ -162,7 +162,7 @@ public class PortHandler {
                 newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP, upper);
 
                 if (lower != upper) {
-                    ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(portname + " [" + upper + ":" + lower + "]",newPort, settings);
+                    ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(portname + "[" + upper + ":" + lower + "]",newPort, settings);
                 } else {
                     ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(portname, newPort, settings);
                 }
@@ -171,7 +171,7 @@ public class PortHandler {
                 newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP, upper);
 
                 if (lower != upper) {
-                    ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(portname + " [" + lower + ":" + upper + "]",newPort, settings);
+                    ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(portname + "[" + lower + ":" + upper + "]",newPort, settings);
                 } else {
                     ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(portname, newPort, settings);
                 }

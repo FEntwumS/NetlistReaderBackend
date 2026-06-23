@@ -411,7 +411,7 @@ public class EdgeBundler {
 					// Create new label
 					ElkLabel newConstLabel = ElkElementCreator
 							.createNewPortLabel(currentPortGroupName
-									+ " ["
+									+ "["
 									+ range.containedRange().upper()
 									+ (range.containedRange().singleElement() ? "" :
 									":" + range.containedRange().lower())
@@ -428,7 +428,7 @@ public class EdgeBundler {
 					// Create new label
 					ElkLabel newConstLabel = ElkElementCreator
 							.createNewPortLabel(currentPortGroupName
-									+ " ["
+									+ "["
 									+ coveredRange.containedRange().upper()
 									+ (coveredRange.containedRange().singleElement() ? "" :
 									":" + coveredRange.containedRange().lower())
