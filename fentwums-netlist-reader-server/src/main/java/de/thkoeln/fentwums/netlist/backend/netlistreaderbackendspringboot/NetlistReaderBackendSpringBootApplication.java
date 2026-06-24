@@ -1,5 +1,7 @@
 package de.thkoeln.fentwums.netlist.backend.netlistreaderbackendspringboot;
 
+import de.thkoeln.fentwums.netlist.backend.datatypes.RequestedJunctionShape;
+import de.thkoeln.fentwums.netlist.backend.elkoptions.JunctionShape;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.ObjectWriter;
@@ -121,7 +123,8 @@ public class NetlistReaderBackendSpringBootApplication {
                                                                            defaultValue = "UNKNOWN")
                                                                    String performanceTarget,
                                                                    @RequestParam(value = "test-mode", defaultValue =
-                                                                           "0") String testMode) {
+                                                                           "0") String testMode,
+                                                                   @RequestParam(value = "junctionShape", defaultValue = "CIRCLE") String junctionShape) {
         System.gc();
         System.gc();
 
@@ -132,6 +135,7 @@ public class NetlistReaderBackendSpringBootApplication {
         GraphCreator creator = new GraphCreator();
         NetlistParser parser = new NetlistParser();
         PerformanceTarget target;
+        RequestedJunctionShape shape;
 
         logger.atInfo().setMessage("Selected performance target: {}").addArgument(performanceTarget).log();
 
@@ -141,9 +145,15 @@ public class NetlistReaderBackendSpringBootApplication {
             target = PerformanceTarget.Preloading;
         }
 
+        try {
+            shape = RequestedJunctionShape.valueOf(junctionShape);
+        } catch (IllegalArgumentException e) {
+            shape = RequestedJunctionShape.CIRCLE;
+        }
+
         NetlistCreationSettings settings = new NetlistCreationSettings(entityLabelFontSize, cellLabelFontSize,
                                                                        edgeLabelFontSize, portLabelFontSize,
-                                                                       target);
+                                                                       target, shape);
         try {
             switch (NetlistDifferentiator.differentiate(file.getInputStream())) {
                 case HIERARCHICAL -> {

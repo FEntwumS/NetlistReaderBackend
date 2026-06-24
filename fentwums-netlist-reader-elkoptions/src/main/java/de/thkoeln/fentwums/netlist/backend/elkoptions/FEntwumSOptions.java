@@ -5,8 +5,7 @@ import org.eclipse.elk.core.data.LayoutOptionData;
 import org.eclipse.elk.graph.properties.IProperty;
 import org.eclipse.elk.graph.properties.Property;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
+import java.util.*;
 
 /**
  * Custom options provider
@@ -153,6 +152,69 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 	public static final IProperty<Boolean> MSB_FIRST = new Property<Boolean>(
 			"de.thkoeln.fentwums.netlist.backend.msb-first",
 			false
+	);
+
+	public static final IProperty<Boolean> AGGREGATING_SPLITTING_NODE = new Property<Boolean>(
+			"de.thkoeln.fentwums.netlist.backend.aggregating-splitting-node",
+			false
+	);
+
+	public static final IProperty<Integer> PORT_GROUP_SPLIT_INDEX = new Property<Integer>(
+			"de.thkoeln.fentwums.netlist.backend.port-group-split-index",
+			0
+	);
+
+	public static final IProperty<SignalNameValidityLevel> SIGNAL_NAME_VALIDITY_LEVEL = new Property<SignalNameValidityLevel>(
+			"de.thkoeln.fentwums.netlist.backend.signal-name-validity-level",
+			SignalNameValidityLevel.YOSYS_GENERATED
+	);
+
+	/**
+	 * The sigbit associated with this signal in the netlist
+	 */
+	public static final IProperty<Integer> SIGBIT = new Property<Integer>(
+			"de.thkoeln.fentwums.netlist.backend.sigbit",
+			0
+	);
+
+	public static final IProperty<Boolean> SCAFFOLDING_ELEMENT = new Property<Boolean>(
+			"de.thkoeln.fentwums.netlist.backend.scaffolding-element",
+			false
+	);
+
+	public static final IProperty<Boolean> NO_TIP = new Property<Boolean>(
+			"de.thkoeln.fentwums.netlist.backend.no-tip",
+			false
+	);
+
+	public static final IProperty<JunctionShape> JUNCTION_SHAPE = new Property<JunctionShape> (
+			"de.thkoeln.fentwums.netlist.backend.junction-shape",
+			JunctionShape.CIRCLE
+	);
+
+	public static final IProperty<PortShape> PORT_SHAPE = new Property<PortShape>(
+			"de.thkoeln.fentwums.netlist.backend.port-shape",
+			PortShape.SQUARE
+	);
+
+	public static final IProperty<Integer> CANONICAL_UPPER_INDEX_IN_SIGNAL = new Property<Integer>(
+			"de.thkoeln.fentwums.netlist.backen.canonical-upper-index-in-signal",
+			0
+	);
+
+	public static final IProperty<Integer> CANONICAL_LOWER_INDEX_IN_SIGNAL = new Property<Integer>(
+			"de.thkoeln.fentwums.netlist.backen.canonical-lower-index-in-signal",
+			0
+	);
+
+	public static final IProperty<List<NetAssociation>> NET_ASSOCIATIONS = new Property<>(
+			"de.thkoeln.fentwums.netlist.backend.net-associations",
+			new ArrayList<>()
+	);
+
+	public static final IProperty<Map<Integer, List<NetAssociation>>> BUNDLED_NET_ASSOCIATIONS = new Property<>(
+			"de.thkoeln.fentwums.netlist.backend.bundled-net-associations",
+			null
 	);
 
 	@Override
@@ -373,6 +435,105 @@ public class FEntwumSOptions implements ILayoutMetaDataProvider {
 				.type(LayoutOptionData.Type.BOOLEAN)
 				.optionClass(Boolean.class)
 				.targets(EnumSet.of(LayoutOptionData.Target.PORTS, LayoutOptionData.Target.EDGES))
+				.visibility(LayoutOptionData.Visibility.HIDDEN)
+				.create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+			    .id("de.thkoeln.fentwums.netlist.backend.aggregating-splitting-node")
+				.defaultValue(false)
+	  			.type(LayoutOptionData.Type.BOOLEAN)
+			  	.optionClass(Boolean.class)
+			  	.targets(EnumSet.of(LayoutOptionData.Target.NODES, LayoutOptionData.Target.PORTS))
+				.visibility(LayoutOptionData.Visibility.HIDDEN)
+				.create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+				.id("de.thkoeln.fentwums.netlist.backend.port-group-split-index")
+				.defaultValue(0)
+				.type(LayoutOptionData.Type.INT)
+				.targets(EnumSet.of(LayoutOptionData.Target.PORTS))
+				.visibility(LayoutOptionData.Visibility.HIDDEN)
+				.create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+				.id("de.thkoeln.fentwums.netlist.backend.sigbit")
+				.defaultValue(0)
+				.type(LayoutOptionData.Type.INT)
+				.optionClass(Integer.class)
+				.targets(EnumSet.of(LayoutOptionData.Target.EDGES))
+				.visibility(LayoutOptionData.Visibility.HIDDEN)
+				.create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+				.id("de.thkoeln.fentwums.netlist.backend.signal-name-validity-level")
+				.defaultValue(SignalNameValidityLevel.YOSYS_GENERATED)
+				.type(LayoutOptionData.Type.ENUM)
+				.optionClass(SignalNameValidityLevel.class)
+				.targets(EnumSet.of(LayoutOptionData.Target.EDGES))
+				.visibility(LayoutOptionData.Visibility.HIDDEN)
+				.create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+				.id("de.thkoeln.fentwums.netlist.backend.scaffolding-element")
+				.defaultValue(false)
+				.type(LayoutOptionData.Type.BOOLEAN)
+				.optionClass(Boolean.class)
+				.targets(EnumSet.allOf(LayoutOptionData.Target.class))
+				.visibility(LayoutOptionData.Visibility.HIDDEN)
+				.create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+				.id("de.thkoeln.fentwums.netlist.backend.no-tip")
+				.defaultValue(false)
+				.type(LayoutOptionData.Type.BOOLEAN)
+				.optionClass(Boolean.class)
+				.targets(EnumSet.of(LayoutOptionData.Target.EDGES))
+				.visibility(LayoutOptionData.Visibility.HIDDEN)
+				.create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+				.id("de.thkoeln.fentwums.netlist.backend.junction-shape")
+				.defaultValue(false)
+				.type(LayoutOptionData.Type.ENUM)
+				.optionClass(JunctionShape.class)
+				.targets(EnumSet.of(LayoutOptionData.Target.EDGES))
+				.visibility(LayoutOptionData.Visibility.HIDDEN)
+				.create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+				.id("de.thkoeln.fentwums.netlist.backend.port-shape")
+				.defaultValue(PortShape.SQUARE)
+				.type(LayoutOptionData.Type.ENUM)
+				.optionClass(PortShape.class)
+				.targets(EnumSet.of(LayoutOptionData.Target.PORTS))
+				.visibility(LayoutOptionData.Visibility.HIDDEN)
+				.create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+				.id("de.thkoeln.fentwums.netlist.backend.canonical-upper-index-in-signal")
+				.defaultValue(0)
+				.type(LayoutOptionData.Type.INT)
+				.optionClass(Integer.class)
+				.targets(EnumSet.of(LayoutOptionData.Target.EDGES))
+				.visibility(LayoutOptionData.Visibility.HIDDEN)
+				.create()
+		);
+
+		registry.register(new LayoutOptionData.Builder()
+				.id("de.thkoeln.fentwums.netlist.backend.canonical-lower-index-in-signal")
+				.defaultValue(0)
+				.type(LayoutOptionData.Type.INT)
+				.optionClass(Integer.class)
+				.targets(EnumSet.of(LayoutOptionData.Target.EDGES))
 				.visibility(LayoutOptionData.Visibility.HIDDEN)
 				.create()
 		);

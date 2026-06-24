@@ -1,9 +1,7 @@
 package de.thkoeln.fentwums.netlist.backend.hierarchical.parser;
 
 import de.thkoeln.fentwums.netlist.backend.datatypes.*;
-import de.thkoeln.fentwums.netlist.backend.elkoptions.FEntwumSOptions;
-import de.thkoeln.fentwums.netlist.backend.elkoptions.PortType;
-import de.thkoeln.fentwums.netlist.backend.elkoptions.SignalType;
+import de.thkoeln.fentwums.netlist.backend.elkoptions.*;
 import de.thkoeln.fentwums.netlist.backend.helpers.ElkElementCreator;
 import de.thkoeln.fentwums.netlist.backend.helpers.RangeCalculator;
 import org.eclipse.elk.core.options.CoreOptions;
@@ -31,11 +29,11 @@ public class CellHandler {
                             NetlistCreationSettings settings, HashMap<String, Object> blackboxes,
                             ModuleNode currentModuleNode, String moduleName, String instancePath) {
         HashMap<String, Object> module, cells, currentCell, currentCellAttributes, currentCellPortDirections,
-                currentCellConnections;
-        int currentCellIndex = 0, maxSignals, currentPortIndex, currentBitIndex;
-        String cellType, srcLocation = "", newSubModulePath;
+                currentCellConnections, currentCellParameters;
+        int currentCellIndex = 0, maxSignals, currentPortIndex, currentBitIndex, width, currentIndexInGroup;
+        String cellType, srcLocation = "", newSubModulePath, cleanCellType = "";
         PortSide newPortSide, oppositeSide = PortSide.WEST;
-        boolean isHidden, isDerived;
+        boolean isHidden, isDerived, hasWidth;
         // HashMap<Integer, String> constantValues;
         ArrayList<Object> currentCellPortDrivers;
         HashMap<Integer, SignalOccurences> signalMap = signalMaps.get(instancePath);
@@ -66,14 +64,24 @@ public class CellHandler {
 
             currentCell = (HashMap<String, Object>) cells.get(cellName);
             currentCellAttributes = (HashMap<String, Object>) currentCell.get("attributes");
+            currentCellParameters = (HashMap<String, Object>) currentCell.get("parameters");
 
             cellType = (String) currentCell.get("type");
+            cleanCellType = "";
 
             // Check whether the module / cell is hidden or not
             isHidden = currentCell.get("hide_name").equals(1);
 
             if (currentCellAttributes.containsKey("src")) {
                 srcLocation = currentCellAttributes.get("src").toString();
+            }
+
+			hasWidth = cellType.contains("mux") && currentCellParameters.containsKey("WIDTH");
+
+            if (hasWidth) {
+                width = (int) currentCellParameters.get("WIDTH");
+            } else {
+                width = 10000;
             }
 
             currentCellPortDirections = (HashMap<String, Object>) currentCell.get("port_directions");
@@ -114,9 +122,14 @@ public class CellHandler {
                     if (cellModuleDescription.containsKey("attributes")) {
                         HashMap<String, Object> internalCellAttributes = (HashMap<String, Object>) cellModuleDescription.get("attributes");
 
+                        if (internalCellAttributes.containsKey("hdlname")) {
+                            cleanCellType = (String) internalCellAttributes.get("hdlname");
+                        }
+
                         if (internalCellAttributes.containsKey("blackbox")) {
                             newCellNode.setProperty(FEntwumSOptions.CELL_TYPE, cellType);
                             logger.atInfo().setMessage("Cell {} is a primitive").addArgument(cellName).log();
+                            newCellNode.setProperty(FEntwumSOptions.LOCATION_PATH, instancePath + " " + cellName);
                         } else {
                             newCellNode.setProperty(FEntwumSOptions.LOCATION_PATH, instancePath + " " + cellName);
                             newCellNode.setProperty(FEntwumSOptions.CELL_TYPE, "HDL_ENTITY");
@@ -132,7 +145,11 @@ public class CellHandler {
                 newCellNode.setProperty(FEntwumSOptions.CELL_TYPE, cellType);
             }
 
-            ElkLabel newCellNodeLabel = ElkElementCreator.createNewCellLabel(cellType, newCellNode, settings);
+            if (cleanCellType.isEmpty()) {
+                cleanCellType = cellType;
+            }
+
+            ElkLabel newCellNodeLabel = ElkElementCreator.createNewCellLabel(cleanCellType.replace('$', ' ').trim(), newCellNode, settings);
 
             // Create label containing the cell's/module's name for non-hidden cells
             // The label is placed below the generated node
@@ -162,6 +179,7 @@ public class CellHandler {
             if (isDerived) {
                 for (String portName : currentCellPortDirections.keySet()) {
                     currentBitIndex = 0;
+                    currentIndexInGroup = 0;
                     // constantValues = new HashMap<>();
 
                     if (currentCellConnections.size() != currentCellPortDirections.size() ||
@@ -189,16 +207,13 @@ public class CellHandler {
                             newCellPort.setProperty(CoreOptions.PORT_INDEX,
                                                     currentPortIndex * maxSignals + currentBitIndex);
                             newCellPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portName);
+                            newCellPort.setProperty(FEntwumSOptions.PORT_GROUP_SPLIT_INDEX, currentIndexInGroup);
                             newCellPort.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, currentBitIndex);
 
-                            if (currentCellPortDrivers.size() == 1) {
-                                newCellPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.SIGNAL_SINGLE);
-                            } else {
-                                newCellPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.SIGNAL_MULTIPLE);
-                            }
+                            newCellPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.SIGNAL_SINGLE);
 
                             ElkLabel newCellPortLabel = ElkElementCreator.createNewPortLabel(
-                                    portName + (currentCellPortDrivers.size() == 1 ? "" : " [" + currentBitIndex + "]"),
+                                    portName + (currentCellPortDrivers.size() == 1 ? "" : "[" + currentBitIndex + "]"),
                                     newCellPort, settings);
 
                             SignalOccurences signalOccurences = signalMap.get(driver);
@@ -218,14 +233,18 @@ public class CellHandler {
                             // Defer Port construction until all constant values have been gathered
                             // constantValues.put(currentBitIndex, (String) driver);
 
-                            constantSignalIndexList.add(new SignalElement(currentBitIndex, driver, null));
+                            constantSignalIndexList.add(new SignalElement(currentBitIndex, driver, null, null));
+                        }
+
+                        if (currentBitIndex % width == width - 1) {
+                            currentIndexInGroup++;
                         }
 
                         currentBitIndex++;
                     }
 
                     // Create pre-bundled constant ports
-                    List<BundleRange> constRanges = RangeCalculator.calculateRanges(constantSignalIndexList);
+                    List<BundleRange> constRanges = RangeCalculator.calculateRanges(constantSignalIndexList, width);
 
                     for (BundleRange constRange : constRanges) {
                         ElkPort constPort;
@@ -236,14 +255,17 @@ public class CellHandler {
                         newPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portName);
 
                         if (constRange.containedRange().singleElement()) {
-                            newPort.setProperty(FEntwumSOptions.CANONICAL_INDEX_IN_PORT_GROUP, constRange.containedRange().lower());
+                            newPort.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, constRange.containedRange().lower());
 
                             ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(
-                                    portName + (currentCellPortDrivers.size() == 1 ? "" : " [" + (constRange.containedRange().lower()) + "]"), newPort,
+                                    portName + (currentCellPortDrivers.size() == 1 ? "" : "[" + (constRange.containedRange().lower()) + "]"), newPort,
                                     settings);
                         } else {
+                            newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_LOWER_INDEX_IN_PORT_GROUP, constRange.containedRange().lower());
+                            newPort.setProperty(FEntwumSOptions.CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP, constRange.containedRange().upper());
+
                             ElkLabel newPortLabel = ElkElementCreator.createNewPortLabel(
-                                    portName + " [" + (constRange.containedRange().upper()) + ":" + (constRange.containedRange().lower()) + "]", newPort,
+                                    portName + "[" + (constRange.containedRange().upper()) + ":" + (constRange.containedRange().lower()) + "]", newPort,
                                     settings);
                         }
 
@@ -289,18 +311,32 @@ public class CellHandler {
                             sink = newPort;
                         }
 
-                        if (currentCellPortDrivers.size() == 1) {
-                            newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
-                            constNode.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
-                        } else {
-                            newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
-                            constNode.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
+                        int portGroupSubdivisionIndex = (constRange.containedRange().lower()) / width;
+
+                        if (hasWidth && portName.equals("B")) {
+                            newPort.setProperty(FEntwumSOptions.PORT_GROUP_SPLIT_INDEX, portGroupSubdivisionIndex);
                         }
 
-                        // Add connection
                         ElkEdge constEdge = ElkElementCreator.createNewEdge(sink, source);
-                        constEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.CONSTANT);
 
+                        if (constRange.containedRange().singleElement()) {
+                            newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
+                            constPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_SINGLE);
+
+                            // Add connection
+                            constEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.CONSTANT);
+                        } else {
+                            newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_MULTIPLE);
+                            constPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.CONSTANT_MULTIPLE);
+
+                            // Add connection
+                            constEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED_CONSTANT);
+                        }
+
+                        for (int i = constRange.containedRange().lower(); i <= constRange.containedRange().upper(); i++) {
+                            constEdge.getProperty(FEntwumSOptions.NET_ASSOCIATIONS)
+                                    .add(new NetAssociation("", i, SignalNameValidityLevel.YOSYS_GENERATED));
+                        }
 
                         ElkLabel constEdgeLabel = ElkElementCreator.createNewEdgeLabel(constantValues.toString(), constEdge,
                                                                                        settings);
@@ -336,93 +372,143 @@ public class CellHandler {
 
                     currentCellPortDrivers = (ArrayList<Object>) currentCellConnections.get(portName);
 
-                    for (Object driver : currentCellPortDrivers) {
-                        if (driver instanceof Integer) {
-                            int finalCurrentBitIndex = currentBitIndex;
-                            Set<ElkPort> matchingPorts = newCellNode.getPorts().stream().filter(
-                                    port -> port.getProperty(FEntwumSOptions.PORT_GROUP_NAME).equals(portName) &&
-                                            (port.getProperty(FEntwumSOptions.CANONICAL_INDEX_IN_PORT_GROUP) ==
-                                                    finalCurrentBitIndex || (port.getProperty(
-                                                    FEntwumSOptions.CANONICAL_BUNDLE_LOWER_INDEX_IN_PORT_GROUP) <=
-                                                    finalCurrentBitIndex && port.getProperty(
-                                                    FEntwumSOptions.CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP) >=
-                                                    finalCurrentBitIndex))).collect(Collectors.toSet());
+                    if (!currentCellPortDrivers.isEmpty()) {
+                        for (Object driver : currentCellPortDrivers) {
+                            if (driver instanceof Integer) {
+                                int finalCurrentBitIndex = currentBitIndex;
+                                Set<ElkPort> matchingPorts = newCellNode.getPorts().stream().filter(
+                                        port -> port.getProperty(FEntwumSOptions.PORT_GROUP_NAME).equals(portName) &&
+                                                (port.getProperty(FEntwumSOptions.CANONICAL_INDEX_IN_PORT_GROUP) ==
+                                                        finalCurrentBitIndex || (port.getProperty(
+                                                        FEntwumSOptions.CANONICAL_BUNDLE_LOWER_INDEX_IN_PORT_GROUP) <=
+                                                        finalCurrentBitIndex && port.getProperty(
+                                                        FEntwumSOptions.CANONICAL_BUNDLE_UPPER_INDEX_IN_PORT_GROUP) >=
+                                                        finalCurrentBitIndex))).collect(Collectors.toSet());
 
-                            if (matchingPorts.isEmpty()) {
-                                logger.atError().setMessage("Module {} portgroup {} index {} not found").addArgument(
-                                        cellName).addArgument(portName).addArgument(currentBitIndex).log();
-                            } else {
-                                // This can occur in special cases
-                                // TODO find better solution
-                                if (matchingPorts.size() > 1) {
-                                    logger.atWarn().setMessage(
-                                                    "Module {} portgroup {} index {} found more than one matching port")
-                                            .addArgument(cellName).addArgument(portName).addArgument(currentBitIndex)
-                                            .log();
-                                }
-
-                                if (!signalMap.containsKey(driver)) {
-                                    signalMap.put((Integer) driver, new SignalOccurences());
-                                }
-
-                                if (!currentCellPortDirections.get(portName).equals("output")) {
-                                    signalMap.get(driver).getSinkPorts().add(matchingPorts.iterator().next());
+                                if (matchingPorts.isEmpty()) {
+                                    logger.atError().setMessage("Module {} portgroup {} index {} not found").addArgument(
+                                            cellName).addArgument(portName).addArgument(currentBitIndex).log();
                                 } else {
-                                    signalMap.get(driver).setSourcePort(matchingPorts.iterator().next());
-                                }
-                            }
-                        } else {
-                            // Get internal driver indexes
-                            HashMap<String, Object> internalCellDescription = (HashMap<String, Object>) netlist.get(cellType);
+                                    // This can occur in special cases
+                                    // TODO find better solution
+                                    if (matchingPorts.size() > 1) {
+                                        logger.atWarn().setMessage(
+                                                        "Module {} portgroup {} index {} found more than one matching port")
+                                                .addArgument(cellName).addArgument(portName).addArgument(currentBitIndex)
+                                                .log();
+                                    }
 
-                            // Get signalMap
-                            HashMap<Integer, SignalOccurences> moduleInternalSignalMap = new HashMap<Integer, SignalOccurences>();
+                                    if (!signalMap.containsKey(driver)) {
+                                        signalMap.put((Integer) driver, new SignalOccurences());
+                                    }
 
-                            if (signalMaps.containsKey(newSubModulePath)) {
-                                moduleInternalSignalMap = signalMaps.get(newSubModulePath);
-                            } else {
-                                moduleInternalSignalMap = new HashMap<>();
-                                signalMaps.put(newSubModulePath, moduleInternalSignalMap);
-                            }
-
-                            if (internalCellDescription == null) {
-                                logger.atError().setMessage("Module {} not found in netlist, therefore the constant port cannot be associated").addArgument(cellType).log();
-                            } else {
-                                HashMap<String, Object> internalCellPorts = (HashMap<String, Object>) internalCellDescription.get("ports");
-
-                                if (!internalCellPorts.containsKey(portName)) {
-                                    logger.atError().setMessage("Module {} does not contain description for portgroup {}").addArgument(cellType).addArgument(portName).log();
-                                } else {
-                                    HashMap<String, Object> wantedInternalCellPort = (HashMap<String, Object>) internalCellPorts.get(portName);
-
-                                    if (wantedInternalCellPort.get("direction").equals("output")) {
-                                        logger.atError().setMessage("Module {} portgroup {} is a constant output. Aborting...").addArgument(cellType).addArgument(portName).log();
+                                    if (!currentCellPortDirections.get(portName).equals("output")) {
+                                        signalMap.get(driver).getSinkPorts().add(matchingPorts.iterator().next());
                                     } else {
-                                        List<Object> wantedInternalCellPortDrivers = (List<Object>) wantedInternalCellPort.get("bits");
+                                        signalMap.get(driver).setSourcePort(matchingPorts.iterator().next());
+                                    }
+                                }
+                            } else {
+                                // Get internal driver indexes
+                                HashMap<String, Object> internalCellDescription = (HashMap<String, Object>) netlist.get(cellType);
 
-                                        for (Object internalDriver : wantedInternalCellPortDrivers) {
-                                            if (internalDriver instanceof Integer) {
-                                                if (!moduleInternalSignalMap.containsKey((Integer) internalDriver)) {
-                                                    moduleInternalSignalMap.put((Integer) internalDriver, new SignalOccurences());
-                                                }
+                                // Get signalMap
+                                HashMap<Integer, SignalOccurences> moduleInternalSignalMap = new HashMap<Integer, SignalOccurences>();
 
-                                                Set<ElkPort> matchingPort = newCellNode.getPorts().stream().filter(
-                                                        port -> port.getProperty(FEntwumSOptions.PORT_GROUP_NAME).equals(portName))
-                                                        .collect(Collectors.toSet());
-                                                if (matchingPort.isEmpty()) {
-                                                    logger.error("Found no matching const port");
-                                                } else {
-                                                    moduleInternalSignalMap.get(internalDriver).setSourcePort(matchingPort.iterator().next());
+                                if (signalMaps.containsKey(newSubModulePath)) {
+                                    moduleInternalSignalMap = signalMaps.get(newSubModulePath);
+                                } else {
+                                    moduleInternalSignalMap = new HashMap<>();
+                                    signalMaps.put(newSubModulePath, moduleInternalSignalMap);
+                                }
+
+                                if (internalCellDescription == null) {
+                                    logger.atError().setMessage("Module {} not found in netlist, therefore the constant port cannot be associated").addArgument(cellType).log();
+                                } else {
+                                    HashMap<String, Object> internalCellPorts = (HashMap<String, Object>) internalCellDescription.get("ports");
+
+                                    if (!internalCellPorts.containsKey(portName)) {
+                                        logger.atError().setMessage("Module {} does not contain description for portgroup {}").addArgument(cellType).addArgument(portName).log();
+                                    } else {
+                                        HashMap<String, Object> wantedInternalCellPort = (HashMap<String, Object>) internalCellPorts.get(portName);
+
+                                        if (wantedInternalCellPort.get("direction").equals("output")) {
+                                            logger.atError().setMessage("Module {} portgroup {} is a constant output. Aborting...").addArgument(cellType).addArgument(portName).log();
+                                        } else {
+                                            List<Object> wantedInternalCellPortDrivers = (List<Object>) wantedInternalCellPort.get("bits");
+
+                                            for (Object internalDriver : wantedInternalCellPortDrivers) {
+                                                if (internalDriver instanceof Integer) {
+                                                    if (!moduleInternalSignalMap.containsKey((Integer) internalDriver)) {
+                                                        moduleInternalSignalMap.put((Integer) internalDriver, new SignalOccurences());
+                                                    }
+
+                                                    Set<ElkPort> matchingPort = newCellNode.getPorts().stream().filter(
+                                                                    port -> port.getProperty(FEntwumSOptions.PORT_GROUP_NAME).equals(portName))
+                                                            .collect(Collectors.toSet());
+                                                    if (matchingPort.isEmpty()) {
+                                                        logger.error("Found no matching const port");
+                                                    } else {
+                                                        moduleInternalSignalMap.get(internalDriver).setSourcePort(matchingPort.iterator().next());
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
+
                             }
 
+                            currentBitIndex++;
+                        }
+                    } else {
+                        // Get internal driver indexes
+                        HashMap<String, Object> internalCellDescription = (HashMap<String, Object>) netlist.get(cellType);
+
+                        // Get signalMap
+                        HashMap<Integer, SignalOccurences> moduleInternalSignalMap = new HashMap<Integer, SignalOccurences>();
+
+                        if (signalMaps.containsKey(newSubModulePath)) {
+                            moduleInternalSignalMap = signalMaps.get(newSubModulePath);
+                        } else {
+                            moduleInternalSignalMap = new HashMap<>();
+                            signalMaps.put(newSubModulePath, moduleInternalSignalMap);
                         }
 
-                        currentBitIndex++;
+                        if (internalCellDescription == null) {
+                            logger.atError().setMessage("Module {} not found in netlist, therefore the constant port cannot be associated").addArgument(cellType).log();
+                        } else {
+                            HashMap<String, Object> internalCellPorts = (HashMap<String, Object>) internalCellDescription.get("ports");
+
+                            if (!internalCellPorts.containsKey(portName)) {
+                                logger.atError().setMessage("Module {} does not contain description for portgroup {}").addArgument(cellType).addArgument(portName).log();
+                            } else {
+                                HashMap<String, Object> wantedInternalCellPort = (HashMap<String, Object>) internalCellPorts.get(portName);
+
+                                if (wantedInternalCellPort.get("direction").equals("output")) {
+                                    logger.atError().setMessage("Module {} portgroup {} is a constant output. Aborting...").addArgument(cellType).addArgument(portName).log();
+                                } else {
+                                    List<Object> wantedInternalCellPortDrivers = (List<Object>) wantedInternalCellPort.get("bits");
+
+                                    for (Object internalDriver : wantedInternalCellPortDrivers) {
+                                        if (internalDriver instanceof Integer) {
+                                            if (!moduleInternalSignalMap.containsKey((Integer) internalDriver)) {
+                                                moduleInternalSignalMap.put((Integer) internalDriver, new SignalOccurences());
+                                            }
+
+                                            Set<ElkPort> matchingPort = newCellNode.getPorts().stream().filter(
+                                                            port -> port.getProperty(FEntwumSOptions.PORT_GROUP_NAME).equals(portName))
+                                                    .collect(Collectors.toSet());
+                                            if (matchingPort.isEmpty()) {
+                                                logger.error("Found no matching const port");
+                                            } else {
+                                                moduleInternalSignalMap.get(internalDriver).setSourcePort(matchingPort.iterator().next());
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     currentPortIndex++;
