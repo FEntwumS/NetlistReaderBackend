@@ -849,7 +849,7 @@ public class EdgeBundler {
 						ret += ']';
 					}
 
-					ret += " -> ";
+					ret += " ⮞ ";
 				}
 			}
 
