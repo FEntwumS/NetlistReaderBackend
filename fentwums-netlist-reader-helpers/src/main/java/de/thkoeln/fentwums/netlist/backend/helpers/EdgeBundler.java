@@ -9,10 +9,7 @@ import org.eclipse.elk.graph.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.eclipse.elk.graph.util.ElkGraphUtil.updateContainment;
 
@@ -678,7 +675,7 @@ public class EdgeBundler {
 				updateContainment(edge);
 			}
 		} else if (!edge.equals(existingEdge)) {
-			moveNetAssociationinformation(edge, existingEdge);
+			moveNetAssociationInformation(edge, existingEdge);
 
 			removeEdgeFromGraph(edge);
 
@@ -711,7 +708,7 @@ public class EdgeBundler {
 				updateContainment(edge);
 			}
 		} else if (!edge.equals(existingEdge)) {
-			moveNetAssociationinformation(edge, existingEdge);
+			moveNetAssociationInformation(edge, existingEdge);
 
 			removeEdgeFromGraph(edge);
 
@@ -757,12 +754,17 @@ public class EdgeBundler {
 
 			//List<String> a =
 
-			String sharedNameAcrossBundles = findSharedNetNameAcrossBundles(bundleList);
+			String sharedNameAcrossBundles = findSharedNetNameAcrossBundles(bundleList, forAgg);
 			String sharedOriginName = "";
 			List<Range> sharedOriginBitRanges = new ArrayList<>();
+			ElkPort sharedOriginPort = null;
 
 			if (forAgg) {
 				List<NetAssociation> sharedNamesInBundle = findSharedNetNameInBundle(b);
+
+				if (sharedNamesInBundle.stream().anyMatch(a -> a.netName().equals("dat_xnor_s"))) {
+					int i = 0;
+				}
 
 				List<NetAssociation> sharedUserGeneratedNamesInBundle = sharedNamesInBundle.stream().filter(a -> a.validityLevel().equals(SignalNameValidityLevel.USER_CREATED)).toList();
 
@@ -771,10 +773,31 @@ public class EdgeBundler {
 						List<String> portnames = b.associatedEdges().getFirst().getContainingNode().getPorts().stream().map(p -> p.getProperty(FEntwumSOptions.PORT_GROUP_NAME)).toList();
 						List<NetAssociation> nonPortSharedNamesInBundle = sharedUserGeneratedNamesInBundle.stream().filter(a -> !portnames.contains(a.netName())).toList();
 
-						if (!nonPortSharedNamesInBundle.isEmpty()) {
-							sharedOriginName = nonPortSharedNamesInBundle.getFirst().netName();
-						} else {
-							sharedOriginName = sharedUserGeneratedNamesInBundle.getFirst().netName();
+						if (forAgg) {
+							ElkPort sourcePort = (ElkPort) b.associatedEdges().getFirst().getSources().getFirst();
+							ElkNode sourceNode = sourcePort.getParent();
+
+							if (sourceNode.getProperty(FEntwumSOptions.CELL_TYPE).equals("SPLIT_CONTAINER")) {
+								ElkPort splitInPort = sourceNode.getPorts().stream().filter(p -> p.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.WEST)).toList().getFirst();
+								ElkEdge incomingEdge = splitInPort.getIncomingEdges().getFirst();
+								ElkPort actualSourcePort = (ElkPort) incomingEdge.getSources().getFirst();
+
+								if (actualSourcePort.getParent().equals(incomingEdge.getContainingNode())) {
+									sharedOriginName = actualSourcePort.getProperty(FEntwumSOptions.PORT_GROUP_NAME);
+									sharedOriginPort = actualSourcePort;
+								}
+							} else if (sourceNode.equals(b.associatedEdges().getFirst().getContainingNode())) {
+								sharedOriginName = sourcePort.getProperty(FEntwumSOptions.PORT_GROUP_NAME);
+								sharedOriginPort = sourcePort;
+							}
+						}
+
+						if (sharedOriginName.isEmpty()) {
+							if (!nonPortSharedNamesInBundle.isEmpty()) {
+								sharedOriginName = nonPortSharedNamesInBundle.getFirst().netName();
+							} else {
+								sharedOriginName = sharedUserGeneratedNamesInBundle.getFirst().netName();
+							}
 						}
 					} else {
 						sharedOriginName = sharedUserGeneratedNamesInBundle.getFirst().netName();
@@ -833,7 +856,7 @@ public class EdgeBundler {
 					sharedOriginBitRanges.sort(Range::compareTo);
 					sharedOriginBitRanges = sharedOriginBitRanges.reversed();
 
-					if (sharedOriginBitRanges.size() > 1 || !sharedOriginBitRanges.getFirst().singleElement() || sharedOriginBitRanges.getFirst().lower() != 0) {
+					if (sharedOriginBitRanges.size() > 1 || !sharedOriginBitRanges.getFirst().singleElement() || sharedOriginBitRanges.getFirst().lower() != 0 || (sharedOriginPort != null && (sharedOriginPort.getProperty(FEntwumSOptions.PORT_TYPE).equals(PortType.SIGNAL_MULTIPLE) || sharedOriginPort.getProperty(FEntwumSOptions.PORT_TYPE).equals(PortType.CONSTANT_MULTIPLE)))) {
 						ret += '[';
 						ret += sharedOriginBitRanges.getFirst().singleElement() ? sharedOriginBitRanges.getFirst().lower() : (Integer.toString(sharedOriginBitRanges.getFirst().upper()) + ':' + sharedOriginBitRanges.getFirst().lower());
 
@@ -849,7 +872,7 @@ public class EdgeBundler {
 						ret += ']';
 					}
 
-					ret += " ⮞ ";
+					ret += "⮞ ";
 				}
 			}
 
@@ -941,7 +964,7 @@ public class EdgeBundler {
 		}
 	}
 
-	private static void moveNetAssociationinformation(ElkEdge sourceEdge, ElkEdge targetEdge) {
+	private static void moveNetAssociationInformation(ElkEdge sourceEdge, ElkEdge targetEdge) {
 		if (sourceEdge.getProperty(FEntwumSOptions.SIGBIT).equals(targetEdge.getProperty(FEntwumSOptions.SIGBIT))) {
 			int sharedSigbit =  sourceEdge.getProperty(FEntwumSOptions.SIGBIT);
 			for (NetAssociation a : sourceEdge.getProperty(FEntwumSOptions.NET_ASSOCIATIONS)) {
@@ -968,11 +991,7 @@ public class EdgeBundler {
 		}
 	}
 
-	private static String findSharedNetNameAcrossBundles(List<BundleRange> bundleList) {
-		if (bundleList.getFirst().associatedEdges().getFirst().getContainingNode().getIdentifier().contains("ws2812")) {
-			int i = 0;
-		}
-
+	private static String findSharedNetNameAcrossBundles(List<BundleRange> bundleList, boolean forAgg) {
 		List<List<NetAssociation>> candidates = bundleList.stream().filter(b -> !(b.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.CONSTANT)
 						|| b.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT))).map(EdgeBundler::findSharedNetNameInBundle).toList();
 
@@ -992,10 +1011,28 @@ public class EdgeBundler {
 
 		List<NetAssociation> results = choices.stream().filter(c -> candidates.stream().allMatch(comp -> comp.stream().anyMatch(m -> m.netName().equals(c.netName())))).toList();
 
+		ElkPort potentialOuterPort;
+
+		if (forAgg) {
+			potentialOuterPort = (ElkPort) bundleList.getFirst().associatedEdges().getFirst().getTargets().getFirst();
+		} else {
+			potentialOuterPort = (ElkPort) bundleList.getFirst().associatedEdges().getFirst().getSources().getFirst();
+		}
+
+		String outerPortName = "";
+
+		if (bundleList.getFirst().associatedEdges().getFirst().getContainingNode().equals(potentialOuterPort.getParent())) {
+			outerPortName = potentialOuterPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME);
+		}
+
 		if (results.isEmpty()) {
 			return "";
 		} else {
 			NetAssociation bestMatch = results.getFirst();
+			int lowestBit = Integer.MAX_VALUE;
+			int highestBit = Integer.MIN_VALUE;
+
+
 			for (int i = 1; i < results.size(); i++) {
 				NetAssociation candidate = results.get(i);
 				boolean isBetterValidityLevel = (bestMatch.validityLevel().equals(SignalNameValidityLevel.YOSYS_GENERATED)
@@ -1018,25 +1055,47 @@ public class EdgeBundler {
 									List<NetAssociation> nameMatches = e.getProperty(FEntwumSOptions.BUNDLED_NET_ASSOCIATIONS).get(key).stream().filter(a -> a.netName().equals(candidate.netName())).toList();
 
 									for  (NetAssociation a : nameMatches) {
-										indexList.add(a.indexInNet());
+										int index = a.indexInNet();
+										indexList.add(index);
+
+										if (index < lowestBit) {
+											lowestBit = index;
+										}
+
+										if (index > highestBit) {
+											highestBit = index;
+										}
 									}
 								}
 							} else {
 								List<NetAssociation> nameMatches = e.getProperty(FEntwumSOptions.NET_ASSOCIATIONS).stream().filter(a -> a.netName().equals(candidate.netName())).toList();
 
 								for  (NetAssociation a : nameMatches) {
-									indexList.add(a.indexInNet());
+									int index = a.indexInNet();
+									indexList.add(index);
+
+									if (index < lowestBit) {
+										lowestBit = index;
+									}
+
+									if (index > highestBit) {
+										highestBit = index;
+									}
 								}
 							}
 						}
 					}
 				}
 
+				if (!forAgg) {
+					indexList = new ArrayList<>(new HashSet<>(indexList));
+				}
+
 				indexList.sort(Integer::compareTo);
 
 				boolean isContiguous = true;
-				if (indexList.size() == 1) {
-					isContiguous = true;
+				if (indexList.size() != highestBit - lowestBit + 1) {
+					isContiguous = false;
 				} else {
 					int prev = indexList.getFirst();
 
@@ -1051,7 +1110,7 @@ public class EdgeBundler {
 					}
 				}
 
-				if (isContiguous && isBetterValidityLevel) {
+				if (isContiguous && (isBetterValidityLevel || candidate.netName().equals(outerPortName))) {
 					bestMatch = candidate;
 				}
 			}
