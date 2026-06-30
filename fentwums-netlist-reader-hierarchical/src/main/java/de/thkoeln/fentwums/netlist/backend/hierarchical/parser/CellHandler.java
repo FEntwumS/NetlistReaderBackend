@@ -111,7 +111,7 @@ public class CellHandler {
                 isDerived = true;
             }
 
-            ElkNode newCellNode = ElkElementCreator.createNewNode(parentNode, cellName);
+            ElkNode newCellNode = ElkElementCreator.createNewNode(parentNode, cellName, settings);
             newCellNode.setProperty(FEntwumSOptions.CELL_NAME, cellName);
 
             newCellNode.setProperty(FEntwumSOptions.SRC_LOCATION, srcLocation);
