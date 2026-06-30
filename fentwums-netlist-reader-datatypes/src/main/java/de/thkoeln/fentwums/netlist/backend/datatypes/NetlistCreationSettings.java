@@ -9,6 +9,9 @@ public class NetlistCreationSettings {
 	private double edgeLabelFontSize;
 	private PerformanceTarget performanceTarget;
 	private RequestedJunctionShape junctionShape;
+	private int layoutEffort;
+	private boolean showUnconnectedPorts;
+	private boolean onlyShowUserCreatedSignalNames;
 
 	/**
 	 * Creates a new settings store for the associated netlist
@@ -18,13 +21,16 @@ public class NetlistCreationSettings {
 	 * @param portLabelFontSize	Fontsize for ports
 	 * @param edgeLabelFontSize	Fontsize for edges
 	 */
-	public NetlistCreationSettings(double entityLabelFontSize, double cellLabelFontSize, double portLabelFontSize, double edgeLabelFontSize, PerformanceTarget performanceTarget, RequestedJunctionShape junctionShape) {
+	public NetlistCreationSettings(double entityLabelFontSize, double cellLabelFontSize, double portLabelFontSize, double edgeLabelFontSize, PerformanceTarget performanceTarget, RequestedJunctionShape junctionShape, int layoutEffort, boolean showUnconnectedPorts, boolean onlyShowUserCreatedSignalNames) {
 		this.entityLabelFontSize = entityLabelFontSize;
 		this.cellLabelFontSize = cellLabelFontSize;
 		this.portLabelFontSize = portLabelFontSize;
 		this.edgeLabelFontSize = edgeLabelFontSize;
 		this.performanceTarget = performanceTarget;
 		this.junctionShape = junctionShape;
+		this.layoutEffort = layoutEffort;
+		this.showUnconnectedPorts = showUnconnectedPorts;
+		this.onlyShowUserCreatedSignalNames = onlyShowUserCreatedSignalNames;
 	}
 
 	/**
@@ -74,5 +80,17 @@ public class NetlistCreationSettings {
 
 	public RequestedJunctionShape getJunctionShape() {
 		return junctionShape;
+	}
+
+	public int getLayoutEffort() {
+		return layoutEffort;
+	}
+
+	public boolean doShowUnconnectedPorts() {
+		return showUnconnectedPorts;
+	}
+
+	public boolean doOnlyShowUserCreatedSignalNames() {
+		return onlyShowUserCreatedSignalNames;
 	}
 }
