@@ -30,7 +30,7 @@ public class ElkElementCreator {
 	 * @param identifier The identifier of the node to be created
 	 * @return The created child node
 	 */
-	public static ElkNode createNewNode(ElkNode parent, String identifier) {
+	public static ElkNode createNewNode(ElkNode parent, String identifier, NetlistCreationSettings settings) {
 		ElkNode newNode = createNode(parent);
 		newNode.setIdentifier(identifier);
 		newNode.setProperty(CoreOptions.PORT_CONSTRAINTS, PortConstraints.FIXED_ORDER);
@@ -47,6 +47,7 @@ public class ElkElementCreator {
 		newNode.setProperty(CoreOptions.RANDOM_SEED, 1);
 		newNode.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
 		newNode.setProperty(LayeredOptions.NODE_PLACEMENT_BK_FIXED_ALIGNMENT, FixedAlignment.BALANCED);
+		newNode.setProperty(LayeredOptions.THOROUGHNESS, settings.getLayoutEffort());
 
 		return newNode;
 	}

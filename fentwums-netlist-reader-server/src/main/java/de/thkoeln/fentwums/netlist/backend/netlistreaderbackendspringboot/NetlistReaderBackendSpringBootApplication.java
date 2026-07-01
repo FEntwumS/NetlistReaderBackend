@@ -124,7 +124,14 @@ public class NetlistReaderBackendSpringBootApplication {
                                                                    String performanceTarget,
                                                                    @RequestParam(value = "test-mode", defaultValue =
                                                                            "0") String testMode,
-                                                                   @RequestParam(value = "junctionShape", defaultValue = "CIRCLE") String junctionShape) {
+                                                                   @RequestParam(value = "junctionShape", defaultValue =
+                                                                           "CIRCLE") String junctionShape,
+                                                                   @RequestParam(value = "layoutEffort",
+                                                                           defaultValue = "7") int layoutEffort,
+                                                                   @RequestParam(value = "showUnconnectedPorts",
+                                                                           defaultValue = "false") boolean showUnconnectedPorts,
+                                                                   @RequestParam(value = "onlyShowUserGeneratedSignalNames",
+                                                                           defaultValue = "false") boolean onlyShowUserGeneratedSignalNames) {
         System.gc();
         System.gc();
 
@@ -153,7 +160,8 @@ public class NetlistReaderBackendSpringBootApplication {
 
         NetlistCreationSettings settings = new NetlistCreationSettings(entityLabelFontSize, cellLabelFontSize,
                                                                        edgeLabelFontSize, portLabelFontSize,
-                                                                       target, shape);
+                                                                       target, shape, layoutEffort, showUnconnectedPorts,
+                                                                       onlyShowUserGeneratedSignalNames);
         try {
             switch (NetlistDifferentiator.differentiate(file.getInputStream())) {
                 case HIERARCHICAL -> {

@@ -103,7 +103,7 @@ public class CellHandler {
 						}
 
 						ElkNode newElkNode = ElkElementCreator.createNewNode(currentHierarchyPosition.getNode(),
-								intermediateCellPath.toString());
+								intermediateCellPath.toString(), settings);
 
 						newElkNode.setProperty(FEntwumSOptions.LOCATION_PATH, intermediateCellPath.toString());
 						newElkNode.setProperty(FEntwumSOptions.CELL_TYPE, "HDL_ENTITY");
@@ -132,7 +132,7 @@ public class CellHandler {
 
 			// now that the hierarchy has been created, the actual cells can be constructed
 
-			ElkNode newCellNode = ElkElementCreator.createNewNode(currentHierarchyPosition.getNode(), currentCellPath);
+			ElkNode newCellNode = ElkElementCreator.createNewNode(currentHierarchyPosition.getNode(), currentCellPath, settings);
 
 			newCellNode.setProperty(FEntwumSOptions.CELL_NAME, currentCellPathSplit[currentCellPathSplit.length - 1]);
 			newCellNode.setProperty(FEntwumSOptions.CELL_TYPE, celltype);

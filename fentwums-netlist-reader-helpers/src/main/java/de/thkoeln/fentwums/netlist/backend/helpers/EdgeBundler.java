@@ -259,7 +259,7 @@ public class EdgeBundler {
 
 				if (currentPort.getProperty(CoreOptions.PORT_SIDE).equals(PortSide.EAST)) {
 					if (bundleList.size() > 1) {
-						List<String> strl = createLabelsFromBundles(bundleList, fullsizeBundles, false);
+						List<String> strl = createLabelsFromBundles(bundleList, fullsizeBundles, false, settings);
 
 						SignalSplit split = ElkElementCreator.createSignalSplit(entityInstance, currentPort,
 								strl, settings);
@@ -306,7 +306,7 @@ public class EdgeBundler {
 									.log();
 						}
 
-						List<String> strl = createLabelsFromBundles(bundleList, new ArrayList<BundleRange>(), true);
+						List<String> strl = createLabelsFromBundles(bundleList, new ArrayList<BundleRange>(), true, settings);
 
 						SignalAgg agg = ElkElementCreator.createSignalAgg(entityInstance, currentPort,
 								strl, settings);
@@ -403,7 +403,11 @@ public class EdgeBundler {
 					// Remove existing label
 					reworkPort.getLabels().clear();
 
-					reworkPort.setProperty(FEntwumSOptions.NOT_CONNECTED, true);
+					if (settings.doShowUnconnectedPorts()) {
+						reworkPort.setProperty(FEntwumSOptions.NOT_CONNECTED, true);
+					} else {
+						continue;
+					}
 
 					// Create new label
 					ElkLabel newConstLabel = ElkElementCreator
@@ -564,7 +568,7 @@ public class EdgeBundler {
 
 			if (crossingPort.getProperty(CoreOptions.PORT_SIDE).equals(comparisonPortSide)) {
 				// Instance input -> split
-				List<String> strl = createLabelsFromBundles(bundleList, new ArrayList<>(), false);
+				List<String> strl = createLabelsFromBundles(bundleList, new ArrayList<>(), false, settings);
 
 				SignalSplit split = ElkElementCreator.createSignalSplit(aggSplitContainingNode, crossingPort, strl, settings);
 
@@ -585,7 +589,7 @@ public class EdgeBundler {
 				}
 			} else {
 				// Instance output -> agg
-				List<String> strl = createLabelsFromBundles(bundleList, new ArrayList<>(), true);
+				List<String> strl = createLabelsFromBundles(bundleList, new ArrayList<>(), true, settings);
 
 				SignalAgg agg = ElkElementCreator.createSignalAgg(aggSplitContainingNode, crossingPort, strl, settings);
 
@@ -748,23 +752,19 @@ public class EdgeBundler {
 		return sigBitList;
 	}
 
-	private static List<String> createLabelsFromBundles(List<BundleRange> bundleList, List<BundleRange> excludedBundles, boolean forAgg) {
+	private static List<String> createLabelsFromBundles(List<BundleRange> bundleList, List<BundleRange> excludedBundles, boolean forAgg, NetlistCreationSettings settings) {
 		List<String> strl = bundleList.stream().filter(b -> !excludedBundles.contains(b)).map(b -> {
 			String ret = "";
 
-			//List<String> a =
-
-			String sharedNameAcrossBundles = findSharedNetNameAcrossBundles(bundleList, forAgg);
+			NetAssociation sharedNetAssociationAcrossBundles = findSharedNetNameAcrossBundles(bundleList, forAgg);
+			String sharedNameAcrossBundles = sharedNetAssociationAcrossBundles == null ? "" : sharedNetAssociationAcrossBundles.netName();
 			String sharedOriginName = "";
+			NetAssociation sharedOriginAssociation = null;
 			List<Range> sharedOriginBitRanges = new ArrayList<>();
 			ElkPort sharedOriginPort = null;
 
 			if (forAgg) {
 				List<NetAssociation> sharedNamesInBundle = findSharedNetNameInBundle(b);
-
-				if (sharedNamesInBundle.stream().anyMatch(a -> a.netName().equals("dat_xnor_s"))) {
-					int i = 0;
-				}
 
 				List<NetAssociation> sharedUserGeneratedNamesInBundle = sharedNamesInBundle.stream().filter(a -> a.validityLevel().equals(SignalNameValidityLevel.USER_CREATED)).toList();
 
@@ -794,18 +794,22 @@ public class EdgeBundler {
 
 						if (sharedOriginName.isEmpty()) {
 							if (!nonPortSharedNamesInBundle.isEmpty()) {
-								sharedOriginName = nonPortSharedNamesInBundle.getFirst().netName();
+								sharedOriginAssociation = nonPortSharedNamesInBundle.getFirst();
+								sharedOriginName = sharedOriginAssociation.netName();
 							} else {
-								sharedOriginName = sharedUserGeneratedNamesInBundle.getFirst().netName();
+								sharedOriginAssociation = sharedUserGeneratedNamesInBundle.getFirst();
+								sharedOriginName = sharedOriginAssociation.netName();
 							}
 						}
 					} else {
-						sharedOriginName = sharedUserGeneratedNamesInBundle.getFirst().netName();
+						sharedOriginAssociation = sharedUserGeneratedNamesInBundle.getFirst();
+						sharedOriginName = sharedOriginAssociation.netName();
 					}
 				}
 
 				if (sharedOriginName.isEmpty() && !sharedNamesInBundle.isEmpty()) {
-					sharedOriginName = sharedNamesInBundle.getFirst().netName();
+					sharedOriginAssociation =  sharedNamesInBundle.getFirst();
+					sharedOriginName = sharedOriginAssociation.netName();
 				}
 			}
 
@@ -851,7 +855,10 @@ public class EdgeBundler {
 					logger.warn("Found split origin range for single bundle");
 				}
 
-				ret += sharedOriginName;
+				if (!(settings.doOnlyShowUserCreatedSignalNames() && sharedOriginAssociation != null && !sharedOriginAssociation.validityLevel().equals(SignalNameValidityLevel.USER_CREATED)))
+				{
+					ret += sharedOriginName;
+				}
 				if (!sharedOriginBitRanges.isEmpty()) {
 					sharedOriginBitRanges.sort(Range::compareTo);
 					sharedOriginBitRanges = sharedOriginBitRanges.reversed();
@@ -872,7 +879,9 @@ public class EdgeBundler {
 						ret += ']';
 					}
 
-					ret += " ⮞ ";
+					if (!ret.isEmpty()) {
+						ret += " ⮞ ";
+					}
 				}
 			}
 
@@ -882,7 +891,9 @@ public class EdgeBundler {
 					ret += b.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGNAL_NAME);
 				}
 			} else {
-				ret += sharedNameAcrossBundles;
+				if (!(settings.doOnlyShowUserCreatedSignalNames() && sharedNetAssociationAcrossBundles != null && !sharedNetAssociationAcrossBundles.validityLevel().equals(SignalNameValidityLevel.USER_CREATED))) {
+					ret += sharedNameAcrossBundles;
+				}
 			}
 			ret += "[";
 
@@ -991,12 +1002,12 @@ public class EdgeBundler {
 		}
 	}
 
-	private static String findSharedNetNameAcrossBundles(List<BundleRange> bundleList, boolean forAgg) {
+	private static NetAssociation findSharedNetNameAcrossBundles(List<BundleRange> bundleList, boolean forAgg) {
 		List<List<NetAssociation>> candidates = bundleList.stream().filter(b -> !(b.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.CONSTANT)
 						|| b.associatedEdges().getFirst().getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.BUNDLED_CONSTANT))).map(EdgeBundler::findSharedNetNameInBundle).toList();
 
 		if (candidates.isEmpty()) {
-			return "";
+			return null;
 		}
 
 		List<NetAssociation> choices = new ArrayList<>();
@@ -1006,7 +1017,7 @@ public class EdgeBundler {
 		}
 
 		if (choices.size() == 1) {
-			return choices.getFirst().netName();
+			return choices.getFirst();
 		}
 
 		List<NetAssociation> results = choices.stream().filter(c -> candidates.stream().allMatch(comp -> comp.stream().anyMatch(m -> m.netName().equals(c.netName())))).toList();
@@ -1026,7 +1037,7 @@ public class EdgeBundler {
 		}
 
 		if (results.isEmpty()) {
-			return "";
+			return null;
 		} else {
 			NetAssociation bestMatch = results.getFirst();
 			int lowestBit = Integer.MAX_VALUE;
@@ -1115,7 +1126,7 @@ public class EdgeBundler {
 				}
 			}
 
-			return bestMatch.netName();
+			return bestMatch;
 		}
 	}
 

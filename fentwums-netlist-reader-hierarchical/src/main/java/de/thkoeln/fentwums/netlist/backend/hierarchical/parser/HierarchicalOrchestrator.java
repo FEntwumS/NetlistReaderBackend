@@ -46,6 +46,7 @@ public class HierarchicalOrchestrator implements IGraphCreator {
         root.setProperty(CoreOptions.HIERARCHY_HANDLING, HierarchyHandling.INCLUDE_CHILDREN);
         root.setProperty(CoreOptions.NODE_SIZE_CONSTRAINTS, EnumSet.allOf(SizeConstraint.class));
         root.setProperty(CoreOptions.PARTITIONING_ACTIVATE, true);
+        root.setProperty(LayeredOptions.THOROUGHNESS, settings.getLayoutEffort());
         root.setIdentifier("root");
 
         HashMap<String, Object> modules = (HashMap<String, Object>) netlist.get("modules");
@@ -68,7 +69,7 @@ public class HierarchicalOrchestrator implements IGraphCreator {
             return null;
         }
 
-        ElkNode topNode = ElkElementCreator.createNewNode(root, topName);
+        ElkNode topNode = ElkElementCreator.createNewNode(root, topName, settings);
         topNode.setProperty(FEntwumSOptions.CELL_TYPE, "HDL_ENTITY");
         topNode.setProperty(CoreOptions.INSIDE_SELF_LOOPS_ACTIVATE, true);
 
