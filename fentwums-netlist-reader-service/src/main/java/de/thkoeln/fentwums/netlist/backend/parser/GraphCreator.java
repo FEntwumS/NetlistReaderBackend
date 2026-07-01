@@ -162,7 +162,7 @@ public class GraphCreator implements IGraphCreator {
 
 		// Mark any ports that are not connected to any signal
 		PortMarker marker = new PortMarker();
-		marker.mark(toplevel);
+		marker.mark(toplevel, settings);
 
 		checker.checkGraph(root);
 

@@ -403,7 +403,11 @@ public class EdgeBundler {
 					// Remove existing label
 					reworkPort.getLabels().clear();
 
-					reworkPort.setProperty(FEntwumSOptions.NOT_CONNECTED, true);
+					if (settings.doShowUnconnectedPorts()) {
+						reworkPort.setProperty(FEntwumSOptions.NOT_CONNECTED, true);
+					} else {
+						continue;
+					}
 
 					// Create new label
 					ElkLabel newConstLabel = ElkElementCreator
