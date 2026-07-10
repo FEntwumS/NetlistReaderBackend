@@ -247,6 +247,9 @@ public class EdgeBundler {
 
 									moveEdgesToSource(b.associatedEdges(), existingAgg.port(), false);
 									moveEdgesToTarget(b.associatedEdges().stream().filter(edge -> !edge.getSources().isEmpty() && !edge.getTargets().getFirst().equals(currentPort)).toList(), currentPort, false);
+
+									// Set currentPort to port type SIGNAL_MULTIPLE
+									currentPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.SIGNAL_MULTIPLE);
 								}
 
 								bundleList.clear();
@@ -314,6 +317,10 @@ public class EdgeBundler {
 						// Draw edge
 						ElkEdge fromAggEdge = ElkElementCreator.createNewEdge(currentPort, agg.outPort());
 						fromAggEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
+
+						// Set currentPort to port type SIGNAL_MULTIPLE
+						currentPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.SIGNAL_MULTIPLE);
+
 						List<Object> sigbitList = new ArrayList<>();
 
 						for (int i = 0; i < bundleList.size(); i++) {
@@ -596,6 +603,9 @@ public class EdgeBundler {
 				// Draw outgoing edge
 				ElkEdge outEdge = ElkElementCreator.createNewEdge(crossingPort, agg.outPort());
 				outEdge.setProperty(FEntwumSOptions.SIGNAL_TYPE, SignalType.BUNDLED);
+
+				// Set node input port where agg is now attached to port type multiple
+				crossingPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.SIGNAL_MULTIPLE);
 
 				for (int i = 0; i < bundleList.size(); i++) {
 					BundleRange currentBundleRange = bundleList.get(i);
