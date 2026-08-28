@@ -2,5 +2,7 @@ package de.thkoeln.fentwums.netlist.backend.elkoptions;
 
 public enum PortShape {
 	SQUARE,
-	TAG
+	TAG,
+	CIRCLE_SQUARE,
+	SQUARE_CIRCLE
 }

@@ -814,6 +814,8 @@ public class ElkElementCreator {
 		switch (port.getProperty(FEntwumSOptions.PORT_SHAPE)) {
 			case PortShape.SQUARE -> port.setWidth(10.0d);
 			case PortShape.TAG -> port.setWidth(13.0d);
+			case CIRCLE_SQUARE -> port.setWidth(20.0d);
+			case SQUARE_CIRCLE -> port.setWidth(20.0d);
 		}
 	}
 
