@@ -200,21 +200,23 @@ public class CellHandler {
 
                     List<SignalElement> constantSignalIndexList = new ArrayList<>();
 
+                    ElkPort newPort = null;
+
                     for (Object driver : currentCellPortDrivers) {
                         if (driver instanceof Integer) {
                             // Create port
-                            ElkPort newCellPort = ElkElementCreator.createNewPort(newCellNode, newPortSide);
-                            newCellPort.setProperty(CoreOptions.PORT_INDEX,
+                            newPort = ElkElementCreator.createNewPort(newCellNode, newPortSide);
+                            newPort.setProperty(CoreOptions.PORT_INDEX,
                                                     currentPortIndex * maxSignals + currentBitIndex);
-                            newCellPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portName);
-                            newCellPort.setProperty(FEntwumSOptions.PORT_GROUP_SPLIT_INDEX, currentIndexInGroup);
-                            newCellPort.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, currentBitIndex);
+                            newPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portName);
+                            newPort.setProperty(FEntwumSOptions.PORT_GROUP_SPLIT_INDEX, currentIndexInGroup);
+                            newPort.setProperty(FEntwumSOptions.INDEX_IN_PORT_GROUP, currentBitIndex);
 
-                            newCellPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.SIGNAL_SINGLE);
+                            newPort.setProperty(FEntwumSOptions.PORT_TYPE, PortType.SIGNAL_SINGLE);
 
                             ElkLabel newCellPortLabel = ElkElementCreator.createNewPortLabel(
                                     portName + (currentCellPortDrivers.size() == 1 ? "" : "[" + currentBitIndex + "]"),
-                                    newCellPort, settings);
+                                    newPort, settings);
 
                             SignalOccurences signalOccurences = signalMap.get(driver);
 
@@ -225,9 +227,9 @@ public class CellHandler {
                             }
 
                             if (newPortSide == PortSide.EAST) {
-                                signalOccurences.setSourcePort(newCellPort);
+                                signalOccurences.setSourcePort(newPort);
                             } else {
-                                signalOccurences.getSinkPorts().add(newCellPort);
+                                signalOccurences.getSinkPorts().add(newPort);
                             }
                         } else {
                             // Defer Port construction until all constant values have been gathered
@@ -251,7 +253,7 @@ public class CellHandler {
                         ElkPort source, sink;
                         ElkNode constNode;
 
-                        ElkPort newPort = ElkElementCreator.createNewPort(newCellNode, newPortSide);
+                        newPort = ElkElementCreator.createNewPort(newCellNode, newPortSide);
                         newPort.setProperty(FEntwumSOptions.PORT_GROUP_NAME, portName);
 
                         if (constRange.containedRange().singleElement()) {
@@ -341,6 +343,19 @@ public class CellHandler {
                         ElkLabel constEdgeLabel = ElkElementCreator.createNewEdgeLabel(constantValues.toString(), constEdge,
                                                                                        settings);
                         constEdgeLabel.setProperty(CoreOptions.EDGE_LABELS_PLACEMENT, EdgeLabelPlacement.HEAD);
+                    }
+
+                    if (currentCellParameters.containsKey(portName + "_POLARITY")) {
+                        Object polarityValue = currentCellParameters.get(portName + "_POLARITY");
+
+                        if (polarityValue instanceof Integer && polarityValue.equals(0) && newPort != null) {
+                            if (newPortSide == PortSide.EAST) {
+                                newPort.setProperty(FEntwumSOptions.PORT_SHAPE, PortShape.SQUARE_CIRCLE);
+                            } else {
+                                newPort.setProperty(FEntwumSOptions.PORT_SHAPE, PortShape.CIRCLE_SQUARE);
+                            }
+                            ElkElementCreator.setPortWidth(newPort);
+                        }
                     }
 
                     currentPortIndex++;
