@@ -522,10 +522,9 @@ public class EdgeBundler {
 						List<SignalElement> signalElements = new ArrayList<>();
 
 						int indexInSignal = edge.getProperty(FEntwumSOptions.INDEX_IN_SIGNAL);
+						String expectedSignalName = crossingPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME);
 
 						if (edge.getProperty(FEntwumSOptions.SIGNAL_TYPE).equals(SignalType.SINGLE)) {
-							String expectedSignalName = crossingPort.getProperty(FEntwumSOptions.PORT_GROUP_NAME);
-
 							NetAssociation netAssociation =
 									edge.getProperty(FEntwumSOptions.NET_ASSOCIATIONS).stream().filter(a -> a.netName().equals(expectedSignalName)).findFirst().orElse(null);
 
@@ -540,6 +539,13 @@ public class EdgeBundler {
 									edge.getProperty(FEntwumSOptions.INDEX_IN_SIGNAL), edge);
 
 							signalElements.add(toAdd);
+						} else if (edge.getProperty(FEntwumSOptions.BUNDLED_NET_ASSOCIATIONS) != null) {
+							// take the index of every bit from the net named like the port group
+							for (List<NetAssociation> associations : edge.getProperty(FEntwumSOptions.BUNDLED_NET_ASSOCIATIONS).values()) {
+								NetAssociation netAssociation = associations.stream().filter(a -> a.netName().equals(expectedSignalName)).findFirst().orElse(associations.getFirst());
+
+								signalElements.add(new SignalElement(netAssociation.indexInNet(), port, netAssociation.indexInNet(), edge));
+							}
 						} else {
 							for (int i = edge.getProperty(FEntwumSOptions.CANONICAL_LOWER_INDEX_IN_SIGNAL);
 							     i <= edge.getProperty(FEntwumSOptions.CANONICAL_UPPER_INDEX_IN_SIGNAL);
